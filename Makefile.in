@@ -15,6 +15,7 @@ FFSPIRO_AGE=0
 
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
 CC = @CC@
 
 _CFLAGS = -I$(srcdir)/../inc -I$(srcdir) -I. -I$(srcdir)/../fontforge \
