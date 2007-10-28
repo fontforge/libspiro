@@ -958,7 +958,9 @@ test_integ(void) {
 	    integrate_spiro(ks, xy);
 	en = get_time();
 	err = hypot(xy[0] - xynom[0], xy[1] - xynom[1]);
+#ifdef VERBOSE
 	printf("%d %d %g %g\n", ORDER, n, (en - st) / n_iter, err);
+#endif
 	ch = hypot(xy[0], xy[1]);
 	th = atan2(xy[1], xy[0]);
 #if 0
@@ -977,7 +979,9 @@ print_seg(const double ks[4], double x0, double y0, double x1, double y1)
 	fabs((1./48) * ks[3]);
 
     if (bend < 1e-8) {
+#ifdef VERBOSE
 	printf("%g %g lineto\n", x1, y1);
+#endif
     } else {
 	double seg_ch = hypot(x1 - x0, y1 - y0);
 	double seg_th = atan2(y1 - y0, x1 - x0);
@@ -1000,8 +1004,10 @@ print_seg(const double ks[4], double x0, double y0, double x1, double y1)
 	    vl = (scale * (1./3)) * sin(th_even - th_odd);
 	    ur = (scale * (1./3)) * cos(th_even + th_odd);
 	    vr = (scale * (1./3)) * sin(th_even + th_odd);
+#ifdef VERBOSE
 	    printf("%g %g %g %g %g %g curveto\n",
 		   x0 + ul, y0 + vl, x1 - ur, y1 - vr, x1, y1);
+#endif
 	    
 	} else {
 	    /* subdivide */
