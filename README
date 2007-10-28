@@ -1,0 +1,14 @@
+This is a shared library designed to give FontForge (and others) access to
+Raph Levien's spiro splines. 
+
+You may (possibly) be able to obtain more recent versions of Spiro from
+    http://levien.com/garden/ppedit/
+use the get-spiro-src.sh script to do so.
+
+To build, type
+    ./configure
+    make
+    make install
+
+Currently I extract very little from spiro, just the bare minimum to convert
+a series of (marked) points to a set of cubic bezier curves which ff can use.
