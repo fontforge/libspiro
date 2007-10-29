@@ -52,9 +52,10 @@ libspiro.la: $(LIB_FF_SPIRO_OBJECTS)
 
 install: all
 	mkdir -p $(DESTDIR)$(libdir)
+	mkdir -p $(DESTDIR)$(includedir)
 	$(LIBTOOL) --mode=install $(INSTALL) -c libspiro.la $(DESTDIR)$(libdir)/libspiro.la
 	$(LIBTOOL) --mode=finish $(DESTDIR)$(libdir)
-	$(INSTALL_DATA) bezctx.h $(includedir)
-	$(INSTALL_DATA) bezctx_intf.h $(includedir)
-	$(INSTALL_DATA) spiro.h $(includedir)
-	$(INSTALL_DATA) spiroentrypoints.h $(includedir)
+	$(INSTALL_DATA) bezctx.h $(DESTDIR)$(includedir)
+	$(INSTALL_DATA) bezctx_intf.h $(DESTDIR)$(includedir)
+	$(INSTALL_DATA) spiro.h $(DESTDIR)$(includedir)
+	$(INSTALL_DATA) spiroentrypoints.h $(DESTDIR)$(includedir)
