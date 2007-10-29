@@ -1,3 +1,5 @@
+#ifndef _SPIRO_H
+#define _SPIRO_H
 typedef struct {
     double x;
     double y;
@@ -16,3 +18,4 @@ void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc);
 
 double get_knot_th(const spiro_seg *s, int i);
+#endif

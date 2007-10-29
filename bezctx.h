@@ -1,3 +1,5 @@
+#ifndef _BEZCTX_H
+#define _BEZCTX_H
 #include "bezctx_intf.h"
 
 struct _bezctx {
@@ -8,3 +10,4 @@ struct _bezctx {
 		    double x3, double y3);
     void (*mark_knot)(bezctx *bc, int knot_idx);
 };
+#endif

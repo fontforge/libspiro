@@ -1,3 +1,5 @@
+#ifndef _ZMISC_H
+# define _ZMISC_H
 /**
  * Misc portability and convenience macros.
  **/
@@ -10,3 +12,4 @@
 
 #define znew(type, n) (type *)zalloc(sizeof(type) * (n))
 #define zrenew(type, p, n) (type *)zrealloc((p), sizeof(type) * (n))
+#endif
