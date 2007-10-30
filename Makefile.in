@@ -33,11 +33,10 @@ all: libspiro.la
 
 
 clean:
-	-rm -rf .libs *.la *.lo
+	-rm -rf .libs *.la *.lo *.o
 
 distclean: clean
 	-rm -rf Makefile
-	-rm -rf bezctx.c bezctx.h bezctx_intf.h spiro.c spiro.h zmisc.h README-RaphLevian gpl.txt
 
 get-spiro-src:
 	bash < get-spiro-src.sh
