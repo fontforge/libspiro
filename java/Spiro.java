@@ -624,7 +624,7 @@ public class Spiro {
  /* *************************** public interface **************************** */
  /* ************************************************************************* */
 
-    public void
+    static public void
       SpiroCPsToBezier(SpiroCP [] spiros,int n,boolean isclosed,SpiroBezierContext bc) {
 	spiro_seg []s;
 
