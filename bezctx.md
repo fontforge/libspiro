@@ -17,7 +17,7 @@ I provide two examples here, one is the type Raph created for doing output to en
 
 ## PostScript
 
-First a header file. This declares a routine which will create a PostScript bezier context -- this routine takes a file argument, splines will be written to the file as we gather more information.
+First a header file. This declares a routine which will create a PostScript bezier context – this routine takes a file argument, splines will be written to the file as we gather more information.
 
 ```c
 /* bezctx_ps.h */
