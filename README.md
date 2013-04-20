@@ -1,7 +1,4 @@
-# Spiro
-
-![](spiral16.png)
-![](spiral32.png)
+# Spiro ![](spiral32.png)
 
 ## Introduction
 
@@ -58,11 +55,11 @@ typedef struct {
 
 A spiro control point contains a location and a point type. There are five basic types of spiro control points:
 
-- A corner point -- where the slopes and curvatures of the incoming and outgoing splines are unconstrained
-- A G4 curve point -- Continuous up to the fourth derivative
-- A G2 curve point -- Continuous up to the second derivative.
-- A left constraint point -- Used to connect a curved line to a straight one
-- A right constraint point -- Used to connect a straight line to a curved one.
+- A corner point – where the slopes and curvatures of the incoming and outgoing splines are unconstrained
+- A G4 curve point – Continuous up to the fourth derivative
+- A G2 curve point – Continuous up to the second derivative.
+- A left constraint point – Used to connect a curved line to a straight one
+- A right constraint point – Used to connect a straight line to a curved one.
   If you have a contour which is drawn clockwise, and you have a straight segment at the top, then the left point of that straight segment should be a left constraint, and the right point should be a right constraint.
 
 #### The bézier context
@@ -89,7 +86,7 @@ struct _bezctx {
 };
 ```
 
-You must create a super-class of this abstract type that handles the creation of your particular representation of bézier splines. As an [example I provide the one used by Raph to generate PostScript output](bezctx.md) (cubic beziers). Spiro will convert a set of spiro_cps into a set of bezier curves. As it does so it will call the appropriate routine in your bezier context with this information -- this should allow you to create your own internal representation of those curves.
+You must create a super-class of this abstract type that handles the creation of your particular representation of bézier splines. As an [example I provide the one used by Raph to generate PostScript output](bezctx.md) (cubic beziers). Spiro will convert a set of spiro_cps into a set of bezier curves. As it does so it will call the appropriate routine in your bezier context with this information – this should allow you to create your own internal representation of those curves.
 
 ### Calling into libspiro
 
@@ -107,14 +104,16 @@ You must create an array of spiro control points:
 
 ```c
    spiro_cp points[4];
-
+   
      /* This defines something very like a circle, centered at the origin with radius 100 */
-   ![](closedspiro.png)
+   
    points[0].x = -100; points[0].y =    0; points[0].ty = SPIRO_G4;
    points[1].x =    0; points[1].y =  100; points[1].ty = SPIRO_G4;
    points[2].x =  100; points[2].y =    0; points[2].ty = SPIRO_G4;
    points[3].x =    0; points[3].y = -100; points[3].ty = SPIRO_G4;
 ```
+
+![](closedspiro.png)
 
 Then call `SpiroCPsToBezier`, a routine which takes 4 arguments
 
@@ -134,7 +133,7 @@ Or call `TaggedSpiroCPsToBezier`. This routine requires that the array of spiro 
 
 ```c
    spiro_cp points[5];
-
+   
    points[0].x = -100; points[0].y =    0; points[0].ty = SPIRO_G4;
    points[1].x =    0; points[1].y =  100; points[1].ty = SPIRO_G4;
    points[2].x =  100; points[2].y =    0; points[2].ty = SPIRO_G4;
@@ -148,12 +147,14 @@ An open curve will have the type of the first control point set to `SPIRO_OPEN_C
 
 ```c
    spiro_cp points[4];
-   ![](openspiro.png)
+   
    points[0].x = -100; points[0].y =    0; points[0].ty = SPIRO_OPEN_CONTOUR;
    points[1].x =    0; points[1].y =  100; points[1].ty = SPIRO_G4;
    points[2].x =  100; points[2].y =    0; points[2].ty = SPIRO_G4;
    points[3].x =    0; points[3].y = -100; points[3].ty = SPIRO_END_OPEN_CONTOUR;
 ```
+
+![](openspiro.png)
 
 (In an open contour the point types of the first and last control points are going to be ignored).
 
@@ -173,7 +174,7 @@ In this case there is no need to provide a point count nor an open/closed contou
 
 ### Classes
 
-- `SpiroPointType` -- this is an enumerated type which defines the same pointtypes used by the C interface: `CORNER`, `G4`, `G2`, `LEFT`, `RIGHT`, `END`, `OPEN`, `OPEN_END`
+- `SpiroPointType` – this is an enumerated type which defines the same pointtypes used by the C interface: `CORNER`, `G4`, `G2`, `LEFT`, `RIGHT`, `END`, `OPEN`, `OPEN_END`
 
 - `SpiroCP`
   ```java
@@ -185,7 +186,7 @@ In this case there is no need to provide a point count nor an open/closed contou
 }
   ```
 
-- `SpiroBezierContext` -- a Java interface used in conversion of an array of SpiroCPs to a Bezier contour.
+- `SpiroBezierContext` – a Java interface used in conversion of an array of SpiroCPs to a Bezier contour.
 
   ```java
     public interface SpiroBezierContext {
@@ -197,7 +198,7 @@ In this case there is no need to provide a point count nor an open/closed contou
     }
   ```
 
-- `Spiro` -- a class with only static members:
+- `Spiro` – a class with only static members:
 
   ```java
     public class Spiro {
