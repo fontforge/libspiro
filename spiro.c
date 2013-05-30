@@ -783,6 +783,15 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n)
     return norm;
 }
 
+static int
+check_finiteness ( spiro_seg * segs, int num_segs )
+{
+	for ( int i = 0 ; i < num_segs ; ++ i )
+		for ( int j = 0 ; j < 4 ; ++ j )
+			if ( ! isfinite ( segs[i].ks[j] ) ) return 0 ;
+	return 1 ;
+}
+
 int
 solve_spiro(spiro_seg *s, int nseg)
 {
@@ -795,7 +804,7 @@ solve_spiro(spiro_seg *s, int nseg)
     int i;
 
     if (nmat == 0)
-	return 0;
+	return 1; // just means no convergence problems
     if (s[0].ty != '{' && s[0].ty != 'v')
 	n_alloc *= 3;
     if (n_alloc < 5)
@@ -804,18 +813,20 @@ solve_spiro(spiro_seg *s, int nseg)
     v = (double *)malloc(sizeof(double) * n_alloc);
     perm = (int *)malloc(sizeof(int) * n_alloc);
 
+	int converged = 0 ;
     for (i = 0; i < 30; i++) {
 	norm = spiro_iter(s, m, perm, v, nseg);
 #ifdef VERBOSE
 	printf("%% norm = %g\n", norm);
 #endif
-	if (norm < 1e-12) break;
+	if (!check_finiteness(s, nseg)) break;
+	if (norm < 1e-12) { converged = 1; break; }
     }
 
     free(m);
     free(v);
     free(perm);
-    return 0;
+    return converged;
 }
 
 static void
@@ -883,9 +894,10 @@ run_spiro(const spiro_cp *src, int n)
 {
     int nseg = src[0].ty == '{' ? n - 1 : n;
     spiro_seg *s = setup_path(src, n);
-    if (nseg > 1)
-	solve_spiro(s, nseg);
-    return s;
+    int converged = 1 ; // this value is for when nseg == 1; else actual value determined below
+    if (nseg > 1) converged = solve_spiro(s, nseg);
+    if (converged) return s;
+    else { free(s); return 0; }
 }
 
 void
@@ -897,6 +909,7 @@ free_spiro(spiro_seg *s)
 void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
 {
+	if (!s) return ;
     int i;
     int nsegs = s[n - 1].ty == '}' ? n - 1 : n;
 
