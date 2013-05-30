@@ -17,15 +17,17 @@
     /* For an open contour the last cp must have a ty set to */
 #define SPIRO_END_OPEN_CONTOUR	'}'
 
+/* The two functions below return 1 upon success and 0 upon failure */
+
 /* The spiros array should indicate it's own end... So              */
 /* Open contours must have the ty field of the first cp set to '{'  */
 /*               and have the ty field of the last cp set to '}'    */
 /* Closed contours must have an extra cp at the end whose ty is 'z' */
 /*               the x&y values of this extra cp are ignored        */
-extern void TaggedSpiroCPsToBezier(spiro_cp *spiros,bezctx *bc);
+extern int TaggedSpiroCPsToBezier(spiro_cp *spiros,bezctx *bc);
 
 /* The first argument is an array of spiro control points.          */
 /* Open contours do not need to start with '{', nor to end with '}' */
 /* Close contours do not need to end with 'z'                       */
-extern void SpiroCPsToBezier(spiro_cp *spiros,int n,int isclosed,bezctx *bc);
+extern int SpiroCPsToBezier(spiro_cp *spiros,int n,int isclosed,bezctx *bc);
 #endif

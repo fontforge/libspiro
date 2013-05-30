@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include "spiroentrypoints.h"
 
-void
+int
 SpiroCPsToBezier(spiro_cp *spiros,int n,int isclosed,bezctx *bc)
 {
     spiro_seg *s;
@@ -39,11 +39,15 @@ return;
 	spiros[0].ty = oldty_start;
     } else
 	s = run_spiro(spiros,n);
+	if (s) {
     spiro_to_bpath(s,n,bc);
     free_spiro(s);
+	return 1; // success
+	}
+	else return 0 ; // spiro did not converge or encountered non-finite values
 }
 
-void
+int
 TaggedSpiroCPsToBezier(spiro_cp *spiros,bezctx *bc)
 {
     spiro_seg *s;
@@ -52,9 +56,12 @@ TaggedSpiroCPsToBezier(spiro_cp *spiros,bezctx *bc)
     for ( n=0; spiros[n].ty!='z' && spiros[n].ty!='}'; ++n );
     if ( spiros[n].ty == '}' ) ++n;
 
-    if ( n<1 )
-return;
+    if ( n<1 ) return 0; // invalid input
     s = run_spiro(spiros,n);
+	if (s) {
     spiro_to_bpath(s,n,bc);
     free_spiro(s);
+	return 1; // success
+	}
+	else return 0 ; // spiro did not converge or encountered non-finite values
 }
