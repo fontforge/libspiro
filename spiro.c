@@ -804,7 +804,7 @@ solve_spiro(spiro_seg *s, int nseg)
     v = (double *)malloc(sizeof(double) * n_alloc);
     perm = (int *)malloc(sizeof(int) * n_alloc);
 
-    for (i = 0; i < 10; i++) {
+    for (i = 0; i < 30; i++) {
 	norm = spiro_iter(s, m, perm, v, nseg);
 #ifdef VERBOSE
 	printf("%% norm = %g\n", norm);
