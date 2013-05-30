@@ -786,8 +786,9 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n)
 static int
 check_finiteness ( spiro_seg * segs, int num_segs )
 {
-	for ( int i = 0 ; i < num_segs ; ++ i )
-		for ( int j = 0 ; j < 4 ; ++ j )
+	int i, j;
+	for ( i = 0; i < num_segs; ++i )
+		for ( j = 0; j < 4; ++j )
 			if ( ! isfinite ( segs[i].ks[j] ) ) return 0 ;
 	return 1 ;
 }
