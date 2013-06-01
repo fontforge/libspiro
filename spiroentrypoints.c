@@ -28,7 +28,7 @@ SpiroCPsToBezier(spiro_cp *spiros,int n,int isclosed,bezctx *bc)
     spiro_seg *s;
 
     if ( n<1 )
-return;
+	return 0;
     if ( !isclosed ) {
 	char oldty_start = spiros[0].ty;
 	char oldty_end   = spiros[n-1].ty;
@@ -39,12 +39,12 @@ return;
 	spiros[0].ty = oldty_start;
     } else
 	s = run_spiro(spiros,n);
-	if (s) {
-    spiro_to_bpath(s,n,bc);
-    free_spiro(s);
+    if (s) {
+	spiro_to_bpath(s,n,bc);
+	free_spiro(s);
 	return 1; // success
-	}
-	else return 0 ; // spiro did not converge or encountered non-finite values
+    }
+    return 0 ; // spiro did not converge or encountered non-finite values
 }
 
 int
