@@ -1,0 +1,18 @@
+- 31-May-2013
+    * Convert build system to autotools method (configure.ac, Makefile.am).
+
+- 29-May-2013
+    * Backporting robustness patches from Inkscape.
+    * Increase Spiro max iterations to 30 after finding convergences of 15.
+    * If did not converge or encountered non-finite values, do not output
+      spline. Only good splines will be output.
+
+- 20-Apr-2013
+    * Initial commit to https://github.com/fontforge/libspiro.git
+    * Add bezctx.md based on http://libspiro.sourceforge.net/bezctx.html
+
+- 08-May-2009
+    * Add Java implementation.
+
+- 28-Oct-2007
+    * Initial release.
