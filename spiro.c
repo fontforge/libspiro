@@ -490,6 +490,7 @@ setup_path(const spiro_cp *src, int n)
 {
     int n_seg = src[0].ty == '{' ? n - 1 : n;
     spiro_seg *r = (spiro_seg *)malloc((n_seg + 1) * sizeof(spiro_seg));
+    if ( r==NULL ) return r;
     int i;
     int ilast;
 
@@ -732,9 +733,9 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n)
 	add_mat_line(m, v, derivs[2][1], -ends[1][2], 1, j, jk1r, jinc, nmat);
 	add_mat_line(m, v, derivs[3][1], -ends[1][3], 1, j, jk2r, jinc, nmat);
 	if (jthl >= 0)
-		v[jthl] = mod_2pi(v[jthl]);
+	    v[jthl] = mod_2pi(v[jthl]);
 	if (jthr >= 0)
-		v[jthr] = mod_2pi(v[jthr]);
+	    v[jthr] = mod_2pi(v[jthr]);
 	j += jinc;
     }
     if (cyclic) {
@@ -784,13 +785,14 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n)
 }
 
 static int
-check_finiteness ( spiro_seg * segs, int num_segs )
+check_finiteness(spiro_seg * segs, int num_segs)
 {
-	int i, j;
-	for ( i = 0; i < num_segs; ++i )
-		for ( j = 0; j < 4; ++j )
-			if ( ! isfinite ( segs[i].ks[j] ) ) return 0 ;
-	return 1 ;
+/* Check if all values are "finite", return true=1, else return fail=0 */
+    int i, j;
+    for (i = 0; i < num_segs; ++i)
+	for (j = 0; j < 4; ++j)
+	    if ( isfinite( segs[i].ks[j])==0 ) return 0;
+    return 1;
 }
 
 int
@@ -814,14 +816,16 @@ solve_spiro(spiro_seg *s, int nseg)
     v = (double *)malloc(sizeof(double) * n_alloc);
     perm = (int *)malloc(sizeof(int) * n_alloc);
 
-	int converged = 0 ;
-    for (i = 0; i < 30; i++) {
-	norm = spiro_iter(s, m, perm, v, nseg);
+    int converged = 0; // not solved (yet)
+    if ( m!=NULL && v!=NULL && perm!=NULL ) {
+	for (i = 0; i < 30; i++) {
+	    norm = spiro_iter(s, m, perm, v, nseg);
 #ifdef VERBOSE
-	printf("%% norm = %g\n", norm);
+	    printf("%% norm = %g\n", norm);
 #endif
-	if (!check_finiteness(s, nseg)) break;
-	if (norm < 1e-12) { converged = 1; break; }
+	    if (!check_finiteness(s, nseg)) break;
+	    if (norm < 1e-12) { converged = 1; break; }
+	}
     }
 
     free(m);
@@ -895,6 +899,7 @@ run_spiro(const spiro_cp *src, int n)
 {
     int nseg = src[0].ty == '{' ? n - 1 : n;
     spiro_seg *s = setup_path(src, n);
+    if ( s==NULL ) return 0;
     int converged = 1 ; // this value is for when nseg == 1; else actual value determined below
     if (nseg > 1) converged = solve_spiro(s, nseg);
     if (converged) return s;
@@ -910,7 +915,8 @@ free_spiro(spiro_seg *s)
 void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
 {
-	if (!s) return ;
+    if (!s) return;
+
     int i;
     int nsegs = s[n - 1].ty == '}' ? n - 1 : n;
 
@@ -1029,7 +1035,7 @@ print_seg(const double ks[4], double x0, double y0, double x1, double y1)
 	    printf("%g %g %g %g %g %g curveto\n",
 		   x0 + ul, y0 + vl, x1 - ur, y1 - vr, x1, y1);
 #endif
-	    
+
 	} else {
 	    /* subdivide */
 	    double ksub[4];
@@ -1100,14 +1106,18 @@ test_curve(void)
     spiro_seg *segs;
     int i;
 
-    n = 1;
     for (i = 0; i < 1000; i++) {
-	segs = setup_path(path, 15);
-	solve_spiro(segs, 15);
+	free_spiro(segs);
+	if ( (segs = setup_path(path, 15))==NULL || solve_spiro(segs, 15)==0 ) {
+	    printf("error in test_curve()\n");
+	    return -1;
+	  ;
+	}
     }
     printf("100 800 translate 1 -1 scale 1 setlinewidth\n");
     print_segs(segs, 15);
     printf("showpage\n");
+    free_spiro(segs);
     return 0;
 }
 
