@@ -6,7 +6,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.61])
 #-------------------------------------------
 # PackageTimestamp version
-m4_define([spiro_package_stamp], "20130531")
+m4_define([spiro_package_stamp], "20130608")
 #-------------------------------------------
 # Making point releases:
 #   spiro_major_version += 0;
@@ -21,7 +21,7 @@ m4_define([spiro_package_stamp], "20130531")
 #   spiro_minor_version = 0;
 #
 m4_define([spiro_major_version], '0')
-m4_define([spiro_minor_version], '1')
+m4_define([spiro_minor_version], '2')
 m4_define([spiro_version],
           [spiro_major_version.spiro_minor_version.spiro_package_stamp])
 m4_define([spiro_info],
