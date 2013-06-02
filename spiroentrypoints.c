@@ -22,8 +22,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include "spiroentrypoints.h"
 
+/* These two functions are kept for backwards compatibility */
+void SpiroCPsToBezier(spiro_cp *spiros,int n,int isclosed,bezctx *bc) {
+    SpiroCPsToBezier0(spiros,n,isclosed,bc);
+}
+void TaggedSpiroCPsToBezier(spiro_cp *spiros,bezctx *bc) {
+    TaggedSpiroCPsToBezier0(spiros,bc);
+}
+
 int
-SpiroCPsToBezier(spiro_cp *spiros,int n,int isclosed,bezctx *bc)
+SpiroCPsToBezier0(spiro_cp *spiros,int n,int isclosed,bezctx *bc)
 {
     spiro_seg *s;
 
@@ -48,7 +56,7 @@ SpiroCPsToBezier(spiro_cp *spiros,int n,int isclosed,bezctx *bc)
 }
 
 int
-TaggedSpiroCPsToBezier(spiro_cp *spiros,bezctx *bc)
+TaggedSpiroCPsToBezier0(spiro_cp *spiros,bezctx *bc)
 {
     spiro_seg *s;
     int n;
@@ -58,10 +66,10 @@ TaggedSpiroCPsToBezier(spiro_cp *spiros,bezctx *bc)
 
     if ( n<1 ) return 0; // invalid input
     s = run_spiro(spiros,n);
-	if (s) {
-    spiro_to_bpath(s,n,bc);
-    free_spiro(s);
+    if (s) {
+	spiro_to_bpath(s,n,bc);
+	free_spiro(s);
 	return 1; // success
-	}
-	else return 0 ; // spiro did not converge or encountered non-finite values
+    }
+    return 0 ; // spiro did not converge or encountered non-finite values
 }

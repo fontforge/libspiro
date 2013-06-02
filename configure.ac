@@ -40,15 +40,13 @@ AC_SUBST(LIBTOOL_DEPS)
 
 AC_PROG_CC
 AC_PROG_INSTALL
+AC_DISABLE_STATIC
+AC_ENABLE_SHARED
 AC_PROG_LN_S
 AC_PROG_MKDIR_P
 AC_PROG_MAKE_SET
 AC_PROG_SED
 AC_PATH_PROGS([WGET],[wget],[wget])
-
-dnl was in 20071029 configure.in, do we need it?
-dnl AC_DISABLE_STATIC
-dnl AC_ENABLE_SHARED
 
 #-------------------------------------------
 # Indicate this is a release build and that
