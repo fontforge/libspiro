@@ -1,3 +1,6 @@
+- 02-Jun-2013
+    * Update to version 0.2 due to added functions compared to 20071029
+
 - 31-May-2013
     * Convert build system to autotools method (configure.ac, Makefile.am).
 
