@@ -59,7 +59,7 @@ int n = 4;
 #endif
 
 /* Integrate polynomial spiral curve over range -.5 .. .5. */
-void
+static void
 integrate_spiro(const double ks[4], double xy[2])
 {
 #if 0
@@ -608,7 +608,7 @@ banbks11(const bandmat *m, const int *perm, double *v, int n)
     }
 }
 
-int compute_jinc(char ty0, char ty1)
+static int compute_jinc(char ty0, char ty1)
 {
     if (ty0 == 'o' || ty1 == 'o' ||
 	ty0 == ']' || ty1 == '[')
@@ -622,7 +622,7 @@ int compute_jinc(char ty0, char ty1)
 	return 0;
 }
 
-int count_vec(const spiro_seg *s, int nseg)
+static int count_vec(const spiro_seg *s, int nseg)
 {
     int i;
     int n = 0;
@@ -798,7 +798,7 @@ check_finiteness(spiro_seg * segs, int num_segs)
     return 1;
 }
 
-int
+static int
 solve_spiro(spiro_seg *s, int nseg)
 {
     bandmat *m;
