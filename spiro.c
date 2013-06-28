@@ -512,10 +512,36 @@ setup_path(const spiro_cp *src, int n)
     r[n_seg].y = src[n_seg % n].y;
     r[n_seg].ty = src[n_seg % n].ty;
 
+#ifdef CHECK_INPUT_FINITENESS
+    /* Verify that input values are within realistic limits */
+    for (i = 0; i < n; i++) {
+	if (isfinite(r[i].x)==0 || isfinite(r[i].y)==0) {
+#ifdef VERBOSE
+	    fprintf(stderr, "ERROR: LibSpiro: #%d={'%c',%g,%g} is not finite.\n", \
+		    i, src[i].ty, r[i].x, r[i].y);
+#endif
+	    free(r);
+	    return NULL;
+	}
+    }
+#endif
+
     for (i = 0; i < n_seg; i++) {
 	double dx = r[i + 1].x - r[i].x;
 	double dy = r[i + 1].y - r[i].y;
+#ifndef CHECK_INPUT_FINITENESS
 	r[i].seg_ch = hypot(dx, dy);
+#else
+	if (isfinite(dx)==0 || isfinite(dy)==0 || \
+	    isfinite((r[i].seg_ch = hypot(dx, dy)))==0) {
+#ifdef VERBOSE
+	    fprintf(stderr, "ERROR: LibSpiro: #%d={'%c',%g,%g} hypot error.\n", \
+		    i, src[i].ty, r[i].x, r[i].y);
+#endif
+	    free(r);
+	    return NULL;
+	}
+#endif
 	r[i].seg_th = atan2(dy, dx);
     }
 
@@ -526,7 +552,15 @@ setup_path(const spiro_cp *src, int n)
 	else
 	    r[i].bend_th = mod_2pi(r[i].seg_th - r[ilast].seg_th);
 	ilast = i;
+#ifdef VERBOSE
+	printf("input #%d={'%c',%g,%g}, hypot=%g, atan2=%g, bend_th=%g\n", \
+		    i, src[i].ty, r[i].x, r[i].y, r[i]. seg_th, r[i].seg_th, r[i].bend_th);
+#endif
     }
+#ifdef VERBOSE
+    if (n_seg < n)
+	printf("input #%d={'%c',%g,%g}\n", i, src[i].ty, r[i].x, r[i].y);
+#endif
     return r;
 }
 

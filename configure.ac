@@ -79,6 +79,18 @@ if test x"${verbose_lib}" = xtrue; then
 fi
 
 #-------------------------------------------
+# Enable input CHECK_INPUT_FINITENESS flag
+AC_ARG_ENABLE([test_inputs],AS_HELP_STRING([--enable-test_inputs],[Test input values for finiteness.]),
+  [case "${enableval}" in
+    yes) test_inputs=true ;;
+    no)  test_inputs=false ;;
+    *) AC_MSG_ERROR([bad value ${enableval} for --enable-test_inputs]) ;;
+   esac],[test_inputs=false])
+if test x"${test_inputs}" = xtrue; then
+   AC_DEFINE(CHECK_INPUT_FINITENESS,[1],[Check if input values are realistic and not infinite in value.])
+fi
+
+#-------------------------------------------
 # Platform specific stuff ($host)
 AC_CANONICAL_HOST
 #-------------------------------------------
