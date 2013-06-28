@@ -690,11 +690,10 @@ add_mat_line(bandmat *m, double *v,
 }
 
 static double
-spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n)
+spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 {
     int cyclic = s[0].ty != '{' && s[0].ty != 'v';
     int i, j, jj;
-    int nmat = count_vec(s, n);
     double norm;
     int n_invert;
 
@@ -802,9 +801,7 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n)
     banbks11(m, perm, v, n_invert);
     norm = 0.;
     for (i = 0; i < n; i++) {
-	char ty0 = s[i].ty;
-	char ty1 = s[i + 1].ty;
-	int jinc = compute_jinc(ty0, ty1);
+	int jinc = compute_jinc(s[i].ty, s[i + 1].ty);
 	int k;
 
 	for (k = 0; k < jinc; k++) {
@@ -856,7 +853,7 @@ solve_spiro(spiro_seg *s, int nseg)
     int converged = 0; // not solved (yet)
     if ( m!=NULL && v!=NULL && perm!=NULL ) {
 	for (i = 0; i < 30; i++) {
-	    norm = spiro_iter(s, m, perm, v, nseg);
+	    norm = spiro_iter(s, m, perm, v, nseg, nmat);
 #ifdef VERBOSE
 	    printf("%% norm = %g\n", norm);
 #endif
@@ -934,6 +931,7 @@ spiro_seg_to_bpath(const double ks[4],
 spiro_seg *
 run_spiro(const spiro_cp *src, int n)
 {
+    if (src==NULL || n <= 0) return 0;
     int nseg = src[0].ty == '{' ? n - 1 : n;
     spiro_seg *s = setup_path(src, n);
     if ( s==NULL ) return 0;
@@ -1147,6 +1145,7 @@ test_curve(void)
 	free_spiro(segs);
 	if ( (segs = setup_path(path, 15))==NULL || solve_spiro(segs, 15)==0 ) {
 	    printf("error in test_curve()\n");
+	    free_spiro(segs);
 	    return -1;
 	  ;
 	}
