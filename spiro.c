@@ -27,6 +27,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "bezctx_intf.h"
 #include "spiro.h"
 
+#include "spiro-config.h"
+#ifdef VERBOSE
+#include <stdio.h>
+#endif
+
 struct spiro_seg_s {
     double x;
     double y;
@@ -749,9 +754,7 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n)
 	n_invert = nmat;
 	j = 0;
     }
-/*
-#define VERBOSE
-*/
+
 #ifdef VERBOSE
     for (i = 0; i < n; i++) {
 	int k;

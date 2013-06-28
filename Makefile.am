@@ -6,6 +6,7 @@ AM_CFLAGS = $(WCFLAGS)
 AM_LDFLAGS = $(WCFLAGS) -no-undefined --mode=link
 
 DISTCLEANFILES = libspiro.pc
+DISTCHECK_CONFIGURE_FLAGS = --enable-verbose
 
 lib_LTLIBRARIES = libspiro.la
 

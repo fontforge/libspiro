@@ -47,6 +47,7 @@ AC_PROG_MKDIR_P
 AC_PROG_MAKE_SET
 AC_PROG_SED
 AC_PATH_PROGS([WGET],[wget],[wget])
+AC_CONFIG_HEADERS([spiro-config.h])
 
 #-------------------------------------------
 # Indicate this is a release build and that
@@ -59,11 +60,23 @@ AC_PATH_PROGS([WGET],[wget],[wget])
 dnl AM_MAINTAINER_MODE([enable])
 
 #-------------------------------------------
-# I am going to try enabling silent-rules by
-# default, so builders are more likely to see
-# warnings. # Use --disable-silent-rules or
-# "make V=1" if you need to see the rules.
-m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+ Enable silent build rules by default, this
+# requires atleast Automake-1.11. Disable by
+# either passing --disable-silent-rules to
+# configure or passing V=1 to make
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],[AC_SUBST([AM_DEFAULT_VERBOSITY],[1])])
+
+#-------------------------------------------
+# Enable VERBOSE flag in library
+AC_ARG_ENABLE([verbose_lib],AS_HELP_STRING([--enable-verbose_lib],[Verbose library output (for debugging).]),
+  [case "${enableval}" in
+    yes) verbose_lib=true ;;
+    no)  verbose_lib=false ;;
+    *) AC_MSG_ERROR([bad value ${enableval} for --enable-verbose_lib]) ;;
+   esac],[verbose_lib=false])
+if test x"${verbose_lib}" = xtrue; then
+   AC_DEFINE(VERBOSE,[1],[Verbose library printf() output enabled for debugging.])
+fi
 
 #-------------------------------------------
 # Platform specific stuff ($host)
