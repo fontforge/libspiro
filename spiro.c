@@ -33,23 +33,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #endif
 
 struct spiro_seg_s {
-    double x;
-    double y;
-    char ty;
-    double bend_th;
+/* This is an internal-use array based on spiro_cp but not quite the same */
+    double x;		/* SpiroCP segment_chord startX */
+    double y;		/* SpiroCP segment_chord startY */
+    char ty;		/* Spiro CodePoint Type */
+    double bend_th;	/* bend theta between this vector and next vector */
     double ks[4];
-    double seg_ch;
-    double seg_th;
+    double seg_ch;	/* segment_chord distance from xy to next SpiroCP */
+    double seg_th;	/* segment_theta angle for this SpiroCP */
     double l;
 };
 
 typedef struct {
-    double a[11]; /* band-diagonal matrix */
-    double al[5]; /* lower part of band-diagonal decomposition */
+    double a[11];	/* band-diagonal matrix */
+    double al[5];	/* lower part of band-diagonal decomposition */
 } bandmat;
 
 #ifndef M_PI
-#define M_PI            3.14159265358979323846  /* pi */
+#define M_PI		3.14159265358979323846	/* pi */
 #endif
 
 int n = 4;
@@ -852,15 +853,19 @@ solve_spiro(spiro_seg *s, int nseg)
 
     int converged = 0; // not solved (yet)
     if ( m!=NULL && v!=NULL && perm!=NULL ) {
-	for (i = 0; i < 30; i++) {
+	for (i = 0; i < 60; i++) {
 	    norm = spiro_iter(s, m, perm, v, nseg, nmat);
 #ifdef VERBOSE
-	    printf("%% norm = %g\n", norm);
+	    printf("iteration #%d, %% norm = %g\n", i, norm);
 #endif
 	    if (!check_finiteness(s, nseg)) break;
 	    if (norm < 1e-12) { converged = 1; break; }
 	}
     }
+#ifdef VERBOSE
+    if (converged==0)
+	fprintf(stderr, "ERROR: LibSpiro: failed to converge after trying %d attempts to converge.\n", i);
+#endif
 
     free(m);
     free(v);
