@@ -1,3 +1,6 @@
+- 22-Jul-2013
+    * Use 'make check' to run spiro.c UNIT_TEST internal main() routine.
+
 - 28-Jun-2013
     * Allow for setting VERBOSE during configure - helps with debugging.
     * Allow for setting CHECK_INPUT_FINITENESS during configure - to test

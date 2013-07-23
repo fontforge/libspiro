@@ -96,7 +96,7 @@ AC_CANONICAL_HOST
 #-------------------------------------------
 # Pass variables to MAKEFILE.AM
 AC_SUBST(HOST,$host)
-AC_SUBST(FFSPIRO_VERSION,$spiro_info)
+AC_SUBST(LIBSPIRO_VERSION,$spiro_info)
 #-------------------------------------------
 # Check for and add usable compiler warnings
 AC_LANG_PUSH([C])
@@ -114,6 +114,7 @@ AC_PROG_LIBTOOL
 
 AC_CONFIG_FILES([
 Makefile
+tests/Makefile
 libspiro.pc
 ])
 
