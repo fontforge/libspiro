@@ -60,11 +60,33 @@ AC_CONFIG_HEADERS([spiro-config.h])
 dnl AM_MAINTAINER_MODE([enable])
 
 #-------------------------------------------
- Enable silent build rules by default, this
+# Enable silent build rules by default, this
 # requires atleast Automake-1.11. Disable by
 # either passing --disable-silent-rules to
 # configure or passing V=1 to make
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],[AC_SUBST([AM_DEFAULT_VERBOSITY],[1])])
+
+#-------------------------------------------
+# Check for finite or isfinite. Use one.
+AC_CHECK_FUNCS(finite, ,[
+  AC_MSG_CHECKING(for finite in <math.h>)
+  AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([[#include <math.h>]],[[double f = 0.0; finite(f)]])],
+    [AC_DEFINE([HAVE_FINITE],[1],[Define to 1 if you have the finite function.])
+     AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)
+     AC_MSG_CHECKING(for isfinite in <math.h>)
+     AC_LINK_IFELSE(
+       [AC_LANG_PROGRAM([[#include <math.h>]],[[float f = 0.0; isfinite(f)]])],
+       [AC_DEFINE([HAVE_ISFINITE],[1],[Define to 1 if you have the isfinite function.])
+	AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])])])
+AC_SUBST(HAVE_FINITE)
+AC_SUBST(HAVE_ISFINITE)
+AH_BOTTOM([/* Define IS_FINITE(_a) to finite(_a) or isfinite(_a) */
+#ifdef HAVE_FINITE
+#define IS_FINITE(_a) (__finite(_a))
+#else
+#define IS_FINITE(_a) (__isfinite(_a))
+#endif])
 
 #-------------------------------------------
 # Enable VERBOSE flag in library
@@ -93,10 +115,12 @@ fi
 #-------------------------------------------
 # Platform specific stuff ($host)
 AC_CANONICAL_HOST
+
 #-------------------------------------------
 # Pass variables to MAKEFILE.AM
 AC_SUBST(HOST,$host)
 AC_SUBST(LIBSPIRO_VERSION,$spiro_info)
+
 #-------------------------------------------
 # Check for and add usable compiler warnings
 AC_LANG_PUSH([C])
@@ -109,6 +133,14 @@ AX_CHECK_COMPILE_FLAG([-Wc++-compat],[WCFLAGS+=" -Wc++-compat"])
 AX_CHECK_COMPILE_FLAG([-Wmissing-prototypes],[WCFLAGS+=" -Wmissing-prototypes"])
 AX_CHECK_COMPILE_FLAG([-Wunused],[WCFLAGS+=" -Wunused"])
 AC_LANG_POP
+
+#-------------------------------------------
+# Put ifdef wrapper around spiro-config.h so
+# that we don't accidently call it twice.
+AH_TOP([#ifndef _SPIRO_CONFIG_H])
+AH_TOP([#define _SPIRO_CONFIG_H 1])
+AH_BOTTOM([#endif])
+
 #-------------------------------------------
 AC_PROG_LIBTOOL
 
