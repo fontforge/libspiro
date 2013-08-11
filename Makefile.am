@@ -1,6 +1,6 @@
 # Makefile.am - Top level automakefile for libspiro
 
-SUBDIRS = tests
+SUBDIRS = . tests
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 

@@ -955,7 +955,7 @@ free_spiro(spiro_seg *s)
 void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
 {
-    if (!s) return;
+    if (s==NULL || n <= 0 || bc==NULL) return;
 
     int i;
     int nsegs = s[n - 1].ty == '}' ? n - 1 : n;
