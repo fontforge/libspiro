@@ -839,7 +839,6 @@ solve_spiro(spiro_seg *s, int nseg)
     int nmat = count_vec(s, nseg);
     int n_alloc = nmat;
     double norm;
-    int i;
 
     if (nmat == 0)
 	return 1; // just means no convergence problems
@@ -851,9 +850,9 @@ solve_spiro(spiro_seg *s, int nseg)
     v = (double *)malloc(sizeof(double) * n_alloc);
     perm = (int *)malloc(sizeof(int) * n_alloc);
 
-    int converged = 0; // not solved (yet)
+    int i = 0, converged = 0; // not solved (yet)
     if ( m!=NULL && v!=NULL && perm!=NULL ) {
-	for (i = 0; i < 60; i++) {
+	while (i++ < 60) {
 	    norm = spiro_iter(s, m, perm, v, nseg, nmat);
 #ifdef VERBOSE
 	    printf("iteration #%d, %% norm = %g\n", i, norm);
