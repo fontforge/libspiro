@@ -32,18 +32,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdio.h>
 #endif
 
-struct spiro_seg_s {
-/* This is an internal-use array based on spiro_cp but not quite the same */
-    double x;		/* SpiroCP segment_chord startX */
-    double y;		/* SpiroCP segment_chord startY */
-    char ty;		/* Spiro CodePoint Type */
-    double bend_th;	/* bend theta between this vector and next vector */
-    double ks[4];
-    double seg_ch;	/* segment_chord distance from xy to next SpiroCP */
-    double seg_th;	/* segment_theta angle for this SpiroCP */
-    double l;
-};
-
 typedef struct {
     double a[11];	/* band-diagonal matrix */
     double al[5];	/* lower part of band-diagonal decomposition */
