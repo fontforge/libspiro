@@ -159,8 +159,23 @@ int test_curve(int c) {
     bc = new_bezctx_test();
     spiro_to_bpath(segs,cl[c],bc);
 
-    free(bc);
     free(segs);
+
+    /* Check if TaggedSpiroCPsToBezier0() works okay */
+    printf("---\ntesting TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
+    if ( TaggedSpiroCPsToBezier0(spiro,bc)!=1 ) {
+	printf("error with TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
+	return -1;
+    }
+
+    /* Check if SpiroCPsToBezier0() works okay */
+    printf("---\ntesting SpiroCPsToBezier0() using data=path%d[].\n",c);
+    if ( SpiroCPsToBezier0(spiro,cl[c],(c==0 ? 1 : 0),bc)!=1 ) {
+	printf("error with SpiroCPsToBezier0() using data=path%d[].\n",c);
+	return -1;
+    }
+
+    free(bc);
     return 0;
 }
 
