@@ -19,15 +19,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 */
 
 #include <math.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/time.h>		/* for gettimeofday */
 
 #include "spiroentrypoints.h"	/* call spiro through here */
 #include "bezctx.h"		/* bezctx structure */
 
 #include "spiro-config.h"	/* for ./configure test settings like VERBOSE */
+#if HAVE_PTHREADS
+#include <pthread.h>
+#endif
 
 static double get_time (void) {
   struct timeval tv;
@@ -59,7 +62,7 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	{0, 0, 'z'}
     };
     int knot0[] = {
-	1, 1, 3, 3, 2, 3, 1, 1, 1, 3, 3, 2, 3, 7, 1, 1
+	1, 1, 3, 3, 2, 3, 1, 1, 1, 3, 3, 2, 2, 2, 1, 1
     };
     spiro_cp path1[] = {
 	{80, 738, '{'},
@@ -104,16 +107,16 @@ int cl[] = {16, 6, 4};
 
 /* Provide bare-bones do-nothing functions for testing. This only */
 /* printf values that would normally be handled by user programs. */
-void test_moveto(bezctx *z, double x, double y, int is_open) {
+void test_moveto(bezctx *bc, double x, double y, int is_open) {
     printf("test_moveto(%g,%g)_%d\n",x,y,is_open);
 }
-void test_lineto(bezctx *z, double x, double y) {
+void test_lineto(bezctx *bc, double x, double y) {
     printf("test_lineto(%g,%g)\n",x,y);
 }
-void test_quadto(bezctx *z, double x1, double y1, double x2, double y2) {
+void test_quadto(bezctx *bc, double x1, double y1, double x2, double y2) {
     printf("test_quadto(%g,%g, %g,%g)\n",x1,y1,x2,y2);
 }
-void test_curveto(bezctx *z, double x1, double y1, double x2, double y2,
+void test_curveto(bezctx *bc, double x1, double y1, double x2, double y2,
 		  double x3, double y3) {
     printf("test_curveto(%g,%g, %g,%g, %g,%g)\n",x1,y1,x2,y2,x3,y3);
 }
@@ -179,12 +182,276 @@ int test_curve(int c) {
     return 0;
 }
 
+/************************************************/
+/* multi-threaded, multi-user, multi-curve test */
+
+#if HAVE_PTHREADS
+typedef struct {
+    spiro_cp *spiro;
+    bezctx *bc;
+    int ret;
+} pthread_pcurve;
+
+void *test_a_curve(void *pdata) {
+    pthread_pcurve *data = (pthread_pcurve*)pdata;
+    data->ret = TaggedSpiroCPsToBezier0(data->spiro,data->bc);
+    pthread_exit(NULL);
+}
+#endif
+
+typedef struct {
+    double x1,y1,x2,y2,x3,y3;
+    char ty;
+} my_curve_data;
+
+typedef struct {
+/* This is a superclass of bezctx (to keep track of each curve). */
+    bezctx base;
+    my_curve_data *my_curve;
+    int len;
+    int is_open;
+    int c_id;
+} test_bezctx;
+
+#define S_RESULTS 50
+
+void test_s_moveto(bezctx *z, double x, double y, int is_open) {
+    test_bezctx *p = (test_bezctx*)z;
+    int i;
+
+    if ( (i=p->len) < S_RESULTS ) {
+#ifdef VERBOSE
+	printf("test_s_moveto(%g,%g)_%d [%d]%d\n",x,y,is_open,p->c_id,i);
+#endif
+	p->is_open = is_open;
+	p->my_curve[i].x1 = x;
+	p->my_curve[i].y1 = y;
+	p->my_curve[p->len++].ty = 'm';
+    }
+}
+
+void test_s_lineto(bezctx *z, double x, double y) {
+    test_bezctx *p = (test_bezctx*)z;
+    int i;
+
+    if ( (i=p->len) < S_RESULTS ) {
+#ifdef VERBOSE
+    printf("test_s_lineto(%g,%g) [%d]%d\n",x,y,p->c_id,i);
+#endif
+	p->my_curve[i].x1 = x;
+	p->my_curve[i].y1 = y;
+	p->my_curve[p->len++].ty = 'l';
+    }
+}
+
+void test_s_quadto(bezctx *z, double x1, double y1, double x2, double y2) {
+    test_bezctx *p = (test_bezctx*)z;
+    int i;
+
+    if ( (i=p->len) < S_RESULTS ) {
+#ifdef VERBOSE
+	printf("test_s_quadto(%g,%g, %g,%g) [%d]%d\n",x1,y1,x2,y2,p->c_id,i);
+#endif
+	p->my_curve[i].x1 = x1;
+	p->my_curve[i].y1 = y1;
+	p->my_curve[i].x2 = x2;
+	p->my_curve[i].y2 = y2;
+	p->my_curve[p->len++].ty = 'q';
+    }
+}
+
+void test_s_curveto(bezctx *z, double x1, double y1, double x2, double y2,
+		  double x3, double y3) {
+    test_bezctx *p = (test_bezctx*)z;
+    int i;
+
+    if ( (i=p->len) < S_RESULTS ) {
+#ifdef VERBOSE
+	printf("test_s_curveto(%g,%g, %g,%g, %g,%g) [%d]%d\n",x1,y1,x2,y2,x3,y3,p->c_id,i);
+#endif
+	p->my_curve[i].x1 = x1;
+	p->my_curve[i].y1 = y1;
+	p->my_curve[i].x2 = x2;
+	p->my_curve[i].y2 = y2;
+	p->my_curve[i].x3 = x3;
+	p->my_curve[i].y3 = y3;
+	p->my_curve[p->len++].ty = 'c';
+    }
+}
+
+void test_s_mark_knot(bezctx *z, int knot_idx) {
+    test_bezctx *p = (test_bezctx*)z;
+
+    if ( p->len < S_RESULTS )
+#ifdef VERBOSE
+	printf("test_s_mark_knot()_%d [%d]%d\n",knot_idx,p->c_id,p->len);
+#endif
+	p->my_curve[p->len++].ty = 'k';
+}
+
+int test_multi_curves(void) {
+    spiro_cp **spiro = NULL;
+    int *pk, **nextknot = NULL;
+    int *scl = NULL;
+    test_bezctx **bc;
+    int i, j, k, ret;
+
+#if HAVE_PTHREADS
+    printf("---\nMulti-thread testing of libspiro.\n");
+    /* pthread default limit is currently about 380 without mods. */
+#define S_TESTS 300
+#else
+    printf("---\nSequential tests of libspiro.\n");
+#define S_TESTS 3000
+#endif
+
+    ret = -1;	/* return error if out of memory */
+
+
+    /* Expect lots of results */
+    if ( (bc=(test_bezctx**)calloc(S_TESTS,sizeof(test_bezctx*)))==NULL )
+	goto test_multi_curves_exit;
+    for (i=0; i < S_TESTS; i++) {
+	if ( (bc[i]=(test_bezctx*)malloc(sizeof(test_bezctx)))==NULL )
+	    goto test_multi_curves_exit;
+	bc[i]->base.moveto = test_s_moveto;
+	bc[i]->base.lineto = test_s_lineto;
+	bc[i]->base.quadto = test_s_quadto;
+	bc[i]->base.curveto = test_s_curveto;
+	bc[i]->base.mark_knot = test_s_mark_knot;
+	if ( (bc[i]->my_curve=(my_curve_data*)calloc(S_RESULTS,sizeof(my_curve_data)))==NULL )
+	    goto test_multi_curves_exit;
+	bc[i]->len = 0;		/* no curve yet, len=0 */
+	bc[i]->is_open = 0;
+	bc[i]->c_id = i;	/* identify each curve */
+    }
+
+    if ( (scl=(int*)malloc(S_TESTS*sizeof(int)))==NULL || \
+	 (spiro=(spiro_cp**)calloc(S_TESTS,sizeof(spiro_cp*)))==NULL || \
+	 (nextknot=(int**)calloc(S_TESTS,sizeof(int*)))==NULL )
+	goto test_multi_curves_exit;
+    for (i=0; i < S_TESTS; ) {
+	if ( (spiro[i]=malloc(cl[0]*sizeof(spiro_cp)))==NULL || \
+	      (nextknot[i]=calloc(cl[0]+1,sizeof(int)))==NULL )
+	    goto test_multi_curves_exit;
+	load_test_curve(spiro[i], nextknot[i], 0);
+	scl[i++]=cl[0];
+	if ( (spiro[i]=malloc(cl[1]*sizeof(spiro_cp)))==NULL || \
+	      (nextknot[i]=calloc(cl[1],sizeof(int)))==NULL )
+	    goto test_multi_curves_exit;
+	load_test_curve(spiro[i], nextknot[i], 1);
+	scl[i++]=cl[1];
+	if ( (spiro[i]=malloc(cl[2]*sizeof(spiro_cp)))==NULL || \
+	      (nextknot[i]=calloc(cl[2],sizeof(int)))==NULL )
+	    goto test_multi_curves_exit;
+	load_test_curve(spiro[i], nextknot[i], 2);
+	scl[i++]=cl[2];
+    }
+
+    /* Change to different sizes to make sure no duplicates */
+    for (i=0; i < S_TESTS; i++) {
+	spiro_cp *temp;
+	temp = spiro[i];
+	for (j=0; j < scl[i]; j++) {
+	    temp[j].x = temp[j].x * ((i+1.0)/100);
+	    temp[j].y = temp[j].y * ((i+1.0)/100);
+	}
+    }
+
+#if HAVE_PTHREADS
+    /* Test all curves - all at same time, wait for all to finish */
+    pthread_t curve_test[S_TESTS];
+    pthread_pcurve pdata[S_TESTS];
+    for (i=0; i < S_TESTS; i++) {
+	pdata[i].spiro = spiro[i];
+	pdata[i].bc = (bezctx*)(bc[i]);
+	pdata[i].ret = i;
+    }
+
+    for (i=0; i < S_TESTS; i++)
+	/* all values passed are joined at "->" (should be okay). */
+	if ( pthread_create(&curve_test[i],NULL,test_a_curve,(void *)&pdata[i]) ) {
+	    printf("bad pthread_create[%d]\n",i);
+	    goto test_multi_curves_exit;
+	}
+    for (i=0; i < S_TESTS; i++)
+	if ( pthread_join(curve_test[i],NULL) ) {
+	    printf("bad pthread_join[%d]\n",i);
+	    goto test_multi_curves_exit;
+	}
+
+    for (i=0; i < S_TESTS; i++)
+	if ( pdata[i].ret!=1 ) {
+	    printf("error with TaggedSpiroCPsToBezier0() using data=%d.\n",i);
+	    goto test_multi_curves_exit;
+	}
+#else
+    /* No pthreads.h, test all curves sequentially, one at a time */
+    for (i=0; i < S_TESTS; i++) {
+	if ( TaggedSpiroCPsToBezier0(spiro[i],(bezctx*)(bc[i]))!=1 ) {
+	    printf("error with TaggedSpiroCPsToBezier0() using data=%d.\n",i);
+	    goto test_multi_curves_exit;
+	}
+    }
+#endif
+
+    /* Check ending x,y points versus input spiro knot locations. */
+    for (i=0; i < S_TESTS; i++) {
+	spiro_cp *temp;
+	double x, y;
+	char ty;
+	temp = spiro[i];
+	pk = nextknot[i];
+	k=0;
+	for (j=0; j < scl[i] && temp[j].ty!='z'; j++) {
+	    ty = bc[i]->my_curve[k].ty;
+	    x  = bc[i]->my_curve[k].x1;
+	    y  = bc[i]->my_curve[k].y1;
+	    if ( ty=='q' ) {
+		x = bc[i]->my_curve[k].x2;
+		y = bc[i]->my_curve[k].y2;
+	    }
+	    if ( ty=='c' ) {
+		x = bc[i]->my_curve[k].x3;
+		y = bc[i]->my_curve[k].y3;
+	    }
+#ifdef VERBOSE
+	    printf("len=%d s[%d].ty=%c x=%g y=%g, len=%d pk=%d mc[%d] x=%g y=%g\n", \
+		   scl[i],j,temp[j].ty,temp[j].x,temp[j].y, bc[i]->len,pk[j],k,x,y);
+#endif
+	    if ( (fabs(temp[j].x - x) > 1e-8) || (fabs(temp[j].y - y) > 1e-8) ) {
+		printf("error with test_multi_curves() using data %d\n",i);
+		goto test_multi_curves_exit;
+	    }
+	    k += pk[j]+1;
+	}
+    }
+
+#if HAVE_PTHREADS
+    printf("Multi-thread testing of libspiro passed.\n");
+#else
+    printf("Sequential tests of libspiro passed.\n");
+#endif
+    ret = 0;
+
+test_multi_curves_exit:
+    if ( nextknot!=NULL ) for (i=0; i < S_TESTS; i++) free(nextknot[i]);
+    if ( spiro!=NULL ) for (i=0; i < S_TESTS; i++) free(spiro[i]);
+    free(nextknot); free(spiro); free(scl);
+    if ( bc!=NULL ) for (i=0; i < S_TESTS; i++) {
+	free(bc[i]->my_curve); free(bc[i]);
+    }
+    free(bc);
+    return ret;
+}
+
 int main(int argc, char **argv) {
     double st, en;
     int ret = 0;
     st = get_time();
 
-    if ( test_curve(0) || test_curve(1) || test_curve(2) )
+    if ( test_curve(0) || test_curve(1) || test_curve(2) || \
+    	 test_multi_curves() )
 	ret = -1;
 
     en = get_time();

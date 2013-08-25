@@ -1,7 +1,5 @@
 # Common CPPFLAGS
-AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)
-
-AM_CFLAGS = -I$(top_srcdir) -I$(top_builddir) $(DEP_CFLAGS) $(BABL_CFLAGS) -lm
+AM_CFLAGS = -I$(top_srcdir) -I$(top_builddir) $(DEP_CFLAGS) $(BABL_CFLAGS) $(WCFLAGS) -lm
 
 DEPS = $(top_builddir)/.libs/libspiro.la
 
@@ -14,5 +12,8 @@ unit_test_SOURCES = unit-test.c
 
 call_test_SOURCES = call-test.c
 call_test_LDADD = $(LDADDS)
+if WANTPTHREADS
+call_test_LDADD += -lpthread
+endif
 
 TESTS = $(noinst_PROGRAMS)

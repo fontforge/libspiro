@@ -113,6 +113,14 @@ if test x"${test_inputs}" = xtrue; then
 fi
 
 #-------------------------------------------
+# call-test uses pthread for testing (if you
+# have it), but libspiro doesn't require it.
+AC_CHECK_HEADERS(pthread.h,[havepthreads=true]
+  AC_DEFINE(HAVE_PTHREADS,[1],[Have pthreads.h. Do multi-user check in call-test.]),
+  [have_pthreads = xfalse])
+AM_CONDITIONAL([WANTPTHREADS],[test x$havepthreads = xtrue])
+
+#-------------------------------------------
 # Platform specific stuff ($host)
 AC_CANONICAL_HOST
 
