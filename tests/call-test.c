@@ -194,7 +194,9 @@ typedef struct {
 
 void *test_a_curve(void *pdata) {
     pthread_pcurve *data = (pthread_pcurve*)pdata;
+    //printf("start pthread %d\n",data->ret);
     data->ret = TaggedSpiroCPsToBezier0(data->spiro,data->bc);
+    //printf("done\n");
     pthread_exit(NULL);
 }
 #endif
@@ -372,12 +374,12 @@ int test_multi_curves(void) {
 	/* all values passed are joined at "->" (should be okay). */
 	if ( pthread_create(&curve_test[i],NULL,test_a_curve,(void *)&pdata[i]) ) {
 	    printf("bad pthread_create[%d]\n",i);
-	    goto test_multi_curves_exit;
+	    return -1;
 	}
     for (i=0; i < S_TESTS; i++)
 	if ( pthread_join(curve_test[i],NULL) ) {
 	    printf("bad pthread_join[%d]\n",i);
-	    goto test_multi_curves_exit;
+	    return -1;
 	}
 
     for (i=0; i < S_TESTS; i++)

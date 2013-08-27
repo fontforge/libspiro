@@ -1,5 +1,7 @@
 # Common CPPFLAGS
-AM_CFLAGS = -I$(top_srcdir) -I$(top_builddir) $(DEP_CFLAGS) $(BABL_CFLAGS) $(WCFLAGS) -lm
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)
+
+AM_CFLAGS = -I$(top_srcdir) -I$(top_builddir) $(DEP_CFLAGS) $(BABL_CFLAGS) -lm
 
 DEPS = $(top_builddir)/.libs/libspiro.la
 
