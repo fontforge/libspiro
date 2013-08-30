@@ -1,3 +1,7 @@
+- 29-Aug-2013
+    * Optional 'make check' runs 'call-test' to check libspiro functions.
+    * Minor logic optimizations. Removed global 'n', passed 'n' instead.
+
 - 22-Jul-2013
     * Use 'make check' to run spiro.c UNIT_TEST internal main() routine.
 

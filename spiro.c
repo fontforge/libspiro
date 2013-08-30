@@ -41,7 +41,10 @@ typedef struct {
 #define M_PI		3.14159265358979323846	/* pi */
 #endif
 
-int n = 4;
+#ifndef N_IS
+//int n = 4;
+#define N_IS		4
+#endif
 
 #ifndef ORDER
 #define ORDER 12
@@ -49,7 +52,7 @@ int n = 4;
 
 /* Integrate polynomial spiral curve over range -.5 .. .5. */
 static void
-integrate_spiro(const double ks[4], double xy[2])
+integrate_spiro(const double ks[4], double xy[2], int n)
 {
 #if 0
     int n = 1024;
@@ -423,7 +426,7 @@ compute_ends(const double ks[4], double ends[2][4], double seg_ch)
     double k1_even, k1_odd;
     double k2_even, k2_odd;
 
-    integrate_spiro(ks, xy);
+    integrate_spiro(ks, xy, N_IS);
     ch = hypot(xy[0], xy[1]);
     th = atan2(xy[1], xy[0]);
     l = ch / seg_ch;
@@ -868,7 +871,7 @@ spiro_seg_to_bpath(const double ks[4],
     double bend = fabs(ks[0]) + fabs(.5 * ks[1]) + fabs(.125 * ks[2]) +
 	fabs((1./48) * ks[3]);
 
-    if (!bend > 1e-8) {
+    if (bend <= 1e-8) {
 	bezctx_lineto(bc, x1, y1);
     } else {
 	double seg_ch = hypot(x1 - x0, y1 - y0);
@@ -880,7 +883,7 @@ spiro_seg_to_bpath(const double ks[4],
 	double ul, vl;
 	double ur, vr;
 
-	integrate_spiro(ks, xy);
+	integrate_spiro(ks, xy, N_IS);
 	ch = hypot(xy[0], xy[1]);
 	th = atan2(xy[1], xy[0]);
 	scale = seg_ch / ch;
@@ -908,7 +911,7 @@ spiro_seg_to_bpath(const double ks[4],
 	    thsub = rot - .25 * ks[0] + (1./32) * ks[1] - (1./384) * ks[2] + (1./6144) * ks[3];
 	    cth = .5 * scale * cos(thsub);
 	    sth = .5 * scale * sin(thsub);
-	    integrate_spiro(ksub, xysub);
+	    integrate_spiro(ksub, xysub, N_IS);
 	    xmid = x0 + cth * xysub[0] - sth * xysub[1];
 	    ymid = y0 + cth * xysub[1] + sth * xysub[0];
 	    spiro_seg_to_bpath(ksub, x0, y0, xmid, ymid, bc, depth + 1);

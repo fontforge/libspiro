@@ -35,9 +35,11 @@ SpiroCPsToBezier0(spiro_cp *spiros,int n,int isclosed,bezctx *bc)
 {
     spiro_seg *s;
 
-    if ( n<1 )
+    if ( n<=0 )
 	return 0;
-    if ( !isclosed ) {
+    if ( isclosed )
+	s = run_spiro(spiros,n);
+    else {
 	char oldty_start = spiros[0].ty;
 	char oldty_end   = spiros[n-1].ty;
 	spiros[0].ty = '{';
@@ -45,8 +47,7 @@ SpiroCPsToBezier0(spiro_cp *spiros,int n,int isclosed,bezctx *bc)
 	s = run_spiro(spiros,n);
 	spiros[n-1].ty = oldty_end;
 	spiros[0].ty = oldty_start;
-    } else
-	s = run_spiro(spiros,n);
+    }
     if (s) {
 	spiro_to_bpath(s,n,bc);
 	free_spiro(s);
@@ -64,7 +65,7 @@ TaggedSpiroCPsToBezier0(spiro_cp *spiros,bezctx *bc)
     for ( n=0; spiros[n].ty!='z' && spiros[n].ty!='}'; ++n );
     if ( spiros[n].ty == '}' ) ++n;
 
-    if ( n<1 ) return 0; // invalid input
+    if ( n<=0 ) return 0; // invalid input
     s = run_spiro(spiros,n);
     if (s) {
 	spiro_to_bpath(s,n,bc);

@@ -9,7 +9,7 @@
 #include "bezctx.c"
 #include "spiro.c"
 
-extern int n; // = 4;
+int n; // = 4;
 
 static double get_time (void) {
   struct timeval tv;
@@ -29,7 +29,7 @@ int test_integ(void) {
     int nsubdiv;
 
     n = ORDER < 6 ? 4096 : 1024;
-    integrate_spiro(ks, xynom);
+    integrate_spiro(ks, xynom, n);
     nsubdiv = ORDER < 12 ? 8 : 7;
     for (i = 0; i < nsubdiv; i++) {
 	double st, en;
@@ -39,7 +39,7 @@ int test_integ(void) {
 	n = 1 << i;
 	st = get_time();
 	for (j = 0; j < n_iter; j++)
-	    integrate_spiro(ks, xy);
+	    integrate_spiro(ks, xy, n);
 	en = get_time();
 	err = hypot(xy[0] - xynom[0], xy[1] - xynom[1]);
 #ifdef VERBOSE
@@ -74,7 +74,7 @@ void print_seg(const double ks[4], double x0, double y0, double x1, double y1) {
 	double ul, vl;
 	double ur, vr;
 
-	integrate_spiro(ks, xy);
+	integrate_spiro(ks, xy, n);
 	ch = hypot(xy[0], xy[1]);
 	th = atan2(xy[1], xy[0]);
 	scale = seg_ch / ch;
@@ -105,7 +105,7 @@ void print_seg(const double ks[4], double x0, double y0, double x1, double y1) {
 	    thsub = rot - .25 * ks[0] + (1./32) * ks[1] - (1./384) * ks[2] + (1./6144) * ks[3];
 	    cth = .5 * scale * cos(thsub);
 	    sth = .5 * scale * sin(thsub);
-	    integrate_spiro(ksub, xysub);
+	    integrate_spiro(ksub, xysub, n);
 	    xmid = x0 + cth * xysub[0] - sth * xysub[1];
 	    ymid = y0 + cth * xysub[1] + sth * xysub[0];
 	    print_seg(ksub, x0, y0, xmid, ymid);
