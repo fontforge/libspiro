@@ -1,3 +1,6 @@
+- 30-Aug-2013
+    * Beta version 0.2 for users interested in testing libspiro.0.2
+
 - 29-Aug-2013
     * Optional 'make check' runs 'call-test' to check libspiro functions.
     * Minor logic optimizations. Removed global 'n', passed 'n' instead.
