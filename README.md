@@ -12,12 +12,43 @@ Raph Levien's spiro splines only use on-curve points and so are easier to use an
 
 This library will take an array of spiro control points and convert them into a series of bézier splines which can then be used in the myriad of ways the world has come to use béziers.
 
-### Two methods of using libspiro
+## Installation
+
+Installing from Git master requires 2 preparatory steps:
+
+```sh
+autoreconf -i
+automake --foreign -Wall
+```
+
+Then the usual steps to compile it:
+
+```sh
+./configure
+make
+make install
+```
+
+## Usage
+
+### In FontForge
+
+FontForge will autodetect libspiro when it is installed in the usual way. 
+
+An exception to this is with the Mac bundled version (where `FontForge.app` is copied to `/Applications`.) To install your compiled version into the bundle, run ```sh ./configure --prefix=/Applications/FontForge.app/Contents/Resources/opt/local/ ```
+
+#### Crash Reporting
+
+Mac OS X: A helping script, `./fontforge.sh` is provided to run FontForge inside a debugger to get useful information on solving crashes. An example issue is at https://github.com/fontforge/libspiro/issues/4
+
+# Developing
+
+### Two methods of using libspiro in your programs
 
 - [C](#programming-with-libspiro-in-c)
 - [Java](#programming-with-libspiro-in-java)
 
-## Programming with libspiro in C
+### Programming with libspiro in C
 
 - Basic Type
   - [spiro control point](#the-spiro-control-point)
@@ -27,7 +58,7 @@ This library will take an array of spiro control points and convert them into a 
   - [SpiroCPsToBezier](#spirocpstobezier)(spiros_cp *,int n,int is_closed,bezctx *)
   - [TaggedSpiroCPsToBezier](#taggedspirocpstobezier)(spiros_cp *,bezctx *) 
 
-### Basic Types
+#### Basic Types
 
 #### The spiro control point
 
@@ -88,7 +119,7 @@ struct _bezctx {
 
 You must create a super-class of this abstract type that handles the creation of your particular representation of bézier splines. As an [example I provide the one used by Raph to generate PostScript output](bezctx.md) (cubic beziers). Spiro will convert a set of spiro_cps into a set of bezier curves. As it does so it will call the appropriate routine in your bezier context with this information – this should allow you to create your own internal representation of those curves.
 
-### Calling into libspiro
+#### Calling into libspiro
 
 Libspiro needs a header file:
 
@@ -168,7 +199,7 @@ In this case there is no need to provide a point count nor an open/closed contou
     bezctx_ps_close(bc);
    ```
 
-## Programming with libspiro in Java
+### Programming with libspiro in Java
 
 **CAVEAT:** I'm not proficient in Java.
 
