@@ -32,7 +32,8 @@ m4_define([spiro_package_name], ["libspiro"])
 AC_INIT([spiro],[spiro_version],[fontforge-devel@lists.sourceforge.net],
 	[spiro_package_name],[https://github.com/fontforge/libspiro])
 AC_CONFIG_SRCDIR([spiro.c])
-AM_INIT_AUTOMAKE([$spiro_package_name],[$spiro_version])
+AM_INIT_AUTOMAKE([foreign -Wall])
+
 #-------------------------------------------
 AC_CONFIG_MACRO_DIR([m4])
 LT_INIT
@@ -48,6 +49,11 @@ AC_PROG_MAKE_SET
 AC_PROG_SED
 AC_PATH_PROGS([WGET],[wget],[wget])
 AC_CONFIG_HEADERS([spiro-config.h])
+
+#-------------------------------------------
+# automake 1.12 seems to require AM_PROG_AR,
+# but automake 1.11 doesn't recognize it.
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 #-------------------------------------------
 # Indicate this is a release build and that
@@ -81,11 +87,11 @@ AC_CHECK_FUNCS(finite, ,[
 	AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])])])
 AC_SUBST(HAVE_FINITE)
 AC_SUBST(HAVE_ISFINITE)
-AH_BOTTOM([/* Define IS_FINITE(_a) to finite(_a) or isfinite(_a) */
+AH_BOTTOM([/* Define IS_FINITE(x) to finite(x) or isfinite(x) */
 #ifdef HAVE_FINITE
-#define IS_FINITE(_a) (__finite(_a))
+#define IS_FINITE(x) finite(x)
 #else
-#define IS_FINITE(_a) (__isfinite(_a))
+#define IS_FINITE(x) isfinite(x)
 #endif])
 
 #-------------------------------------------
