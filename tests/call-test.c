@@ -333,6 +333,7 @@ int test_multi_curves(void) {
 	 (nextknot=(int**)calloc(S_TESTS,sizeof(int*)))==NULL )
 	goto test_multi_curves_exit;
     for (i=0; i < S_TESTS; ) {
+	/* NOTE: S_TESTS has to be multiple of 3 here. */
 	if ( (spiro[i]=malloc(cl[0]*sizeof(spiro_cp)))==NULL || \
 	      (nextknot[i]=calloc(cl[0]+1,sizeof(int)))==NULL )
 	    goto test_multi_curves_exit;
@@ -370,17 +371,20 @@ int test_multi_curves(void) {
 	pdata[i].ret = i;
     }
 
+    j=0;
     for (i=0; i < S_TESTS; i++)
 	/* all values passed are joined at "->" (should be okay). */
 	if ( pthread_create(&curve_test[i],NULL,test_a_curve,(void *)&pdata[i]) ) {
 	    printf("bad pthread_create[%d]\n",i);
-	    return -1;
+	    j=-1;
+	    break;
 	}
-    for (i=0; i < S_TESTS; i++)
+    while (--i >= 0)
 	if ( pthread_join(curve_test[i],NULL) ) {
 	    printf("bad pthread_join[%d]\n",i);
-	    return -1;
+	    j=-1;
 	}
+    if (j) goto test_multi_curves_exit;
 
     for (i=0; i < S_TESTS; i++)
 	if ( pdata[i].ret!=1 ) {
