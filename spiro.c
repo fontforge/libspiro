@@ -813,12 +813,12 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 static int
 check_finiteness(spiro_seg * segs, int num_segs)
 {
-/* Check if all values are "finite", return true=1, else return fail=0 */
+/* Check if all values are "finite", return true=0, else return fail=-1 */
     int i, j;
     for (i = 0; i < num_segs; ++i)
 	for (j = 0; j < 4; ++j)
-	    if ( IS_FINITE( segs[i].ks[j])==0 ) return 0;
-    return 1;
+	    if ( IS_FINITE( segs[i].ks[j])==0 ) return -1;
+    return 0;
 }
 
 static int
@@ -848,14 +848,16 @@ solve_spiro(spiro_seg *s, int nseg)
 #ifdef VERBOSE
 	    printf("iteration #%d, %% norm = %g\n", i, norm);
 #endif
-	    if (!check_finiteness(s, nseg)) break;
+	    if (check_finiteness(s, nseg)) break;
 	    if (norm < 1e-12) { converged = 1; break; }
 	}
-    }
 #ifdef VERBOSE
-    if (converged==0)
-	fprintf(stderr, "ERROR: LibSpiro: failed to converge after trying %d attempts to converge.\n", i);
+	if (converged==0)
+	    fprintf(stderr, "ERROR: LibSpiro: failed to converge after %d attempts to converge.\n", i);
+    } else {
+	fprintf(stderr, "ERROR: LibSpiro: failed to alloc memory.\n");
 #endif
+    }
 
     free(m);
     free(v);
