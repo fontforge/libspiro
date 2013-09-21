@@ -153,12 +153,12 @@ int test_curve(void) {
 	{124, 111, 'c'},
 	{229, 82, 'c'}
     };
-    spiro_seg *segs = NULL;
+    spiro_seg *segs = 0;
     int i;
 
     for (i = 0; i < 1000; i++) {
 	free_spiro(segs);
-	if ( (segs = setup_path(path, 15))==NULL || solve_spiro(segs, 15)==0 ) {
+	if ( (segs = setup_path(path, 15))==0 || solve_spiro(segs, 15)==0 ) {
 	    printf("error in test_curve()\n");
 	    free_spiro(segs);
 	    return -1;

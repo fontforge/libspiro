@@ -147,7 +147,7 @@ int test_curve(int c) {
 
     /* Check if run_spiro works okay */
     printf("testing run_spiro() using data=path%d[].\n",c);
-    if ( (segs=run_spiro(spiro,cl[c]))==NULL ) {
+    if ( (segs=run_spiro(spiro,cl[c]))==0 ) {
 	printf("error with run_spiro() using data=path%d[].\n",c);
 	return -1;
     }

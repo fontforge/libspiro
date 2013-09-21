@@ -487,7 +487,7 @@ setup_path(const spiro_cp *src, int n)
 {
     int n_seg = src[0].ty == '{' ? n - 1 : n;
     spiro_seg *r = (spiro_seg *)malloc((n_seg + 1) * sizeof(spiro_seg));
-    if ( r==NULL ) return r;
+    if ( r==NULL ) return 0;
     int i;
     int ilast;
 
@@ -513,7 +513,7 @@ setup_path(const spiro_cp *src, int n)
 		    i, src[i].ty, r[i].x, r[i].y);
 #endif
 	    free(r);
-	    return NULL;
+	    return 0;
 	}
     }
 #endif
@@ -531,7 +531,7 @@ setup_path(const spiro_cp *src, int n)
 		    i, src[i].ty, r[i].x, r[i].y);
 #endif
 	    free(r);
-	    return NULL;
+	    return 0;
 	}
 #endif
 	r[i].seg_th = atan2(dy, dx);
@@ -931,17 +931,19 @@ run_spiro(const spiro_cp *src, int n)
     if (src==NULL || n <= 0) return 0;
     int nseg = src[0].ty == '{' ? n - 1 : n;
     spiro_seg *s = setup_path(src, n);
-    if ( s==NULL ) return 0;
-    int converged = 1 ; // this value is for when nseg == 1; else actual value determined below
-    if (nseg > 1) converged = solve_spiro(s, nseg);
-    if (converged) return s;
-    else { free(s); return 0; }
+    if (s) {
+	int converged = 1 ; // this value is for when nseg == 1; else actual value determined below
+	if (nseg > 1) converged = solve_spiro(s, nseg);
+	if (converged) return s;
+	free(s);
+    }
+    return 0;
 }
 
 void
 free_spiro(spiro_seg *s)
 {
-    free(s);
+    if (s) free(s);
 }
 
 void
