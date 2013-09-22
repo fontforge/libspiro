@@ -84,6 +84,17 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
     int knot2[] = {
 	2, 1, 9, 0
     };
+    spiro_cp path3[] = { /* this will fail to converge */
+	{233, 144, '{'},
+	{341, 138, 'o'},
+	{386, 72,  'o'},
+	{443, 141, 'o'},
+	{467, 231, 'o'},
+	{377, 333, '}'}
+    };
+    int knot3[] = {
+	2, 1, 9, 1, 1, 0
+    };
     int i;
 
     if ( c==0 ) for (i = 0; i < 16; i++) {
@@ -96,14 +107,19 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	spiro[i].y = path1[i].y;
 	spiro[i].ty = path1[i].ty;
 	nextknot[i] = knot1[i];
-    } else for (i = 0; i < 4; i++) {
+    } else if ( c==2 ) for (i = 0; i < 4; i++) {
 	spiro[i].x = path2[i].x;
 	spiro[i].y = path2[i].y;
 	spiro[i].ty = path2[i].ty;
 	nextknot[i] = knot2[i];
+    } else for (i = 0; i < 6; i++) {
+	spiro[i].x = path3[i].x;
+	spiro[i].y = path3[i].y;
+	spiro[i].ty = path3[i].ty;
+	nextknot[i] = knot3[i];
     }
 }
-int cl[] = {16, 6, 4};
+int cl[] = {16, 6, 4, 6};
 
 /* Provide bare-bones do-nothing functions for testing. This only */
 /* printf values that would normally be handled by user programs. */
@@ -457,6 +473,7 @@ int main(int argc, char **argv) {
     st = get_time();
 
     if ( test_curve(0) || test_curve(1) || test_curve(2) || \
+	 !test_curve(3) || /* This curve won't converge. */ \
     	 test_multi_curves() )
 	ret = -1;
 
