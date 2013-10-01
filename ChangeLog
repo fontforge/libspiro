@@ -1,3 +1,6 @@
+- 30-Sep-2013
+    * Libspiro Version 0.2.20130930
+
 - 29-Aug-2013
     * Optional 'make check' runs 'call-test' to check libspiro functions.
     * Minor logic optimizations. Removed global 'n', passed 'n' instead.

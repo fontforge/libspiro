@@ -20,7 +20,8 @@ EXTRA_DIST = bezctx.md get-spiro-src.sh README-RaphLevien README.md zmisc.h \
 	closedspiro.png openspiro.png spiral16.png spiral32.png spiro-a.png \
 	java/ShowPlate.java java/Spiro.java java/SpiroBezierContext.java    \
 	java/SpiroCanvas.java java/SpiroCP.java java/SpiroGeneralPath.java  \
-	java/SpiroPointType.java
+	java/SpiroPointType.java README-GeorgeWilliams fontforge-debug.txt  \
+	fontforge.sh m4/ax_check_compile_flag.m4
 
 include_HEADERS = bezctx.h bezctx_intf.h spiro.h spiroentrypoints.h
 
