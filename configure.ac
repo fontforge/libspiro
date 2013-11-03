@@ -74,6 +74,10 @@ dnl AM_MAINTAINER_MODE([enable])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],[AC_SUBST([AM_DEFAULT_VERBOSITY],[1])])
 
 #-------------------------------------------
+# Check for libraries
+AC_SEARCH_LIBS([cos],[m])
+
+#-------------------------------------------
 # Check for finite or isfinite. Use one.
 AC_CHECK_FUNCS(finite, ,[
   AC_MSG_CHECKING(for finite in <math.h>)
