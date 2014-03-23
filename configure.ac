@@ -6,7 +6,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.61])
 #-------------------------------------------
 # PackageTimestamp version
-m4_define([spiro_package_stamp], "20130930")
+m4_define([spiro_package_stamp], [20130930])
 #-------------------------------------------
 # Making point releases:
 #   spiro_major_version += 0;
@@ -20,13 +20,13 @@ m4_define([spiro_package_stamp], "20130930")
 #   spiro_major_version += 1;
 #   spiro_minor_version = 0;
 #
-m4_define([spiro_major_version], '0')
-m4_define([spiro_minor_version], '2')
+m4_define([spiro_major_version], [0])
+m4_define([spiro_minor_version], [2])
 m4_define([spiro_version],
           [spiro_major_version.spiro_minor_version.spiro_package_stamp])
 m4_define([spiro_info],
           [spiro_major_version:spiro_minor_version:0])
-m4_define([spiro_package_name], ["libspiro"])
+m4_define([spiro_package_name], [libspiro])
 
 #-------------------------------------------
 AC_INIT([spiro],[spiro_version],[fontforge-devel@lists.sourceforge.net],
@@ -136,8 +136,8 @@ AC_CANONICAL_HOST
 
 #-------------------------------------------
 # Pass variables to MAKEFILE.AM
-AC_SUBST(HOST,$host)
-AC_SUBST(LIBSPIRO_VERSION,$spiro_info)
+AC_SUBST(HOST,[host])
+AC_SUBST(LIBSPIRO_VERSION,[spiro_info])
 
 #-------------------------------------------
 # Check for and add usable compiler warnings
@@ -155,8 +155,8 @@ AC_LANG_POP
 #-------------------------------------------
 # Put ifdef wrapper around spiro-config.h so
 # that we don't accidently call it twice.
-AH_TOP([#ifndef _SPIRO_CONFIG_H])
-AH_TOP([#define _SPIRO_CONFIG_H 1])
+AH_TOP([#ifndef _SPIRO_CONFIG_H
+#define _SPIRO_CONFIG_H 1])
 AH_BOTTOM([#endif])
 
 #-------------------------------------------
