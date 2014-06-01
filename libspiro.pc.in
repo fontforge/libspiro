@@ -5,7 +5,9 @@ includedir=@includedir@
 
 Name: libspiro
 Description: A library for curve design. Clothoid to bezier conversion. A mechanism for drawing smooth contours with constant curvature at the spline joins.
+URL: https://github.com/fontforge/libspiro
 Version: @VERSION@
-Cflags: -I${includedir}
+Requires:
 Libs: -L${libdir} -lspiro
+Cflags: -I${includedir}
 
