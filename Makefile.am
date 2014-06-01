@@ -2,6 +2,9 @@
 
 SUBDIRS = . tests
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libspiro.pc
+
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 AM_CFLAGS = $(WCFLAGS)
