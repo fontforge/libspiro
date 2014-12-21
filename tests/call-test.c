@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include "spiro-config.h"	/* for ./configure test settings like VERBOSE */
 #if HAVE_PTHREADS
-#include <pthread.h>
+#include <pthread.h>		/* multi-thread check. Not part of libspiro */
 #endif
 
 static double get_time (void) {
@@ -85,7 +85,7 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	2, 1, 9, 0
     };
     spiro_cp path3[] = { /* this will fail to converge */
-	{233, 144, '{'},
+	{233, 144, '{'}, /* will not pass (on purpose) */
 	{341, 138, 'o'},
 	{386, 72,  'o'},
 	{443, 141, 'o'},
@@ -97,6 +97,10 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
     };
     int i;
 
+    /* Load static variable tables into memory because */
+    /* SpiroCPsToBezier0() modifies start & end values */
+    /* Later call-tests will also modify these so that */
+    /* we can verify multi-threads aren't overwriting. */
     if ( c==0 ) for (i = 0; i < 16; i++) {
 	spiro[i].x = path0[i].x;
 	spiro[i].y = path0[i].y;
@@ -199,8 +203,11 @@ int test_curve(int c) {
 }
 
 /************************************************/
+/************************************************/
 /* multi-threaded, multi-user, multi-curve test */
-
+/* exercise libspiro with multiple curves given */
+/* all at the same time and then check that all */
+/* returned curves contain the correct values.  */
 #if HAVE_PTHREADS
 typedef struct {
     spiro_cp *spiro;
@@ -326,7 +333,9 @@ int test_multi_curves(void) {
     ret = -1;	/* return error if out of memory */
 
 
-    /* Expect lots of results */
+    /* Expect lots of results, therefore create available memory. */
+    /* This way, we won't be wasting time doing malloc because we */
+    /* really want to shoot a whole bunch of pthreads all at once.*/
     if ( (bc=(test_bezctx**)calloc(S_TESTS,sizeof(test_bezctx*)))==NULL )
 	goto test_multi_curves_exit;
     for (i=0; i < S_TESTS; i++) {
@@ -350,6 +359,7 @@ int test_multi_curves(void) {
 	goto test_multi_curves_exit;
     for (i=0; i < S_TESTS; ) {
 	/* NOTE: S_TESTS has to be multiple of 3 here. */
+	/* ...because we test using path[0/1/2]tables. */
 	if ( (spiro[i]=malloc(cl[0]*sizeof(spiro_cp)))==NULL || \
 	      (nextknot[i]=calloc(cl[0]+1,sizeof(int)))==NULL )
 	    goto test_multi_curves_exit;
@@ -368,6 +378,8 @@ int test_multi_curves(void) {
     }
 
     /* Change to different sizes to make sure no duplicates */
+    /* ...to verify we do not overwrite different user data */
+    /* while running multiple threads all at the same time. */
     for (i=0; i < S_TESTS; i++) {
 	spiro_cp *temp;
 	temp = spiro[i];
@@ -378,7 +390,12 @@ int test_multi_curves(void) {
     }
 
 #if HAVE_PTHREADS
-    /* Test all curves - all at same time, wait for all to finish */
+    /* Data and memory prepared before Pthreads.  Ready? Set? GO! */
+    /* Test all curves, all at same time, wait for all to finish. */
+    /* This test could fail if we had globally set variables that */
+    /* could affect other functions, eg: static n=4 was moved out */
+    /* into passed variable so that one user won't affect others. */
+    /* GEGL is a good example of multiple users all at same time. */
     pthread_t curve_test[S_TESTS];
     pthread_pcurve pdata[S_TESTS];
     for (i=0; i < S_TESTS; i++) {
@@ -407,8 +424,11 @@ int test_multi_curves(void) {
 	    printf("error with TaggedSpiroCPsToBezier0() using data=%d.\n",i);
 	    goto test_multi_curves_exit;
 	}
+    /* All threads returned okay, Now, go check all data is good. */
 #else
     /* No pthreads.h, test all curves sequentially, one at a time */
+    /* Just do a math check and leave the pthread check for other */
+    /* operating systems to verify libspiro has no static values. */
     for (i=0; i < S_TESTS; i++) {
 	if ( TaggedSpiroCPsToBezier0(spiro[i],(bezctx*)(bc[i]))!=1 ) {
 	    printf("error with TaggedSpiroCPsToBezier0() using data=%d.\n",i);
