@@ -26,14 +26,15 @@ Then the usual steps to compile it:
 ```sh
 ./configure
 make
-make install
+make check
+sudo make install
 ```
 
 ## Usage
 
 ### In FontForge
 
-FontForge will autodetect libspiro when it is installed in the usual way. 
+FontForge will autodetect libspiro when it is installed in the usual way.
 
 An exception to this is with the Mac bundled version (where `FontForge.app` is copied to `/Applications`.) To install your compiled version into the bundle, run ```sh ./configure --prefix=/Applications/FontForge.app/Contents/Resources/opt/local/ ```
 
@@ -55,8 +56,8 @@ Mac OS X: A helping script, `./fontforge.sh` is provided to run FontForge inside
   - [bezier context](#the-bzier-context)
 - [Header file](#calling-into-libspiro)
 - Entry points
-  - [SpiroCPsToBezier](#spirocpstobezier)(spiros_cp *,int n,int is_closed,bezctx *)
-  - [TaggedSpiroCPsToBezier](#taggedspirocpstobezier)(spiros_cp *,bezctx *) 
+  - int [SpiroCPsToBezier0](#spirocpstobezier)(spiro_cp *,int n,int is_closed,bezctx *)
+  - int [TaggedSpiroCPsToBezier0](#taggedspirocpstobezier)(spiro_cp *,bezctx *)
 
 #### Basic Types
 
@@ -121,7 +122,7 @@ You must create a super-class of this abstract type that handles the creation of
 
 #### Calling into libspiro
 
-Libspiro needs a header file:
+Your program needs this Libspiro header file:
 
 ```c
 #include <spiroentrypoints.h>
@@ -129,15 +130,15 @@ Libspiro needs a header file:
 
 You must define a bezier context that is appropriate for your internal splines (See [Raph's PostScript example](bezctx.md)).
 
-#### SpiroCPsToBezier
+#### SpiroCPsToBezier0
 
 You must create an array of spiro control points:
 
 ```c
    spiro_cp points[4];
-   
+
      /* This defines something very like a circle, centered at the origin with radius 100 */
-   
+
    points[0].x = -100; points[0].y =    0; points[0].ty = SPIRO_G4;
    points[1].x =    0; points[1].y =  100; points[1].ty = SPIRO_G4;
    points[2].x =  100; points[2].y =    0; points[2].ty = SPIRO_G4;
@@ -146,25 +147,25 @@ You must create an array of spiro control points:
 
 ![](closedspiro.png)
 
-Then call `SpiroCPsToBezier`, a routine which takes 4 arguments
+Then call `SpiroCPsToBezier0`, a routine which takes 4 arguments and returns bc and an integer pass/fail flag.
 
-1. An array of spiros
-2. The number of elements in the array
+1. An array of input spiros
+2. The number of elements in the spiros array
 3. Whether this describes a closed (True) or open (False) contour
-4. A bezier context
+4. A bezier results output context
+5. An integer success flag. 1 = completed task and have valid bezier results, or  0 = unable to complete task, bezier results are invalid.
    ```c
     bc = new_bezctx_ps();
-    SpiroCPsToBezier(points,4,True,bc)
+    success = SpiroCPsToBezier0(points,4,True,bc)
     bezctx_ps_close(bc);
-   ```
 
-#### TaggedSpiroCPsToBezier
+#### TaggedSpiroCPsToBezier0
 
-Or call `TaggedSpiroCPsToBezier`. This routine requires that the array of spiro control points be tagged according to Raph's internal conventions. A closed curve will have an extra control point attached to the end of it with a type of `SPIRO_END`;
+Or call `TaggedSpiroCPsToBezier0`. This routine requires that the array of spiro control points be tagged according to Raph's internal conventions. A closed curve will have an extra control point attached to the end of it with a type of `SPIRO_END`;
 
 ```c
    spiro_cp points[5];
-   
+
    points[0].x = -100; points[0].y =    0; points[0].ty = SPIRO_G4;
    points[1].x =    0; points[1].y =  100; points[1].ty = SPIRO_G4;
    points[2].x =  100; points[2].y =    0; points[2].ty = SPIRO_G4;
@@ -178,7 +179,7 @@ An open curve will have the type of the first control point set to `SPIRO_OPEN_C
 
 ```c
    spiro_cp points[4];
-   
+
    points[0].x = -100; points[0].y =    0; points[0].ty = SPIRO_OPEN_CONTOUR;
    points[1].x =    0; points[1].y =  100; points[1].ty = SPIRO_G4;
    points[2].x =  100; points[2].y =    0; points[2].ty = SPIRO_G4;
@@ -189,13 +190,14 @@ An open curve will have the type of the first control point set to `SPIRO_OPEN_C
 
 (In an open contour the point types of the first and last control points are going to be ignored).
 
-In this case there is no need to provide a point count nor an open/closed contour flag. That information can be obtained from the control points themselves. So `TaggedSpiroCPsToBezier` only takes 2 arguments
+In this case there is no need to provide a point count nor an open/closed contour flag. That information can be obtained from the control points themselves. So `TaggedSpiroCPsToBezier0` only takes 2 arguments and returns bc and an integer pass/fail flag.
 
-1. An array of spiros
-2. A bezier context
+1. An array of input spiros
+2. A bezier results output context
+3. An integer success flag. 1 = completed task and have valid bezier results, or  0 = unable to complete task, bezier results are invalid.
    ```c
     bc = new_bezctx_ps();
-    TaggedSpiroCPsToBezier(points,bc)
+    success = TaggedSpiroCPsToBezier0(points,bc)
     bezctx_ps_close(bc);
    ```
 

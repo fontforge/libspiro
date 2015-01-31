@@ -74,3 +74,10 @@ TaggedSpiroCPsToBezier0(spiro_cp *spiros,bezctx *bc)
     }
     return 0 ; // spiro did not converge or encountered non-finite values
 }
+
+void SpiroCPsToBezier1(spiro_cp *spiros,int n,int isclosed,bezctx *bc,int *done) {
+    *done = SpiroCPsToBezier0(spiros,n,isclosed,bc);
+}
+void TaggedSpiroCPsToBezier1(spiro_cp *spiros,bezctx *bc,int *done) {
+    *done = TaggedSpiroCPsToBezier0(spiros,bc);
+}

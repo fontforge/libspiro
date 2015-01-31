@@ -1,3 +1,12 @@
+- 31-Jan-2015
+    * Libspiro Version 0.3.20150131
+    * Allow Libspiro to be included using PKG_CHECK_MODULES().
+    * Bug fixes in configure.ac m4 calls that caused problems seen in:
+	https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=196780
+	https://bugs.archlinux.org/task/43373
+    * Add TaggedSpiroCPsToBezier1() and SpiroCPsToBezier1() for programs
+      that cannot use TaggedSpiroCPsToBezier0() or SpiroCPsToBezier0().
+
 - 30-Sep-2013
     * Libspiro Version 0.2.20130930
 

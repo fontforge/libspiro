@@ -24,6 +24,9 @@ extern void TaggedSpiroCPsToBezier(spiro_cp *spiros,bezctx *bc);
 extern void SpiroCPsToBezier(spiro_cp *spiros,int n,int isclosed,bezctx *bc);
 
 
+
+/* These functions are available in libspiro-0.2.20130930 or higher */
+
 /* The two functions below return 1 upon success and 0 upon failure */
 
 /* The spiros array should indicate it's own end... So              */
@@ -37,4 +40,14 @@ extern int TaggedSpiroCPsToBezier0(spiro_cp *spiros,bezctx *bc);
 /* Open contours do not need to start with '{', nor to end with '}' */
 /* Close contours do not need to end with 'z'                       */
 extern int SpiroCPsToBezier0(spiro_cp *spiros,int n,int isclosed,bezctx *bc);
+
+
+
+/* These functions are available in libspiro-0.3.20150131 or higher */
+
+/* If you can't use TaggedSpiroCPsToBezier0(), SpiroCPsToBezier0(), */
+/* these functions are enhanced versions of the original functions, */
+/* where spiro success/failure replies are passd back through *done */
+extern void TaggedSpiroCPsToBezier1(spiro_cp *spiros,bezctx *bc,int *done);
+extern void SpiroCPsToBezier1(spiro_cp *spiros,int n,int isclosed,bezctx *bc,int *done);
 #endif

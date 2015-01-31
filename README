@@ -3,7 +3,8 @@ smooth continuous curves based on a given set of codes and X,Y constraints.
 
 The main user(s) of Libspiro are Font editing programs such as FontForge,
 and forked copies have been seen in more artistic programs such as InkScape,
-or in libraries such as GEGL. There may be other possible uses in future.
+or in libraries such as GEGL. There may be other possible uses in future,
+and this library has strong potential in graphical and vector type programs.
 
 Developers interested in also sharing and making use of LibSpiro will likely
 want to read (in this order to understand LibSpiro better):

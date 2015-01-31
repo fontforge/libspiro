@@ -1,5 +1,5 @@
 /* Test libspiro normal library calls
-Copyright (C) 2013 Jose Da Silva
+Copyright (C) 2013, Joe Da Silva
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -160,7 +160,7 @@ int test_curve(int c) {
     int nextknot[17];
     spiro_seg *segs = NULL;
     bezctx *bc;
-    int i;
+    int i,done;
 
     /* Load sample data so that we can see if library is callable */
     load_test_curve(spiro,nextknot,c);
@@ -195,6 +195,22 @@ int test_curve(int c) {
     printf("---\ntesting SpiroCPsToBezier0() using data=path%d[].\n",c);
     if ( SpiroCPsToBezier0(spiro,cl[c],(c==0 ? 1 : 0),bc)!=1 ) {
 	printf("error with SpiroCPsToBezier0() using data=path%d[].\n",c);
+	return -1;
+    }
+
+    /* Check if TaggedSpiroCPsToBezier1() works okay */
+    printf("---\ntesting TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
+    TaggedSpiroCPsToBezier1(spiro,bc,&done);
+    if ( done!=1 ) {
+	printf("error with TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
+	return -1;
+    }
+
+    /* Check if SpiroCPsToBezier1() works okay */
+    printf("---\ntesting SpiroCPsToBezier1() using data=path%d[].\n",c);
+    SpiroCPsToBezier1(spiro,cl[c],(c==0 ? 1 : 0),bc,&done);
+    if ( done!=1 ) {
+	printf("error with SpiroCPsToBezier1() using data=path%d[].\n",c);
 	return -1;
     }
 
