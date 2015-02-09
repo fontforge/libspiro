@@ -12,9 +12,6 @@
 /* Define to 1 if you have the `finite' function. */
 #undef HAVE_FINITE
 
-/* Define to 1 if you have the `hypot' function. */
-#undef HAVE_HYPOT
-
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
