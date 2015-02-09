@@ -16,3 +16,43 @@ developers interested in how LibSpiro works.
 
 Developers interested in example programs, can take a look at spiro.c found
 within FontForge, InkScape, GEGL and call-test.c included with this library.
+
+Installation
+============
+
+Installing from Git master requires 2 preparatory steps:
+
+First, you need to create the `configure' script if you do not have it yet.
+This will require autoreconf and automake to build `configure'.
+> autoreconf -i
+> automake --foreign -Wall
+
+
+Second, you then use the usual steps to compile it.
+Various operating systems and setups will need `configure' options set.
+The INSTALLATION file has detailed info for `configure' options.
+Example install steps for Linux, FreeBSD, Win32/64 are shown below:
+
+Installing on Linux
+> ./configure
+> make
+> make check
+> sudo make install
+
+Installing on FreeBSD10 (using clang3.3 or 3.6)
+> ./configure --prefix=$(pwd)/BUILD
+> make clean
+> make
+> make install
+
+Installing on Windows 32-bit
+> ./configure --host=i686-w64-mingw32 --prefix=$(pwd)/build-w32
+> make clean
+> make
+> make install
+
+Installing on Windows 64-bit
+> ./configure --host=x86_64-w64-mingw32 --prefix=$(pwd)/build-w64
+> make clean
+> make
+> make install

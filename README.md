@@ -16,18 +16,47 @@ This library will take an array of spiro control points and convert them into a 
 
 Installing from Git master requires 2 preparatory steps:
 
+First, you need to create the ./configure script if you do not have it yet
 ```sh
 autoreconf -i
 automake --foreign -Wall
 ```
 
-Then the usual steps to compile it:
+Second, you then use the usual steps to compile the library.
+Various operating systems and setups will need ./configure options set.
+The INSTALLATION file has detailed info for `configure' options.
+Example install steps for Linux, FreeBSD, Win32/64 are shown below:
 
+Installing on Linux
 ```sh
 ./configure
 make
 make check
 sudo make install
+```
+
+Installing on FreeBSD
+```sh
+./configure --prefix=$(pwd)/BUILD
+make clean
+make
+make install
+```
+
+Installing on Windows 32-bit
+```sh
+./configure --host=i686-w64-mingw32 --prefix=$(pwd)/build-w32
+make clean
+make
+make install
+```
+
+Installing on Windows 64-bit
+```sh
+./configure --host=x86_64-w64-mingw32 --prefix=$(pwd)/build-w64
+make clean
+make
+make install
 ```
 
 ## Usage
