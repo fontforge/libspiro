@@ -51,9 +51,9 @@ SpiroCPsToBezier0(spiro_cp *spiros,int n,int isclosed,bezctx *bc)
     if (s) {
 	spiro_to_bpath(s,n,bc);
 	free_spiro(s);
-	return 1; // success
+	return 1; /* success */
     }
-    return 0 ; // spiro did not converge or encountered non-finite values
+    return 0 ; /* spiro did not converge or encountered non-finite values */
 }
 
 int
@@ -65,14 +65,14 @@ TaggedSpiroCPsToBezier0(spiro_cp *spiros,bezctx *bc)
     for ( n=0; spiros[n].ty!='z' && spiros[n].ty!='}'; ++n );
     if ( spiros[n].ty == '}' ) ++n;
 
-    if ( n<=0 ) return 0; // invalid input
+    if ( n<=0 ) return 0; /* invalid input */
     s = run_spiro(spiros,n);
     if (s) {
 	spiro_to_bpath(s,n,bc);
 	free_spiro(s);
-	return 1; // success
+	return 1; /* success */
     }
-    return 0 ; // spiro did not converge or encountered non-finite values
+    return 0 ; /* spiro did not converge or encountered non-finite values */
 }
 
 void SpiroCPsToBezier1(spiro_cp *spiros,int n,int isclosed,bezctx *bc,int *done) {

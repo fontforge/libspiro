@@ -76,20 +76,24 @@ m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],[AC_SUBST([AM_DEFAULT_VERBOS
 AC_SEARCH_LIBS([cos],[m])
 
 #-------------------------------------------
-# Check for finite or isfinite. Use one.
-AC_CHECK_FUNCS(finite, ,[
-  AC_MSG_CHECKING(for finite in <math.h>)
-  AC_LINK_IFELSE(
-    [AC_LANG_PROGRAM([[#include <math.h>]],[[double f = 0.0; finite(f)]])],
-    [AC_DEFINE([HAVE_FINITE],[1],[Define to 1 if you have the finite function.])
-     AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)
-     AC_MSG_CHECKING(for isfinite in <math.h>)
-     AC_LINK_IFELSE(
-       [AC_LANG_PROGRAM([[#include <math.h>]],[[float f = 0.0; isfinite(f)]])],
-       [AC_DEFINE([HAVE_ISFINITE],[1],[Define to 1 if you have the isfinite function.])
-	AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])])])
-AC_SUBST(HAVE_FINITE)
-AC_SUBST(HAVE_ISFINITE)
+# Check for C99 hypot. Error if none found.
+AC_CHECK_FUNCS(hypot, ,[AC_MSG_FAILURE([ERROR: hypot() required but not found.],[1])])
+
+#-------------------------------------------
+# Check for C99 finite or isfinite. Use one.
+math_finite=no
+math_isfinite=no
+AC_CHECK_FUNCS(finite,
+  [AC_SUBST(HAVE_FINITE)
+   math_finite=true],
+    AC_CHECK_FUNCS(isfinite,
+      [AC_SUBST(HAVE_ISFINITE)
+       math_isfinite=true]))
+
+if test x"${math_finite}" = xno && test x"${math_isfinite}" = xno; then
+  AC_MSG_FAILURE([ERROR: finite() or isfinite() required but not found.],[1])
+fi
+
 AH_BOTTOM([/* Define IS_FINITE(x) to finite(x) or isfinite(x) */
 #ifdef HAVE_FINITE
 #define IS_FINITE(x) finite(x)
@@ -140,16 +144,17 @@ AC_SUBST(LIBSPIRO_VERSION,[spiro_info])
 
 #-------------------------------------------
 # Check for and add usable compiler warnings
+WCFLAGS=""
 AC_LANG_PUSH([C])
-AC_SUBST([WCFLAGS],[])
-AX_CHECK_COMPILE_FLAG([-Wall],[WCFLAGS+=" -Wall"])
-AX_CHECK_COMPILE_FLAG([-Wextra],[WCFLAGS+=" -Wextra"])
-AX_CHECK_COMPILE_FLAG([-Wcast-align],[WCFLAGS+=" -Wcast-align"])
-AX_CHECK_COMPILE_FLAG([-Wbad-function-cast],[WCFLAGS+=" -Wbad-function-cast"])
-AX_CHECK_COMPILE_FLAG([-Wc++-compat],[WCFLAGS+=" -Wc++-compat"])
-AX_CHECK_COMPILE_FLAG([-Wmissing-prototypes],[WCFLAGS+=" -Wmissing-prototypes"])
-AX_CHECK_COMPILE_FLAG([-Wunused],[WCFLAGS+=" -Wunused"])
+AX_CHECK_COMPILE_FLAG([-Wall],[WCFLAGS="$WCFLAGS -Wall"])
+AX_CHECK_COMPILE_FLAG([-Wextra],[WCFLAGS="$WCFLAGS -Wextra"])
+AX_CHECK_COMPILE_FLAG([-Wcast-align],[WCFLAGS="$WCFLAGS -Wcast-align"])
+AX_CHECK_COMPILE_FLAG([-Wbad-function-cast],[WCFLAGS="$WCFLAGS -Wbad-function-cast"])
+AX_CHECK_COMPILE_FLAG([-Wc++-compat],[WCFLAGS="$WCFLAGS -Wc++-compat"])
+AX_CHECK_COMPILE_FLAG([-Wmissing-prototypes],[WCFLAGS="$WCFLAGS -Wmissing-prototypes"])
+AX_CHECK_COMPILE_FLAG([-Wunused],[WCFLAGS="$WCFLAGS -Wunused"])
 AC_LANG_POP
+AC_SUBST(WCFLAGS)
 
 #-------------------------------------------
 # Put ifdef wrapper around spiro-config.h so

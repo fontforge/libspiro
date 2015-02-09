@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>		/* for gettimeofday */
+#include <sys/timeb.h>		/* for get_time */
 
 #include "spiroentrypoints.h"	/* call spiro through here */
 #include "bezctx.h"		/* bezctx structure */
@@ -33,12 +33,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #endif
 
 static double get_time (void) {
-  struct timeval tv;
-  struct timezone tz;
+    struct timeb tb;
 
-  gettimeofday(&tv, &tz);
+    ftime(&tb);
 
-  return tv.tv_sec + 1e-6 * tv.tv_usec;
+    return tb.time + 1e-3 * tb.millitm;
 }
 
 void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
@@ -233,9 +232,9 @@ typedef struct {
 
 void *test_a_curve(void *pdata) {
     pthread_pcurve *data = (pthread_pcurve*)pdata;
-    //printf("start pthread %d\n",data->ret);
+    /*printf("start pthread %d\n",data->ret);*/
     data->ret = TaggedSpiroCPsToBezier0(data->spiro,data->bc);
-    //printf("done\n");
+    /*printf("done\n");*/
     pthread_exit(NULL);
 }
 #endif

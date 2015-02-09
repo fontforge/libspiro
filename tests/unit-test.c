@@ -23,20 +23,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <sys/time.h> /* for gettimeofday */
+#include <sys/timeb.h>		/* for get_time */
 
 #include "bezctx.c"
 #include "spiro.c"
 
-int n; // = 4;
+int n; /* = 4; */
 
 static double get_time (void) {
-  struct timeval tv;
-  struct timezone tz;
+    struct timeb tb;
 
-  gettimeofday (&tv, &tz);
+    ftime(&tb);
 
-  return tv.tv_sec + 1e-6 * tv.tv_usec;
+    return tb.time + 1e-3 * tb.millitm;
 }
 
 int test_integ(void) {
