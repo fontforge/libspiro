@@ -42,7 +42,7 @@ typedef struct {
 #endif
 
 #ifndef N_IS
-//int n = 4;
+/* int n = 4; */
 #define N_IS		4
 #endif
 
@@ -485,11 +485,12 @@ mod_2pi(double th)
 static spiro_seg *
 setup_path(const spiro_cp *src, int n)
 {
-    int n_seg = src[0].ty == '{' ? n - 1 : n;
-    spiro_seg *r = (spiro_seg *)malloc((n_seg + 1) * sizeof(spiro_seg));
+    int i, ilast, n_seg;
+    spiro_seg *r;
+
+    n_seg = src[0].ty == '{' ? n - 1 : n;
+    r = (spiro_seg *)malloc((n_seg + 1) * sizeof(spiro_seg));
     if ( r==NULL ) return 0;
-    int i;
-    int ilast;
 
     for (i = 0; i < n_seg; i++) {
 	r[i].x = src[i].x;
@@ -824,6 +825,7 @@ check_finiteness(spiro_seg * segs, int num_segs)
 static int
 solve_spiro(spiro_seg *s, int nseg)
 {
+    int i, converged;
     bandmat *m;
     double *v;
     int *perm;
@@ -832,7 +834,7 @@ solve_spiro(spiro_seg *s, int nseg)
     double norm;
 
     if (nmat == 0)
-	return 1; // just means no convergence problems
+	return 1; /* just means no convergence problems */
     if (s[0].ty != '{' && s[0].ty != 'v')
 	n_alloc *= 3;
     if (n_alloc < 5)
@@ -841,7 +843,7 @@ solve_spiro(spiro_seg *s, int nseg)
     v = (double *)malloc(sizeof(double) * n_alloc);
     perm = (int *)malloc(sizeof(int) * n_alloc);
 
-    int i = 0, converged = 0; // not solved (yet)
+    i = converged = 0; /* not solved (yet) */
     if ( m!=NULL && v!=NULL && perm!=NULL ) {
 	while (i++ < 60) {
 	    norm = spiro_iter(s, m, perm, v, nseg, nmat);
@@ -928,11 +930,15 @@ spiro_seg_to_bpath(const double ks[4],
 spiro_seg *
 run_spiro(const spiro_cp *src, int n)
 {
+    int converged, nseg;
+    spiro_seg *s;
+
     if (src==NULL || n <= 0) return 0;
-    int nseg = src[0].ty == '{' ? n - 1 : n;
-    spiro_seg *s = setup_path(src, n);
+
+    s = setup_path(src, n);
     if (s) {
-	int converged = 1 ; // this value is for when nseg == 1; else actual value determined below
+	nseg = src[0].ty == '{' ? n - 1 : n;
+	converged = 1 ; /* this value is for when nseg == 1; else actual value determined below */
 	if (nseg > 1) converged = solve_spiro(s, nseg);
 	if (converged) return s;
 	free(s);
@@ -949,10 +955,11 @@ free_spiro(spiro_seg *s)
 void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
 {
+    int i, nsegs;
+
     if (s==NULL || n <= 0 || bc==NULL) return;
 
-    int i;
-    int nsegs = s[n - 1].ty == '}' ? n - 1 : n;
+    nsegs = s[n - 1].ty == '}' ? n - 1 : n;
 
     for (i = 0; i < nsegs; i++) {
 	double x0 = s[i].x;

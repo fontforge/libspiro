@@ -9,13 +9,16 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* Define to 1 if you have the finite function. */
+/* Define to 1 if you have the `finite' function. */
 #undef HAVE_FINITE
+
+/* Define to 1 if you have the `hypot' function. */
+#undef HAVE_HYPOT
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the isfinite function. */
+/* Define to 1 if you have the `isfinite' function. */
 #undef HAVE_ISFINITE
 
 /* Define to 1 if you have the <memory.h> header file. */

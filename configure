@@ -621,8 +621,8 @@ LIBSPIRO_VERSION
 HOST
 WANTPTHREADS_FALSE
 WANTPTHREADS_TRUE
-HAVE_ISFINITE
 HAVE_FINITE
+HAVE_ISFINITE
 AM_BACKSLASH
 AM_DEFAULT_VERBOSITY
 LIBTOOL_DEPS
@@ -12139,7 +12139,28 @@ fi
 
 
 #-------------------------------------------
-# Check for finite or isfinite. Use one.
+# Check for C99 hypot. Error if none found.
+for ac_func in hypot
+do :
+  ac_fn_c_check_func "$LINENO" "hypot" "ac_cv_func_hypot"
+if test "x$ac_cv_func_hypot" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_HYPOT 1
+_ACEOF
+
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 1 "ERROR: hypot() required but not found.
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+done
+
+
+#-------------------------------------------
+# Check for C99 finite or isfinite. Use one.
+math_finite=no
+math_isfinite=no
 for ac_func in finite
 do :
   ac_fn_c_check_func "$LINENO" "finite" "ac_cv_func_finite"
@@ -12148,62 +12169,30 @@ if test "x$ac_cv_func_finite" = xyes; then :
 #define HAVE_FINITE 1
 _ACEOF
 
+   math_finite=true
 else
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for finite in <math.h>" >&5
-$as_echo_n "checking for finite in <math.h>... " >&6; }
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <math.h>
-int
-main ()
-{
-double f = 0.0; finite(f)
-  ;
-  return 0;
-}
+  for ac_func in isfinite
+do :
+  ac_fn_c_check_func "$LINENO" "isfinite" "ac_cv_func_isfinite"
+if test "x$ac_cv_func_isfinite" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ISFINITE 1
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
 
-$as_echo "#define HAVE_FINITE 1" >>confdefs.h
-
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for isfinite in <math.h>" >&5
-$as_echo_n "checking for isfinite in <math.h>... " >&6; }
-     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <math.h>
-int
-main ()
-{
-float f = 0.0; isfinite(f)
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-
-$as_echo "#define HAVE_ISFINITE 1" >>confdefs.h
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+       math_isfinite=true
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
+done
+
 fi
 done
 
 
+if test x"${math_finite}" = xno && test x"${math_isfinite}" = xno; then
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 1 "ERROR: finite() or isfinite() required but not found.
+See \`config.log' for more details" "$LINENO" 5; }
+fi
 
 
 
@@ -12287,12 +12276,12 @@ LIBSPIRO_VERSION=0:3:0
 
 #-------------------------------------------
 # Check for and add usable compiler warnings
+WCFLAGS=""
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Wall" >&5
 $as_echo_n "checking whether C compiler accepts -Wall... " >&6; }
@@ -12324,7 +12313,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___Wall" >&5
 $as_echo "$ax_cv_check_cflags___Wall" >&6; }
 if test x"$ax_cv_check_cflags___Wall" = xyes; then :
-  WCFLAGS+=" -Wall"
+  WCFLAGS="$WCFLAGS -Wall"
 else
   :
 fi
@@ -12359,7 +12348,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___Wextra" >&5
 $as_echo "$ax_cv_check_cflags___Wextra" >&6; }
 if test x"$ax_cv_check_cflags___Wextra" = xyes; then :
-  WCFLAGS+=" -Wextra"
+  WCFLAGS="$WCFLAGS -Wextra"
 else
   :
 fi
@@ -12394,7 +12383,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___Wcast_align" >&5
 $as_echo "$ax_cv_check_cflags___Wcast_align" >&6; }
 if test x"$ax_cv_check_cflags___Wcast_align" = xyes; then :
-  WCFLAGS+=" -Wcast-align"
+  WCFLAGS="$WCFLAGS -Wcast-align"
 else
   :
 fi
@@ -12429,7 +12418,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___Wbad_function_cast" >&5
 $as_echo "$ax_cv_check_cflags___Wbad_function_cast" >&6; }
 if test x"$ax_cv_check_cflags___Wbad_function_cast" = xyes; then :
-  WCFLAGS+=" -Wbad-function-cast"
+  WCFLAGS="$WCFLAGS -Wbad-function-cast"
 else
   :
 fi
@@ -12464,7 +12453,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___Wcpp_compat" >&5
 $as_echo "$ax_cv_check_cflags___Wcpp_compat" >&6; }
 if test x"$ax_cv_check_cflags___Wcpp_compat" = xyes; then :
-  WCFLAGS+=" -Wc++-compat"
+  WCFLAGS="$WCFLAGS -Wc++-compat"
 else
   :
 fi
@@ -12499,7 +12488,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___Wmissing_prototypes" >&5
 $as_echo "$ax_cv_check_cflags___Wmissing_prototypes" >&6; }
 if test x"$ax_cv_check_cflags___Wmissing_prototypes" = xyes; then :
-  WCFLAGS+=" -Wmissing-prototypes"
+  WCFLAGS="$WCFLAGS -Wmissing-prototypes"
 else
   :
 fi
@@ -12534,7 +12523,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___Wunused" >&5
 $as_echo "$ax_cv_check_cflags___Wunused" >&6; }
 if test x"$ax_cv_check_cflags___Wunused" = xyes; then :
-  WCFLAGS+=" -Wunused"
+  WCFLAGS="$WCFLAGS -Wunused"
 else
   :
 fi
@@ -12544,6 +12533,7 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
 
 
 #-------------------------------------------
