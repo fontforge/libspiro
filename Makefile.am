@@ -10,6 +10,8 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_CFLAGS = $(WCFLAGS)
 AM_LDFLAGS = $(WCFLAGS) -no-undefined --mode=link
 
+LIBTOOL_DEPS = @LIBTOOL_DEPS@
+
 DISTCLEANFILES = libspiro.pc
 DISTCHECK_CONFIGURE_FLAGS = --enable-verbose_lib --enable-test_inputs
 
@@ -27,6 +29,9 @@ EXTRA_DIST = bezctx.md get-spiro-src.sh README-RaphLevien README.md zmisc.h \
 	fontforge.sh m4/ax_check_compile_flag.m4
 
 include_HEADERS = bezctx.h bezctx_intf.h spiro.h spiroentrypoints.h
+
+libtool: $(LIBTOOL_DEPS)
+	$(SHELL) ./config.status libtool
 
 # test: run all tests in cwd and subdirs
 test:	${TEST_PROGS}
