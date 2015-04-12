@@ -276,7 +276,7 @@ void test_s_lineto(bezctx *z, double x, double y) {
 
     if ( (i=p->len) < S_RESULTS ) {
 #ifdef VERBOSE
-    printf("test_s_lineto(%g,%g) [%d]%d\n",x,y,p->c_id,i);
+	printf("test_s_lineto(%g,%g) [%d]%d\n",x,y,p->c_id,i);
 #endif
 	p->my_curve[i].x1 = x;
 	p->my_curve[i].y1 = y;
@@ -331,18 +331,28 @@ void test_s_mark_knot(bezctx *z, int knot_idx) {
 
 int test_multi_curves(void) {
     spiro_cp **spiro = NULL;
+    spiro_cp *temp;
     int *pk, **nextknot = NULL;
     int *scl = NULL;
     test_bezctx **bc;
-    int i, j, k, ret;
+    int i, j, k, l, ret;
+    double x, y;
+    char ty;
+
+    /* our simple curve test-check breaks-down if we go more than */
+    /* 10x larger curves due to rounding errors on double values, */
+    /* so, we either need a more complex curve test-check at end, */
+    /* or we can cleverly do stepping-up 0.01 one thousand times. */
+#define S_TESTS 3000
 
 #if HAVE_PTHREADS
+    pthread_t curve_test[S_TESTS];
+    pthread_pcurve pdata[S_TESTS];
+
     printf("---\nMulti-thread testing of libspiro.\n");
     /* pthread default limit is currently about 380 without mods. */
-#define S_TESTS 300
 #else
     printf("---\nSequential tests of libspiro.\n");
-#define S_TESTS 3000
 #endif
 
     ret = -1;	/* return error if out of memory */
@@ -374,7 +384,8 @@ int test_multi_curves(void) {
 	goto test_multi_curves_exit;
     for (i=0; i < S_TESTS; ) {
 	/* NOTE: S_TESTS has to be multiple of 3 here. */
-	/* ...because we test using path[0/1/2]tables. */
+	/* ...because we test using path[0/1/2]tables, */
+	/* ...and path[3] is used to test NOT success. */
 	if ( (spiro[i]=malloc(cl[0]*sizeof(spiro_cp)))==NULL || \
 	      (nextknot[i]=calloc(cl[0]+1,sizeof(int)))==NULL )
 	    goto test_multi_curves_exit;
@@ -396,7 +407,6 @@ int test_multi_curves(void) {
     /* ...to verify we do not overwrite different user data */
     /* while running multiple threads all at the same time. */
     for (i=0; i < S_TESTS; i++) {
-	spiro_cp *temp;
 	temp = spiro[i];
 	for (j=0; j < scl[i]; j++) {
 	    temp[j].x = temp[j].x * ((i+1.0)/100);
@@ -411,8 +421,6 @@ int test_multi_curves(void) {
     /* could affect other functions, eg: static n=4 was moved out */
     /* into passed variable so that one user won't affect others. */
     /* GEGL is a good example of multiple users all at same time. */
-    pthread_t curve_test[S_TESTS];
-    pthread_pcurve pdata[S_TESTS];
     for (i=0; i < S_TESTS; i++) {
 	pdata[i].spiro = spiro[i];
 	pdata[i].bc = (bezctx*)(bc[i]);
@@ -420,19 +428,29 @@ int test_multi_curves(void) {
     }
 
     j=0;
-    for (i=0; i < S_TESTS; i++)
-	/* all values passed are joined at "->" (should be okay). */
-	if ( pthread_create(&curve_test[i],NULL,test_a_curve,(void *)&pdata[i]) ) {
-	    printf("bad pthread_create[%d]\n",i);
-	    j=-1;
-	    break;
+    for (k=0; k < S_TESTS;) {
+	/* Some processors can't do too many pthreads at once so then */
+	/* we need to run threads in batches until completing S_TESTS */
+	for (i=k; i < S_TESTS; i++) {
+	    /* all values passed are joined at "->" (should be okay). */
+	    if ( pthread_create(&curve_test[i],NULL,test_a_curve,(void *)&pdata[i]) ) {
+		if ( i-k < 20 ) {
+		    printf("bad pthread_create[%d]\n",i); /* not many */
+		    j=-1;
+		}
+		break;
+	    }
 	}
-    while (--i >= 0)
-	if ( pthread_join(curve_test[i],NULL) ) {
-	    printf("bad pthread_join[%d]\n",i);
-	    j=-1;
-	}
-    if (j) goto test_multi_curves_exit;
+	if ( j!=-1 ) printf("running simultaneous threads[%d..%d]\n",k,(i-1));
+	l=i;
+	while (--i >= k)
+	    if ( pthread_join(curve_test[i],NULL) ) {
+		printf("bad pthread_join[%d]\n",i);
+		j=-1;
+	    }
+	k=l;
+	if (j) goto test_multi_curves_exit;
+    }
 
     for (i=0; i < S_TESTS; i++)
 	if ( pdata[i].ret!=1 ) {
@@ -454,9 +472,6 @@ int test_multi_curves(void) {
 
     /* Check ending x,y points versus input spiro knot locations. */
     for (i=0; i < S_TESTS; i++) {
-	spiro_cp *temp;
-	double x, y;
-	char ty;
 	temp = spiro[i];
 	pk = nextknot[i];
 	k=0;
@@ -477,6 +492,7 @@ int test_multi_curves(void) {
 		   scl[i],j,temp[j].ty,temp[j].x,temp[j].y, bc[i]->len,pk[j],k,x,y);
 #endif
 	    if ( (fabs(temp[j].x - x) > 1e-8) || (fabs(temp[j].y - y) > 1e-8) ) {
+		/* close-enough for testing 10x range of doubles. */
 		printf("error with test_multi_curves() using data %d\n",i);
 		goto test_multi_curves_exit;
 	    }
