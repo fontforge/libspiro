@@ -172,8 +172,8 @@ int test_curve(int c) {
     }
 
     /* Quick visual check shows X,Y knots match with each pathN[] */
-    for (i=0; i < cl[c]; i++) {
-	printf("curve %d, line %d, x=%f y=%f t=%c bend=%f ch=%f th=%f l=%f \n",c,i,segs[i].x,segs[i].y,segs[i].ty,segs[i].bend_th,segs[i].seg_ch,segs[i].seg_th,segs[i].l);
+    for (i=0; i < cl[c]-1; i++) {
+	printf("curve %d, line %d, x=%f y=%f t=%c bend=%f ch=%f th=%f \n",c,i,segs[i].x,segs[i].y,segs[i].ty,segs[i].bend_th,segs[i].seg_ch,segs[i].seg_th);
     }
 
     /* Quick visual check shows X,Y knots match with each pathN[] */
@@ -235,7 +235,7 @@ void *test_a_curve(void *pdata) {
     /*printf("start pthread %d\n",data->ret);*/
     data->ret = TaggedSpiroCPsToBezier0(data->spiro,data->bc);
     /*printf("done\n");*/
-    pthread_exit(NULL);
+    return 0;
 }
 #endif
 
@@ -346,6 +346,7 @@ int test_multi_curves(void) {
 #define S_TESTS 3000
 
 #if HAVE_PTHREADS
+    pthread_attr_t tattr;
     pthread_t curve_test[S_TESTS];
     pthread_pcurve pdata[S_TESTS];
 
@@ -429,11 +430,15 @@ int test_multi_curves(void) {
 
     j=0;
     for (k=0; k < S_TESTS;) {
+	/* Initialize and set thread joinable attribute */
+	pthread_attr_init(&tattr);
+	pthread_attr_setdetachstate(&tattr,PTHREAD_CREATE_JOINABLE);
+
 	/* Some processors can't do too many pthreads at once so then */
 	/* we need to run threads in batches until completing S_TESTS */
 	for (i=k; i < S_TESTS; i++) {
 	    /* all values passed are joined at "->" (should be okay). */
-	    if ( pthread_create(&curve_test[i],NULL,test_a_curve,(void *)&pdata[i]) ) {
+	    if ( pthread_create(&curve_test[i],&tattr,test_a_curve,(void *)&pdata[i]) ) {
 		if ( i-k < 20 ) {
 		    printf("bad pthread_create[%d]\n",i); /* not many */
 		    j=-1;
@@ -441,6 +446,7 @@ int test_multi_curves(void) {
 		break;
 	    }
 	}
+	pthread_attr_destroy(&tattr);	/* Free thread attribute */
 	if ( j!=-1 ) printf("running simultaneous threads[%d..%d]\n",k,(i-1));
 	l=i;
 	while (--i >= k)
