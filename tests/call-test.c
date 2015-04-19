@@ -165,7 +165,7 @@ int test_curve(int c) {
     load_test_curve(spiro,nextknot,c);
 
     /* Check if run_spiro works okay */
-    printf("testing run_spiro() using data=path%d[].\n",c);
+    printf("---\ntesting run_spiro() using data=path%d[].\n",c);
     if ( (segs=run_spiro(spiro,cl[c]))==0 ) {
 	printf("error with run_spiro() using data=path%d[].\n",c);
 	return -1;
@@ -175,9 +175,10 @@ int test_curve(int c) {
     for (i=0; i < cl[c]-1; i++) {
 	printf("curve %d, line %d, x=%f y=%f t=%c bend=%f ch=%f th=%f \n",c,i,segs[i].x,segs[i].y,segs[i].ty,segs[i].bend_th,segs[i].seg_ch,segs[i].seg_th);
     }
+    printf("curve %d, line %d, x=%f y=%f t=%c\n",c,i,segs[i].x,segs[i].y,segs[i].ty);
 
     /* Quick visual check shows X,Y knots match with each pathN[] */
-    printf("testing spiro_to_bpath() using data from run_spiro(data=path%d[],len=%d).\n",c,cl[c]);
+    printf("---\ntesting spiro_to_bpath() using data from run_spiro(data=path%d[],len=%d).\n",c,cl[c]);
     bc = new_bezctx_test();
     spiro_to_bpath(segs,cl[c],bc);
 
@@ -436,7 +437,7 @@ int test_multi_curves(void) {
 
 	/* Some processors can't do too many pthreads at once so then */
 	/* we need to run threads in batches until completing S_TESTS */
-	for (i=k; i < S_TESTS; i++) {
+	for (i=k; i < S_TESTS-1; i++) {
 	    /* all values passed are joined at "->" (should be okay). */
 	    if ( pthread_create(&curve_test[i],&tattr,test_a_curve,(void *)&pdata[i]) ) {
 		if ( i-k < 20 ) {
@@ -447,14 +448,18 @@ int test_multi_curves(void) {
 	    }
 	}
 	pthread_attr_destroy(&tattr);	/* Free thread attribute */
-	if ( j!=-1 ) printf("running simultaneous threads[%d..%d]\n",k,(i-1));
+	if ( j!=-1 ) {
+	    /* Test another curve while waiting for threads to finish */
+	    pdata[i].ret = TaggedSpiroCPsToBezier0(pdata[i].spiro,pdata[i].bc);
+	    printf("running simultaneous threads[%d..%d]\n",k,i);
+	}
 	l=i;
 	while (--i >= k)
 	    if ( pthread_join(curve_test[i],NULL) ) {
 		printf("bad pthread_join[%d]\n",i);
 		j=-1;
 	    }
-	k=l;
+	k=++l;
 	if (j) goto test_multi_curves_exit;
     }
 
