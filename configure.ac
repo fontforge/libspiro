@@ -73,11 +73,15 @@ m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],[AC_SUBST([AM_DEFAULT_VERBOS
 
 #-------------------------------------------
 # Check for libraries
-AC_SEARCH_LIBS([cos],[m])
+AC_CHECK_LIB([m],[cos],[AC_CHECK_HEADER([math.h],[have_libm=yes])])
+if test x"${have_libm}" != xyes; then
+   AC_MSG_FAILURE([ERROR: Please install Math libraries and math.h include files for libm],[1])
+fi
 
 #-------------------------------------------
 # Check for C99 hypot. Error if none found.
-AC_CHECK_FUNCS(hypot, ,[AC_MSG_FAILURE([ERROR: hypot() required but not found.],[1])])
+# Older compilers will have to set/use C99.
+#AC_CHECK_FUNCS(hypot, ,[AC_MSG_FAILURE([ERROR: hypot() required but not found.],[1])])
 
 #-------------------------------------------
 # Check for C99 finite or isfinite. Use one.
@@ -128,7 +132,7 @@ fi
 #-------------------------------------------
 # call-test uses pthread for testing (if you
 # have it), but libspiro doesn't require it.
-AC_CHECK_HEADERS(pthread.h,[havepthreads=true]
+AC_CHECK_HEADER([pthread.h],[havepthreads=true]
   AC_DEFINE(HAVE_PTHREADS,[1],[Have pthreads.h. Do multi-user check in call-test.]),
   [have_pthreads = xfalse])
 AM_CONDITIONAL([WANTPTHREADS],[test x$havepthreads = xtrue])
@@ -136,11 +140,6 @@ AM_CONDITIONAL([WANTPTHREADS],[test x$havepthreads = xtrue])
 #-------------------------------------------
 # Platform specific stuff ($host)
 AC_CANONICAL_HOST
-
-#-------------------------------------------
-# Pass variables to MAKEFILE.AM
-AC_SUBST(HOST,[host])
-AC_SUBST(LIBSPIRO_VERSION,[spiro_info])
 
 #-------------------------------------------
 # Check for and add usable compiler warnings
@@ -154,7 +153,7 @@ AX_CHECK_COMPILE_FLAG([-Wc++-compat],[WCFLAGS="$WCFLAGS -Wc++-compat"])
 AX_CHECK_COMPILE_FLAG([-Wmissing-prototypes],[WCFLAGS="$WCFLAGS -Wmissing-prototypes"])
 AX_CHECK_COMPILE_FLAG([-Wunused],[WCFLAGS="$WCFLAGS -Wunused"])
 AC_LANG_POP
-AC_SUBST(WCFLAGS)
+AC_SUBST([WCFLAGS])
 
 #-------------------------------------------
 # Put ifdef wrapper around spiro-config.h so
@@ -162,6 +161,11 @@ AC_SUBST(WCFLAGS)
 AH_TOP([#ifndef _SPIRO_CONFIG_H
 #define _SPIRO_CONFIG_H 1])
 AH_BOTTOM([#endif])
+
+#-------------------------------------------
+# Pass variables to MAKEFILE.AM
+AC_SUBST([HOST],[host])
+AC_SUBST([LIBSPIRO_VERSION],[spiro_info])
 
 #-------------------------------------------
 AC_PROG_LIBTOOL
@@ -173,3 +177,16 @@ libspiro.pc
 ])
 
 AC_OUTPUT
+
+AC_MSG_NOTICE([
+
+Configuration:
+  Source code location	${srcdir}
+  Build code location	${builddir}
+  Destination prefix	${prefix}
+  Compiler		${CC}
+  Config auto options	"${WCFLAGS}"
+  Config CFLAGS		"${CFLAGS}"
+  Config LDFLAGS	"${LDFLAGS}"
+
+])

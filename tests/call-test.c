@@ -1,5 +1,5 @@
 /* Test libspiro normal library calls
-Copyright (C) 2013, Joe Da Silva
+Copyright (C) 2013,2014,2015, Joe Da Silva
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -28,8 +28,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "bezctx.h"		/* bezctx structure */
 
 #include "spiro-config.h"	/* for ./configure test settings like VERBOSE */
+#if DO_CALL_TESTM
 #if HAVE_PTHREADS
 #include <pthread.h>		/* multi-thread check. Not part of libspiro */
+#endif
 #endif
 
 static double get_time (void) {
@@ -124,6 +126,7 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 }
 int cl[] = {16, 6, 4, 6};
 
+#ifndef DO_CALL_TESTM
 /* Provide bare-bones do-nothing functions for testing. This only */
 /* printf values that would normally be handled by user programs. */
 void test_moveto(bezctx *bc, double x, double y, int is_open) {
@@ -188,14 +191,14 @@ int test_curve(int c) {
     printf("---\ntesting TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
     if ( TaggedSpiroCPsToBezier0(spiro,bc)!=1 ) {
 	printf("error with TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
-	return -1;
+	return -2;
     }
 
     /* Check if SpiroCPsToBezier0() works okay */
     printf("---\ntesting SpiroCPsToBezier0() using data=path%d[].\n",c);
     if ( SpiroCPsToBezier0(spiro,cl[c],(c==0 ? 1 : 0),bc)!=1 ) {
 	printf("error with SpiroCPsToBezier0() using data=path%d[].\n",c);
-	return -1;
+	return -3;
     }
 
     /* Check if TaggedSpiroCPsToBezier1() works okay */
@@ -203,7 +206,7 @@ int test_curve(int c) {
     TaggedSpiroCPsToBezier1(spiro,bc,&done);
     if ( done!=1 ) {
 	printf("error with TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
-	return -1;
+	return -4;
     }
 
     /* Check if SpiroCPsToBezier1() works okay */
@@ -211,13 +214,15 @@ int test_curve(int c) {
     SpiroCPsToBezier1(spiro,cl[c],(c==0 ? 1 : 0),bc,&done);
     if ( done!=1 ) {
 	printf("error with SpiroCPsToBezier1() using data=path%d[].\n",c);
-	return -1;
+	return -5;
     }
 
     free(bc);
     return 0;
 }
+#endif
 
+#if DO_CALL_TESTM
 /************************************************/
 /************************************************/
 /* multi-threaded, multi-user, multi-curve test */
@@ -416,6 +421,8 @@ int test_multi_curves(void) {
 	}
     }
 
+    --ret;
+
 #if HAVE_PTHREADS
     /* Data and memory prepared before Pthreads.  Ready? Set? GO! */
     /* Test all curves, all at same time, wait for all to finish. */
@@ -466,6 +473,7 @@ int test_multi_curves(void) {
     for (i=0; i < S_TESTS; i++)
 	if ( pdata[i].ret!=1 ) {
 	    printf("error with TaggedSpiroCPsToBezier0() using data=%d.\n",i);
+	    ret=ret-i;
 	    goto test_multi_curves_exit;
 	}
     /* All threads returned okay, Now, go check all data is good. */
@@ -476,10 +484,12 @@ int test_multi_curves(void) {
     for (i=0; i < S_TESTS; i++) {
 	if ( TaggedSpiroCPsToBezier0(spiro[i],(bezctx*)(bc[i]))!=1 ) {
 	    printf("error with TaggedSpiroCPsToBezier0() using data=%d.\n",i);
+	    ret=ret-i;
 	    goto test_multi_curves_exit;
 	}
     }
 #endif
+    ret=ret-S_TESTS;
 
     /* Check ending x,y points versus input spiro knot locations. */
     for (i=0; i < S_TESTS; i++) {
@@ -505,6 +515,7 @@ int test_multi_curves(void) {
 	    if ( (fabs(temp[j].x - x) > 1e-8) || (fabs(temp[j].y - y) > 1e-8) ) {
 		/* close-enough for testing 10x range of doubles. */
 		printf("error with test_multi_curves() using data %d\n",i);
+		ret=ret-i;
 		goto test_multi_curves_exit;
 	    }
 	    k += pk[j]+1;
@@ -528,16 +539,31 @@ test_multi_curves_exit:
     free(bc);
     return ret;
 }
+#endif
 
 int main(int argc, char **argv) {
     double st, en;
-    int ret = 0;
+    int ret;
     st = get_time();
 
-    if ( test_curve(0) || test_curve(1) || test_curve(2) || \
-	 !test_curve(3) || /* This curve won't converge. */ \
-    	 test_multi_curves() )
-	ret = -1;
+#if DO_CALL_TEST0
+    ret=test_curve(0);
+#endif
+#if DO_CALL_TEST1
+    ret=test_curve(1);
+#endif
+#if DO_CALL_TEST2
+    ret=test_curve(2);
+#endif
+#if DO_CALL_TEST3
+    if ( (ret=test_curve(3)==0) ) /* This curve will not converge */
+	ret = -1 /* error found! ret=error value */;
+    else
+	ret = 0; /* expected failure to converge */
+#endif
+#if DO_CALL_TESTM
+    ret=test_multi_curves();
+#endif
 
     en = get_time();
     printf("time %g\n", (en - st));
