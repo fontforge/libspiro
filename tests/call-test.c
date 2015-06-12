@@ -28,8 +28,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "bezctx.h"		/* bezctx structure */
 
 #include "spiro-config.h"	/* for ./configure test settings like VERBOSE */
-#if DO_CALL_TESTM
-#if HAVE_PTHREADS
+#ifdef DO_CALL_TESTM
+#ifdef HAVE_PTHREADS
 #include <pthread.h>		/* multi-thread check. Not part of libspiro */
 #endif
 #endif
@@ -222,14 +222,14 @@ int test_curve(int c) {
 }
 #endif
 
-#if DO_CALL_TESTM
+#ifdef DO_CALL_TESTM
 /************************************************/
 /************************************************/
 /* multi-threaded, multi-user, multi-curve test */
 /* exercise libspiro with multiple curves given */
 /* all at the same time and then check that all */
 /* returned curves contain the correct values.  */
-#if HAVE_PTHREADS
+#ifdef HAVE_PTHREADS
 typedef struct {
     spiro_cp *spiro;
     bezctx *bc;
@@ -351,7 +351,7 @@ int test_multi_curves(void) {
     /* or we can cleverly do stepping-up 0.01 one thousand times. */
 #define S_TESTS 3000
 
-#if HAVE_PTHREADS
+#ifdef HAVE_PTHREADS
     pthread_attr_t tattr;
     pthread_t curve_test[S_TESTS];
     pthread_pcurve pdata[S_TESTS];
@@ -423,7 +423,7 @@ int test_multi_curves(void) {
 
     --ret;
 
-#if HAVE_PTHREADS
+#ifdef HAVE_PTHREADS
     /* Data and memory prepared before Pthreads.  Ready? Set? GO! */
     /* Test all curves, all at same time, wait for all to finish. */
     /* This test could fail if we had globally set variables that */
@@ -522,7 +522,7 @@ int test_multi_curves(void) {
 	}
     }
 
-#if HAVE_PTHREADS
+#ifdef HAVE_PTHREADS
     printf("Multi-thread testing of libspiro passed.\n");
 #else
     printf("Sequential tests of libspiro passed.\n");
@@ -546,22 +546,22 @@ int main(int argc, char **argv) {
     int ret;
     st = get_time();
 
-#if DO_CALL_TEST0
+#ifdef DO_CALL_TEST0
     ret=test_curve(0);
 #endif
-#if DO_CALL_TEST1
+#ifdef DO_CALL_TEST1
     ret=test_curve(1);
 #endif
-#if DO_CALL_TEST2
+#ifdef DO_CALL_TEST2
     ret=test_curve(2);
 #endif
-#if DO_CALL_TEST3
+#ifdef DO_CALL_TEST3
     if ( (ret=test_curve(3)==0) ) /* This curve will not converge */
 	ret = -1 /* error found! ret=error value */;
     else
 	ret = 0; /* expected failure to converge */
 #endif
-#if DO_CALL_TESTM
+#ifdef DO_CALL_TESTM
     ret=test_multi_curves();
 #endif
 

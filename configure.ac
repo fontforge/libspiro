@@ -72,8 +72,11 @@ dnl AM_MAINTAINER_MODE([enable])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],[AC_SUBST([AM_DEFAULT_VERBOSITY],[1])])
 
 #-------------------------------------------
-# Check for libraries
-AC_CHECK_LIB([m],[cos],[AC_CHECK_HEADER([math.h],[have_libm=yes])])
+# Check for math.h include and math library.
+# Old distros, use CHECK as a SEARCH backup.
+AC_CHECK_HEADER([math.h],
+  AC_SEARCH_LIBS([cos],[m],[have_libm=yes],
+    AC_CHECK_LIB([m],[cos],[have_libm=yes])))
 if test x"${have_libm}" != xyes; then
    AC_MSG_FAILURE([ERROR: Please install Math libraries and math.h include files for libm],[1])
 fi
@@ -81,7 +84,7 @@ fi
 #-------------------------------------------
 # Check for C99 hypot. Error if none found.
 # Older compilers will have to set/use C99.
-#AC_CHECK_FUNCS(hypot, ,[AC_MSG_FAILURE([ERROR: hypot() required but not found.],[1])])
+AC_CHECK_FUNCS(hypot, ,[AC_MSG_FAILURE([ERROR: hypot() required but not found.],[1])])
 
 #-------------------------------------------
 # Check for C99 finite or isfinite. Use one.

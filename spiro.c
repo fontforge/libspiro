@@ -486,6 +486,7 @@ static spiro_seg *
 setup_path(const spiro_cp *src, int n)
 {
     int i, ilast, n_seg;
+    double dx, dy;
     spiro_seg *r;
 
     n_seg = src[0].ty == '{' ? n - 1 : n;
@@ -520,8 +521,8 @@ setup_path(const spiro_cp *src, int n)
 #endif
 
     for (i = 0; i < n_seg; i++) {
-	double dx = r[i + 1].x - r[i].x;
-	double dy = r[i + 1].y - r[i].y;
+	dx = r[i + 1].x - r[i].x;
+	dy = r[i + 1].y - r[i].y;
 #ifndef CHECK_INPUT_FINITENESS
 	r[i].seg_ch = hypot(dx, dy);
 #else
@@ -560,8 +561,8 @@ setup_path(const spiro_cp *src, int n)
 static void
 bandec11(bandmat *m, int *perm, int n)
 {
-    int i, j, k;
-    int l;
+    int i, j, k, l, pivot;
+    double pivot_val, pivot_scale, tmp, x;
 
     /* pack top triangle to the left. */
     for (i = 0; i < 5; i++) {
@@ -572,9 +573,8 @@ bandec11(bandmat *m, int *perm, int n)
     }
     l = 5;
     for (k = 0; k < n; k++) {
-	int pivot = k;
-	double pivot_val = m[k].a[0];
-	double pivot_scale;
+	pivot = k;
+	pivot_val = m[k].a[0];
 
 	l = l < n ? l + 1 : n;
 
@@ -587,7 +587,7 @@ bandec11(bandmat *m, int *perm, int n)
 	perm[k] = pivot;
 	if (pivot != k) {
 	    for (j = 0; j < 11; j++) {
-		double tmp = m[k].a[j];
+		tmp = m[k].a[j];
 		m[k].a[j] = m[pivot].a[j];
 		m[pivot].a[j] = tmp;
 	    }
@@ -596,7 +596,7 @@ bandec11(bandmat *m, int *perm, int n)
 	if (fabs(pivot_val) < 1e-12) pivot_val = 1e-12;
 	pivot_scale = 1. / pivot_val;
 	for (i = k + 1; i < l; i++) {
-	    double x = m[i].a[0] * pivot_scale;
+	    x = m[i].a[0] * pivot_scale;
 	    m[k].al[i - k - 1] = x;
 	    for (j = 1; j < 11; j++)
 		m[i].a[j - 1] = m[i].a[j] - x * m[k].a[j];
@@ -609,13 +609,14 @@ static void
 banbks11(const bandmat *m, const int *perm, double *v, int n)
 {
     int i, k, l;
+    double tmp, x;
 
     /* forward substitution */
     l = 5;
     for (k = 0; k < n; k++) {
 	i = perm[k];
 	if (i != k) {
-	    double tmp = v[k];
+	    tmp = v[k];
 	    v[k] = v[i];
 	    v[i] = tmp;
 	}
@@ -627,7 +628,7 @@ banbks11(const bandmat *m, const int *perm, double *v, int n)
     /* back substitution */
     l = 1;
     for (i = n - 1; i >= 0; i--) {
-	double x = v[i];
+	x = v[i];
 	for (k = 1; k < l; k++)
 	    x -= m[i].a[k] * v[k + i];
 	v[i] = x / m[i].a[0];
@@ -651,8 +652,9 @@ static int compute_jinc(char ty0, char ty1)
 
 static int count_vec(const spiro_seg *s, int nseg)
 {
-    int i;
-    int n = 0;
+    int i, n;
+
+    n = 0;
 
     for (i = 0; i < nseg; i++)
 	n += compute_jinc(s[i].ty, s[i + 1].ty);
@@ -664,10 +666,10 @@ add_mat_line(bandmat *m, double *v,
 	     double derivs[4], double x, double y, int j, int jj, int jinc,
 	     int nmat)
 {
-    int k;
+    int joff, k;
 
     if (jj >= 0) {
-	int joff =  (j + 5 - jj + nmat) % nmat;
+	joff =  (j + 5 - jj + nmat) % nmat;
 	if (nmat < 6) {
 	    joff = j + 5 - jj;
 	} else if (nmat == 6) {
@@ -685,10 +687,13 @@ add_mat_line(bandmat *m, double *v,
 static double
 spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 {
-    int cyclic = s[0].ty != '{' && s[0].ty != 'v';
-    int i, j, jj;
-    double norm;
-    int n_invert;
+    int cyclic, i, j, jthl, jthr, jk0l, jk0r, jk1l, jk1r, jk2l, jk2r, jinc, jj, k, n_invert;
+    char ty0, ty1;
+    double dk, norm, th;
+    double ends[2][4];
+    double derivs[4][2][4];
+
+    cyclic = s[0].ty != '{' && s[0].ty != 'v';
 
     for (i = 0; i < nmat; i++) {
 	v[i] = 0.;
@@ -706,14 +711,12 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
     else
 	jj = 0;
     for (i = 0; i < n; i++) {
-	char ty0 = s[i].ty;
-	char ty1 = s[i + 1].ty;
-	int jinc = compute_jinc(ty0, ty1);
-	double th = s[i].bend_th;
-	double ends[2][4];
-	double derivs[4][2][4];
-	int jthl = -1, jk0l = -1, jk1l = -1, jk2l = -1;
-	int jthr = -1, jk0r = -1, jk1r = -1, jk2r = -1;
+	ty0 = s[i].ty;
+	ty1 = s[i + 1].ty;
+	jinc = compute_jinc(ty0, ty1);
+	th = s[i].bend_th;
+	jthl = jk0l = jk1l = jk2l = -1;
+	jthr = jk0r = jk1r = jk2r = -1;
 
 	compute_pderivs(&s[i], ends, derivs, jinc);
 
@@ -783,7 +786,6 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 
 #ifdef VERBOSE
     for (i = 0; i < n; i++) {
-	int k;
 	for (k = 0; k < 11; k++)
 	    printf(" %2.4f", m[i].a[k]);
 	printf(": %2.4f\n", v[i]);
@@ -794,11 +796,10 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
     banbks11(m, perm, v, n_invert);
     norm = 0.;
     for (i = 0; i < n; i++) {
-	int jinc = compute_jinc(s[i].ty, s[i + 1].ty);
-	int k;
+	jinc = compute_jinc(s[i].ty, s[i + 1].ty);
 
 	for (k = 0; k < jinc; k++) {
-	    double dk = v[j++];
+	    dk = v[j++];
 
 #ifdef VERBOSE
 	    printf("s[%d].ks[%d] += %f\n", i, k, dk);
@@ -806,7 +807,7 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 	    s[i].ks[k] += dk;
 	    norm += dk * dk;
 	}
-        s[i].ks[0] = 2.0*mod_2pi(s[i].ks[0]/2.0);
+        s[i].ks[0] = 2.0 * mod_2pi(s[i].ks[0]/2.0);
     }
     return norm;
 }
@@ -825,13 +826,14 @@ check_finiteness(spiro_seg * segs, int num_segs)
 static int
 solve_spiro(spiro_seg *s, int nseg)
 {
-    int i, converged;
+    int i, converged, nmat, n_alloc;
     bandmat *m;
     double *v;
     int *perm;
-    int nmat = count_vec(s, nseg);
-    int n_alloc = nmat;
     double norm;
+
+    nmat = count_vec(s, nseg);
+    n_alloc = nmat;
 
     if (nmat == 0)
 	return 1; /* just means no convergence problems */
@@ -872,20 +874,19 @@ spiro_seg_to_bpath(const double ks[4],
 		   double x0, double y0, double x1, double y1,
 		   bezctx *bc, int depth)
 {
-    double bend = fabs(ks[0]) + fabs(.5 * ks[1]) + fabs(.125 * ks[2]) +
+    double bend, seg_ch, seg_th, ch, th, scale, rot;
+    double th_even, th_odd, ul, vl, ur, vr;
+    double thsub, xmid, ymid, cth, sth;
+    double ksub[4], xysub[2], xy[2];
+
+    bend = fabs(ks[0]) + fabs(.5 * ks[1]) + fabs(.125 * ks[2]) +
 	fabs((1./48) * ks[3]);
 
     if (bend <= 1e-8) {
 	bezctx_lineto(bc, x1, y1);
     } else {
-	double seg_ch = hypot(x1 - x0, y1 - y0);
-	double seg_th = atan2(y1 - y0, x1 - x0);
-	double xy[2];
-	double ch, th;
-	double scale, rot;
-	double th_even, th_odd;
-	double ul, vl;
-	double ur, vr;
+	seg_ch = hypot(x1 - x0, y1 - y0);
+	seg_th = atan2(y1 - y0, x1 - x0);
 
 	integrate_spiro(ks, xy, N_IS);
 	ch = hypot(xy[0], xy[1]);
@@ -902,12 +903,6 @@ spiro_seg_to_bpath(const double ks[4],
 	    bezctx_curveto(bc, x0 + ul, y0 + vl, x1 - ur, y1 - vr, x1, y1);
 	} else {
 	    /* subdivide */
-	    double ksub[4];
-	    double thsub;
-	    double xysub[2];
-	    double xmid, ymid;
-	    double cth, sth;
-
 	    ksub[0] = .5 * ks[0] - .125 * ks[1] + (1./64) * ks[2] - (1./768) * ks[3];
 	    ksub[1] = .25 * ks[1] - (1./16) * ks[2] + (1./128) * ks[3];
 	    ksub[2] = .125 * ks[2] - (1./32) * ks[3];
@@ -956,16 +951,15 @@ void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
 {
     int i, nsegs;
+    double x0, y0, x1, y1;
 
     if (s==NULL || n <= 0 || bc==NULL) return;
 
     nsegs = s[n - 1].ty == '}' ? n - 1 : n;
 
     for (i = 0; i < nsegs; i++) {
-	double x0 = s[i].x;
-	double y0 = s[i].y;
-	double x1 = s[i + 1].x;
-	double y1 = s[i + 1].y;
+	x0 = s[i].x; x1 = s[i + 1].x;
+	y0 = s[i].y; y1 = s[i + 1].y;
 
 	if (i == 0)
 	    bezctx_moveto(bc, x0, y0, s[0].ty == '{');
