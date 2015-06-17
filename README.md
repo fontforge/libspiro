@@ -82,7 +82,7 @@ Mac OS X: A helping script, `./fontforge.sh` is provided to run FontForge inside
 
 - Basic Type
   - [spiro control point](#the-spiro-control-point)
-  - [bezier context](#the-bzier-context)
+  - [bézier context](#the-bezier-context)
 - [Header file](#calling-into-libspiro)
 - Entry points
   - int [SpiroCPsToBezier0](#spirocpstobezier)(spiro_cp *,int n,int is_closed,bezctx *)
@@ -123,7 +123,7 @@ A spiro control point contains a location and a point type. There are five basic
 - A right constraint point – Used to connect a straight line to a curved one.
   If you have a contour which is drawn clockwise, and you have a straight segment at the top, then the left point of that straight segment should be a left constraint, and the right point should be a right constraint.
 
-#### The bézier context
+#### The bezier context
 
 ```c
 struct _bezctx {
@@ -133,11 +133,11 @@ struct _bezctx {
     /* Called by spiro to move from the last point to the next one on a straight line */
     void (*lineto)(bezctx *bc, double x, double y);
 
-    /* Called by spiro to move from the last point to the next along a quadratic bezier spline */
-    /* (x1,y1) is the quadratic bezier control point and (x2,y2) will be the new end point */
+    /* Called by spiro to move from the last point to the next along a quadratic bézier spline */
+    /* (x1,y1) is the quadratic bézier control point and (x2,y2) will be the new end point */
     void (*quadto)(bezctx *bc, double x1, double y1, double x2, double y2);
 
-    /* Called by spiro to move from the last point to the next along a cubic bezier spline */
+    /* Called by spiro to move from the last point to the next along a cubic bézier spline */
     /* (x1,y1) and (x2,y2) are the two off-curve control point and (x3,y3) will be the new end point */
     void (*curveto)(bezctx *bc, double x1, double y1, double x2, double y2,
             double x3, double y3);
@@ -147,7 +147,7 @@ struct _bezctx {
 };
 ```
 
-You must create a super-class of this abstract type that handles the creation of your particular representation of bézier splines. As an [example I provide the one used by Raph to generate PostScript output](bezctx.md) (cubic beziers). Spiro will convert a set of spiro_cps into a set of bezier curves. As it does so it will call the appropriate routine in your bezier context with this information – this should allow you to create your own internal representation of those curves.
+You must create a super-class of this abstract type that handles the creation of your particular representation of bézier splines. As an [example I provide the one used by Raph to generate PostScript output](bezctx.md) (cubic béziers). Spiro will convert a set of spiro_cps into a set of bézier curves. As it does so it will call the appropriate routine in your bézier context with this information – this should allow you to create your own internal representation of those curves.
 
 #### Calling into libspiro
 
@@ -157,7 +157,7 @@ Your program needs this Libspiro header file:
 #include <spiroentrypoints.h>
 ```
 
-You must define a bezier context that is appropriate for your internal splines (See [Raph's PostScript example](bezctx.md)).
+You must define a bézier context that is appropriate for your internal splines (See [Raph's PostScript example](bezctx.md)).
 
 #### SpiroCPsToBezier0
 
@@ -181,8 +181,8 @@ Then call `SpiroCPsToBezier0`, a routine which takes 4 arguments and returns bc 
 1. An array of input spiros
 2. The number of elements in the spiros array
 3. Whether this describes a closed (True) or open (False) contour
-4. A bezier results output context
-5. An integer success flag. 1 = completed task and have valid bezier results, or  0 = unable to complete task, bezier results are invalid.
+4. A bézier results output context
+5. An integer success flag. 1 = completed task and have valid bézier results, or  0 = unable to complete task, bézier results are invalid.
    ```c
     bc = new_bezctx_ps();
     success = SpiroCPsToBezier0(points,4,True,bc)
@@ -222,8 +222,8 @@ An open curve will have the type of the first control point set to `SPIRO_OPEN_C
 In this case there is no need to provide a point count nor an open/closed contour flag. That information can be obtained from the control points themselves. So `TaggedSpiroCPsToBezier0` only takes 2 arguments and returns bc and an integer pass/fail flag.
 
 1. An array of input spiros
-2. A bezier results output context
-3. An integer success flag. 1 = completed task and have valid bezier results, or  0 = unable to complete task, bezier results are invalid.
+2. A bézier results output context
+3. An integer success flag. 1 = completed task and have valid bézier results, or  0 = unable to complete task, bézier results are invalid.
    ```c
     bc = new_bezctx_ps();
     success = TaggedSpiroCPsToBezier0(points,bc)
@@ -248,7 +248,7 @@ In this case there is no need to provide a point count nor an open/closed contou
 }
   ```
 
-- `SpiroBezierContext` – a Java interface used in conversion of an array of SpiroCPs to a Bezier contour.
+- `SpiroBezierContext` – a Java interface used in conversion of an array of SpiroCPs to a Bézier contour.
 
   ```java
     public interface SpiroBezierContext {
@@ -264,7 +264,7 @@ In this case there is no need to provide a point count nor an open/closed contou
 
   ```java
     public class Spiro {
-    // takes an array of SpiroCPs and converts to a Bezier
+    // takes an array of SpiroCPs and converts to a Bézier
     static public void
       SpiroCPsToBezier(SpiroCP [] spiros,int n,boolean isclosed,
           SpiroBezierContext bc);

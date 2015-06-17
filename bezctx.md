@@ -17,7 +17,7 @@ I provide two examples here, one is the type Raph created for doing output to en
 
 ## PostScript
 
-First a header file. This declares a routine which will create a PostScript bezier context – this routine takes a file argument, splines will be written to the file as we gather more information.
+First a header file. This declares a routine which will create a PostScript bézier context – this routine takes a file argument, splines will be written to the file as we gather more information.
 
 ```c
 /* bezctx_ps.h */
@@ -133,7 +133,7 @@ bezctx_ps_curveto(bezctx *z, double x1, double y1, double x2, double y2,
     bc->y = y3;
 }
 
-/* Allocates and initializes a new PostScript bezier context */
+/* Allocates and initializes a new PostScript bézier context */
 bezctx *
 new_bezctx_ps(FILE *f) {
     bezctx_ps *result = znew(bezctx_ps, 1);
@@ -148,7 +148,7 @@ new_bezctx_ps(FILE *f) {
     return &amp;result->base;
 }
 
-/* Finishes an old PostScript bezier context */
+/* Finishes an old PostScript bézier context */
 void
 bezctx_ps_close(bezctx *z)
 {
@@ -161,7 +161,7 @@ bezctx_ps_close(bezctx *z)
 
 ## FontForge
 
-First the header file. This declares a routine which will create a fontforge bezier context, and another which will finish off (and free) the context. This last routine returns a collection of splines, a splineset, fontforge's internal bezier contour type.
+First the header file. This declares a routine which will create a fontforge bézier context, and another which will finish off (and free) the context. This last routine returns a collection of splines, a splineset, fontforge's internal bézier contour type.
 
 ```c
 /* bezctx_ff.h */
@@ -293,7 +293,7 @@ bezctx_ff_curveto(bezctx *z, double x1, double y1, double x2, double y2,
     bc->ss->last = sp;
 }
 
-/* Allocates and initializes a new fontforge bezier context */
+/* Allocates and initializes a new fontforge bézier context */
 bezctx *
 new_bezctx_ff(void) {
     bezctx_ff *result = chunkalloc(sizeof(bezctx_ff));
@@ -309,7 +309,7 @@ new_bezctx_ff(void) {
     return &amp;result->base;
 }
 
-/* Finishes an old fontforge bezier context, and returns the contour which was created */
+/* Finishes an old fontforge bézier context, and returns the contour which was created */
 struct splinepointlist *
 bezctx_ff_close(bezctx *z)
 {

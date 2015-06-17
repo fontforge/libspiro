@@ -725,11 +725,11 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 	    jthl = jj++;
 	    jj %= nmat;
 	    jk0l = jj++;
-	}
-	if (ty0 == 'o') {
-	    jj %= nmat;
-	    jk1l = jj++;
-	    jk2l = jj++;
+	    if (ty0 == 'o') {
+		jj %= nmat;
+		jk1l = jj++;
+		jk2l = jj++;
+	    }
 	}
 
 	/* constraints on left */
@@ -752,10 +752,10 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 	if (ty1 == 'o' || ty1 == 'c' || ty1 == '[' || ty1 == ']') {
 	    jthr = jj;
 	    jk0r = (jj + 1) % nmat;
-	}
-	if (ty1 == 'o') {
-	    jk1r = (jj + 2) % nmat;
-	    jk2r = (jj + 3) % nmat;
+	    if (ty1 == 'o') {
+		jk1r = (jj + 2) % nmat;
+		jk2r = (jj + 3) % nmat;
+	    }
 	}
 
 	add_mat_line(m, v, derivs[0][0], th - ends[0][0], 1, j, jthl, jinc, nmat);
