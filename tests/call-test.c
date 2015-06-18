@@ -65,7 +65,7 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
     int knot0[] = {
 	1, 1, 3, 3, 2, 3, 1, 1, 1, 3, 3, 2, 2, 2, 1, 1
     };
-    spiro_cp path1[] = {
+    spiro_cp path1[] = { /* do a test using "{"..."}" */
 	{80, 738, '{'},
 	{749, 540, 'o'},
 	{671, 309, 'o'},
