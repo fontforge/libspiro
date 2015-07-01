@@ -1,12 +1,12 @@
 # -*- Autoconf -*-
 dnl Process this file with autoconf to produce a configure script.
 
-# Copyright (C) 2013, by Joe Da Silva
+# Copyright (C) 2013,2014,2015 by Joe Da Silva
 
 AC_PREREQ([2.61])
 #-------------------------------------------
 # PackageTimestamp version
-m4_define([spiro_package_stamp], [20150131])
+m4_define([spiro_package_stamp], [20150701])
 #-------------------------------------------
 # Making point releases:
 #   spiro_major_version += 0;
@@ -21,7 +21,7 @@ m4_define([spiro_package_stamp], [20150131])
 #   spiro_minor_version = 0;
 #
 m4_define([spiro_major_version], [0])
-m4_define([spiro_minor_version], [3])
+m4_define([spiro_minor_version], [4])
 m4_define([spiro_version],
           [spiro_major_version.spiro_minor_version.spiro_package_stamp])
 m4_define([spiro_info],
@@ -145,7 +145,15 @@ AM_CONDITIONAL([WANTPTHREADS],[test x$havepthreads = xtrue])
 AC_CANONICAL_HOST
 
 #-------------------------------------------
+# Compiler and Linker flags to override auto
+# detection and insertion. Use CFLAGS if you
+# want to add more in addition to autodetect
+AC_ARG_VAR([LS_CFLAGS],[C compiler flags for libspiro, overriding automatic detection])
+AC_ARG_VAR([LS_LIB],[Linker flags for libspiro, overriding automatic detection])
+
+#-------------------------------------------
 # Check for and add usable compiler warnings
+# Skip if replacing with LS_CFLAGS instead.
 WCFLAGS=""
 AC_LANG_PUSH([C])
 AX_CHECK_COMPILE_FLAG([-Wall],[WCFLAGS="$WCFLAGS -Wall"])
@@ -155,8 +163,30 @@ AX_CHECK_COMPILE_FLAG([-Wbad-function-cast],[WCFLAGS="$WCFLAGS -Wbad-function-ca
 AX_CHECK_COMPILE_FLAG([-Wc++-compat],[WCFLAGS="$WCFLAGS -Wc++-compat"])
 AX_CHECK_COMPILE_FLAG([-Wmissing-prototypes],[WCFLAGS="$WCFLAGS -Wmissing-prototypes"])
 AX_CHECK_COMPILE_FLAG([-Wunused],[WCFLAGS="$WCFLAGS -Wunused"])
+
+dnl  AX_CHECK_COMPILE_FLAG([-Wconversion],[WCFLAGS="$WCFLAGS -Wconversion"])
+dnl  AX_CHECK_COMPILE_FLAG([-Wsign-conversion],[WCFLAGS="$WCFLAGS -Wsign-conversion"])
+dnl  AX_CHECK_COMPILE_FLAG([-Wformat=2],[WCFLAGS="$WCFLAGS -Wformat=2"])
+dnl  AX_CHECK_COMPILE_FLAG([-Wformat-security],[WCFLAGS="$WCFLAGS -Wformat-security"])
+dnl  AX_CHECK_COMPILE_FLAG([-fno-common],[WCFLAGS="$WCFLAGS -fno-common"])
+dnl  AX_CHECK_COMPILE_FLAG([-Wmissing-declarations],[WCFLAGS="$WCFLAGS -Wmissing-declarations"])
+dnl  AX_CHECK_COMPILE_FLAG([-Wstrict-prototypes],[WCFLAGS="$WCFLAGS -Wstrict-prototypes"])
+dnl   AX_CHECK_COMPILE_FLAG([-fPIC],[WCFLAGS="$WCFLAGS -fPIC"])
+dnl   AX_CHECK_COMPILE_FLAG([-Wstrict-overflow],[WCFLAGS="$WCFLAGS -Wstrict-overflow"])
+dnl   AX_CHECK_COMPILE_FLAG([-Wpointer-arith],[WCFLAGS="$WCFLAGS -Wpointer-arith"])
+dnl   AX_CHECK_COMPILE_FLAG([-Wcast-qual],[WCFLAGS="$WCFLAGS -Wcast-qual"])
+dnl   AX_CHECK_COMPILE_FLAG([-Wcast-align],[WCFLAGS="$WCFLAGS -Wcast-align"])
+dnl   AX_CHECK_COMPILE_FLAG([-Wpadded],[WCFLAGS="$WCFLAGS -Wpadded"])
+dnl   AX_CHECK_COMPILE_FLAG([-Woverlength-strings],[WCFLAGS="$WCFLAGS -Woverlength-strings"])
 AC_LANG_POP
-AC_SUBST([WCFLAGS])
+# Skip if replacing with LS_LIB instead.
+WLSLIB=""
+if test -z $LS_LIB ; then
+   WLSLIB="${WCFLAGS}"
+fi
+if test "${LS_CFLAGS}"x != x; then
+   WCFLAGS=""
+fi
 
 #-------------------------------------------
 # Put ifdef wrapper around spiro-config.h so
@@ -169,6 +199,10 @@ AH_BOTTOM([#endif])
 # Pass variables to MAKEFILE.AM
 AC_SUBST([HOST],[host])
 AC_SUBST([LIBSPIRO_VERSION],[spiro_info])
+AC_SUBST([LS_CFLAGS])
+AC_SUBST([LS_LIB])
+AC_SUBST([WCFLAGS])
+AC_SUBST([WLSLIB])
 
 #-------------------------------------------
 AC_PROG_LIBTOOL
@@ -188,8 +222,11 @@ Configuration:
   Build code location	${builddir}
   Destination prefix	${prefix}
   Compiler		${CC}
-  Config auto options	"${WCFLAGS}"
+  Config auto WCFLAGS	"${WCFLAGS}"
+  Config auto WLSLIB	"${WLSLIB}"
   Config CFLAGS		"${CFLAGS}"
   Config LDFLAGS	"${LDFLAGS}"
+  Config LS_CFLAGS	"${LS_CFLAGS}"
+  Config LS_LIB		"${LS_LIB}"
 
 ])

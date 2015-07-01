@@ -7,8 +7,8 @@ pkgconfig_DATA = libspiro.pc
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
-AM_CFLAGS = $(WCFLAGS)
-AM_LDFLAGS = $(WCFLAGS) -no-undefined --mode=link
+AM_CFLAGS = $(WCFLAGS) $(LS_CFLAGS)
+AM_LDFLAGS = $(WLSLIB) $(LS_LIB) -no-undefined --mode=link
 
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
 

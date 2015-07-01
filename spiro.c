@@ -662,9 +662,8 @@ static int count_vec(const spiro_seg *s, int nseg)
 }
 
 static void
-add_mat_line(bandmat *m, double *v,
-	     double derivs[4], double x, double y, int j, int jj, int jinc,
-	     int nmat)
+add_mat_line(bandmat *m, double *v,double derivs[4],
+	     double x, double y, int j, int jj, int jinc, int nmat)
 {
     int joff, k;
 
@@ -779,6 +778,9 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 	memcpy(v + 2 * nmat, v, sizeof(double) * nmat);
 	n_invert = 3 * nmat;
 	j = nmat;
+#ifdef VERBOSE
+	printf("cyclic\n");
+#endif
     } else {
 	n_invert = nmat;
 	j = 0;

@@ -1,4 +1,14 @@
-- 31-Jan-2015
+- 2015-Jul-1
+    * Libspiro Version 0.4.20150701
+    * Re-edit lib and tests to be more accommodating of older compilers.
+    * Many changes to call-test.c to run on bigger variety of platforms,
+      and some minor configure.ac tweaks done to resolve issues #9, #10.
+      as seen on https://github.com/fontforge/libspiro/issues (closed).
+    * Added developer/install test for cyclic spiros (without {} or z).
+    * Verify libspiro output data is correct for test curves {0,1,2,4}.
+    * User can overide default configure flags with LS_CFLAGS and LS_LIB
+
+- 2015-Jan-31
     * Libspiro Version 0.3.20150131
     * Allow Libspiro to be included using PKG_CHECK_MODULES().
     * Bug fixes in configure.ac m4 calls that caused problems seen in:
@@ -7,37 +17,33 @@
     * Add TaggedSpiroCPsToBezier1() and SpiroCPsToBezier1() for programs
       that cannot use TaggedSpiroCPsToBezier0() or SpiroCPsToBezier0().
 
-- 30-Sep-2013
+- 2013-Sep-30
     * Libspiro Version 0.2.20130930
-
-- 29-Aug-2013
     * Optional 'make check' runs 'call-test' to check libspiro functions.
     * Minor logic optimizations. Removed global 'n', passed 'n' instead.
 
-- 22-Jul-2013
+- 2013-Jul-22
     * Use 'make check' to run spiro.c UNIT_TEST internal main() routine.
 
-- 28-Jun-2013
+- 2013-Jun-28
     * Allow for setting VERBOSE during configure - helps with debugging.
     * Allow for setting CHECK_INPUT_FINITENESS during configure - to test
       input values for finiteness before doing calculations (optional).
     * Pass nmat variable to reduce repeatedly recomputing with count_vec().
 
-- 31-May-2013
+- 2013-May-31
     * Convert build system to autotools method (configure.ac, Makefile.am).
-
-- 29-May-2013
     * Backporting robustness patches from Inkscape.
     * Increase Spiro max iterations to 30 after finding convergences of 15.
     * If did not converge or encountered non-finite values, do not output
       spline. Only good splines will be output.
 
-- 20-Apr-2013
+- 2013-Apr-20
     * Initial commit to https://github.com/fontforge/libspiro.git
     * Add bezctx.md based on http://libspiro.sourceforge.net/bezctx.html
 
-- 08-May-2009
+- 2009-May-08
     * Add Java implementation.
 
-- 28-Oct-2007
+- 2007-Oct-28
     * Initial release.
