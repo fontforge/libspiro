@@ -1,4 +1,4 @@
-# Spiro ![](spiral32.png)
+# Spiro ![](spiral32.png) [![Coverity Scan Build Status](https://scan.coverity.com/projects/794/badge.svg?flat=1)](https://scan.coverity.com/projects/794)
 
 ## Introduction
 

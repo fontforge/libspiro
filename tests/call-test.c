@@ -238,7 +238,7 @@ int test_curve(int c) {
     if ( c==0 )	     rsp = verify_rs0;
     else if ( c==1 ) rsp = verify_rs1;
     else if ( c==2 ) rsp = verify_rs2;
-    else if ( c==3 ) rsp = NULL; /* expecting failure to converge */
+    /* else if ( c==3 ) rsp = NULL; expecting failure to converge */
     else	     rsp = verify_rs4;
 
     /* Quick visual check shows X,Y knots match with each pathN[] */
@@ -253,6 +253,7 @@ int test_curve(int c) {
 	     (fabs(segs[i].seg_th - rsp[i].th) > 1e-5) ) {
 	    printf("FAIL\nerror found with run_spiro() data. Results are not the same.\n");
 	    printf("expected line %d x=%f y=%f t=%c bend=%f ch=%f th=%f \n",i,spiro[i].x,spiro[i].y,spiro[i].ty,rsp[i].b,rsp[i].ch,rsp[i].th);
+	    free(segs);
 	    return -2;
 	} else
 	    printf("PASS\n");

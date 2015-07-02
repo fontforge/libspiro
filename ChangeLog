@@ -1,9 +1,15 @@
-- 2015-Jul-1
+- 2015-Jul-02
+    * Libspiro Version 0.5.20150702
+    * Important bug fix issue #11 (missing file not included in 0v4.
+    * 2 Minor bug fixes caught on Coverity scan, free() and if c=3
+
+- 2015-Jul-01
     * Libspiro Version 0.4.20150701
     * Re-edit lib and tests to be more accommodating of older compilers.
     * Many changes to call-test.c to run on bigger variety of platforms,
       and some minor configure.ac tweaks done to resolve issues #9, #10.
-      as seen on https://github.com/fontforge/libspiro/issues (closed).
+      as seen on https://github.com/fontforge/libspiro/issues and:
+	https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=789012
     * Added developer/install test for cyclic spiros (without {} or z).
     * Verify libspiro output data is correct for test curves {0,1,2,4}.
     * User can overide default configure flags with LS_CFLAGS and LS_LIB
