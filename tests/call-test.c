@@ -43,7 +43,7 @@ static double get_time (void) {
 }
 
 #ifndef DO_CALL_TESTM
-/* Expected run_spiro() test data results for path{0/1/2/4}[]. */
+/* Expected run_spiro() test data results for path{0/1/2/4/5}[]. */
 typedef struct {
     double b, ch, th;
 } rs_check_vals;
@@ -83,8 +83,22 @@ rs_check_vals verify_rs2[] = {		/* iteration26 */
 rs_check_vals verify_rs4[] = {		/* iteration2 */
     {-1.570796, 141.421356, 0.785398},	/* o,-100,  0 */
     {-1.570796, 141.421356, -0.785398},	/* o,  0, 100 */
-    {-1.570796, 141.421356, -2.356194},	/* o,100,   0 */
+    {-1.570796, 141.421356, -2.356194}	/* o,100,   0 */
 };					/* o,  0,-100 */
+
+rs_check_vals verify_rs5[] = {		/* iteration4 */
+    {0.000000, 141.421356, 0.785398},	/* {,  0,   0 */
+    {0.000000, 141.421356, 0.785398},	/* c,100, 100 */
+    {-0.785398, 100.000000, 0.000000},	/* [,200, 200 */
+    {-0.463648, 111.803399, -0.463648},	/* ],300, 200 */
+    {-2.214297, 111.803399, -2.677945},	/* c,400, 150 */
+    {-0.463648, 100.000000, 3.141593},	/* [,300, 100 */
+    {0.785398, 70.710678, -2.356194},	/* ],200, 100 */
+    {0.000000, 70.710678, -2.356194},	/* c,150,  50 */
+    {0.000000, 141.421356, -2.356194},	/* [,100,   0 */
+    {0.321751, 111.803399, -2.034444},	/* ],  0,-100 */
+    {-0.076772, 58.309519, -2.111216}	/* c,-50,-200 */
+};					/* },-80,-250 */
 #endif
 
 void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
@@ -150,6 +164,23 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
     int knot4[] = {
 	2, 2, 2, 0
     };
+    spiro_cp path5[] = { /* verify curve data with []. */
+	{  0,   0, '{'},
+	{100, 100, 'c'},
+	{200, 200, '['},
+	{300, 200, ']'},
+	{400, 150, 'c'},
+	{300, 100, '['},
+	{200, 100, ']'},
+	{150,  50, 'c'},
+	{100,   0, '['},
+	{  0,-100, ']'},
+	{-50,-200, 'c'},
+	{-80,-250, '}'}
+    };
+    int knot5[] = {
+	1, 4, 1, 3, 3, 1, 4, 2, 1, 2, 1, 0
+    };
     int i;
 
     /* Load static variable tables into memory because */
@@ -176,14 +207,19 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	spiro[i].y = path3[i].y;
 	spiro[i].ty = path3[i].ty;
 	nextknot[i] = knot3[i];
-    } else for (i = 0; i < 4; i++) {
+    } else if ( c==4 ) for (i = 0; i < 4; i++) {
 	spiro[i].x = path4[i].x;
 	spiro[i].y = path4[i].y;
 	spiro[i].ty = path4[i].ty;
 	nextknot[i] = knot4[i];
+    } else for (i = 0; i < 12; i++) {
+	spiro[i].x = path5[i].x;
+	spiro[i].y = path5[i].y;
+	spiro[i].ty = path5[i].ty;
+	nextknot[i] = knot5[i];
     }
 }
-int cl[] = {16, 6, 4, 6, 4};
+int cl[] = {16, 6, 4, 6, 4, 12};
 
 #ifndef DO_CALL_TESTM
 /* Provide bare-bones do-nothing functions for testing. This only */
@@ -239,7 +275,8 @@ int test_curve(int c) {
     else if ( c==1 ) rsp = verify_rs1;
     else if ( c==2 ) rsp = verify_rs2;
     /* else if ( c==3 ) rsp = NULL; expecting failure to converge */
-    else	     rsp = verify_rs4;
+    else if ( c==4 ) rsp = verify_rs4;
+    else	     rsp = verify_rs5;
 
     /* Quick visual check shows X,Y knots match with each pathN[] */
     for (i=0; i < cl[c]-1; i++) {
@@ -432,8 +469,8 @@ int test_multi_curves(void) {
     /* our simple curve test-check breaks-down if we go more than */
     /* 10x larger curves due to rounding errors on double values, */
     /* so, we either need a more complex curve test-check at end, */
-    /* or we can cleverly do stepping-up 0.01 one thousand times. */
-#define S_TESTS 3000
+    /* or we can cleverly increase in increments of "1/S_TESTS".  */
+#define S_TESTS 4000
 
 #ifdef HAVE_PTHREADS
     pthread_attr_t tattr;
@@ -442,6 +479,7 @@ int test_multi_curves(void) {
 
     printf("---\nMulti-thread testing of libspiro.\n");
     /* pthread default limit is currently about 380 without mods. */
+    /* new processors will allow more, older processors use less. */
 #else
     printf("---\nSequential tests of libspiro.\n");
 #endif
@@ -474,9 +512,10 @@ int test_multi_curves(void) {
 	 (nextknot=(int**)calloc(S_TESTS,sizeof(int*)))==NULL )
 	goto test_multi_curves_exit;
     for (i=0; i < S_TESTS; ) {
-	/* NOTE: S_TESTS has to be multiple of 3 here. */
-	/* ...because we test using path[0/1/2]tables, */
+	/* NOTE: S_TESTS has to be multiple of 4 here. */
+	/* because we test using path[0/1/2/5]tables,  */
 	/* ...and path[3] is used to test NOT success. */
+	/* ...and path[4] is too fast @ 4 interations. */
 	if ( (spiro[i]=malloc(cl[0]*sizeof(spiro_cp)))==NULL || \
 	      (nextknot[i]=calloc(cl[0]+1,sizeof(int)))==NULL )
 	    goto test_multi_curves_exit;
@@ -492,6 +531,11 @@ int test_multi_curves(void) {
 	    goto test_multi_curves_exit;
 	load_test_curve(spiro[i],nextknot[i],2);
 	scl[i++]=cl[2];
+	if ( (spiro[i]=malloc(cl[5]*sizeof(spiro_cp)))==NULL || \
+	      (nextknot[i]=calloc(cl[5],sizeof(int)))==NULL )
+	    goto test_multi_curves_exit;
+	load_test_curve(spiro[i],nextknot[i],5);
+	scl[i++]=cl[5];
     }
 
     /* Change to different sizes to make sure no duplicates */
@@ -500,8 +544,8 @@ int test_multi_curves(void) {
     for (i=0; i < S_TESTS; i++) {
 	temp = spiro[i];
 	for (j=0; j < scl[i]; j++) {
-	    temp[j].x = temp[j].x * ((i+1.0)/100);
-	    temp[j].y = temp[j].y * ((i+1.0)/100);
+	    temp[j].x = temp[j].x * (i/S_TESTS+1) + i;
+	    temp[j].y = temp[j].y * (i/S_TESTS+1) + i;
 	}
     }
 
@@ -635,13 +679,13 @@ int main(int argc, char **argv) {
     st = get_time();
 
 #ifdef DO_CALL_TEST0
-    ret=test_curve(0);
+    ret=test_curve(0);	/* this comes with unit-test. */
 #endif
 #ifdef DO_CALL_TEST1
-    ret=test_curve(1);
+    ret=test_curve(1);	/* do a test using "{"..."}". */
 #endif
 #ifdef DO_CALL_TEST2
-    ret=test_curve(2);
+    ret=test_curve(2);	/* this does many iterations. */
 #endif
 #ifdef DO_CALL_TEST3
     if ( (ret=test_curve(3)==0) ) /* This curve will not converge */
@@ -650,7 +694,10 @@ int main(int argc, char **argv) {
 	ret = 0; /* expected failure to converge */
 #endif
 #ifdef DO_CALL_TEST4
-    ret=test_curve(4);
+    ret=test_curve(4);	/* test a cyclic calculation. */
+#endif
+#ifdef DO_CALL_TEST5
+    ret=test_curve(5);	/* verify curve data with []. */
 #endif
 #ifdef DO_CALL_TESTM
     ret=test_multi_curves();

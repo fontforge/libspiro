@@ -1,7 +1,7 @@
 - 2015-Jul-02
     * Libspiro Version 0.5.20150702
-    * Important bug fix issue #11 (missing file not included in 0v4.
-    * 2 Minor bug fixes caught on Coverity scan, free() and if c=3
+    * Important bug fix issue #11 (missing file not included in 0v4).
+    * 2 Minor bug fixes caught on Coverity scan, 'free()' and 'if (c=3)'
 
 - 2015-Jul-01
     * Libspiro Version 0.4.20150701

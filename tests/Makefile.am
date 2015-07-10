@@ -8,7 +8,8 @@ DEPS = $(top_builddir)/.libs/libspiro.la
 LDADDS = $(top_builddir)/.libs/libspiro.la
 
 # The tests
-noinst_PROGRAMS = unit-test call-test0 call-test1 call-test2 call-test3 call-test4 call-testm
+noinst_PROGRAMS = unit-test call-test0 call-test1 call-test2 call-test3 \
+		  call-test4 call-test5 call-testm
 
 unit_test_SOURCES = unit-test.c
 
@@ -26,6 +27,9 @@ call_test3_LDADD = $(LDADDS)
 
 call_test4_SOURCES = call-test4.c
 call_test4_LDADD = $(LDADDS)
+
+call_test5_SOURCES = call-test5.c
+call_test5_LDADD = $(LDADDS)
 
 call_testm_SOURCES = call-testm.c
 call_testm_LDADD = $(LDADDS)
