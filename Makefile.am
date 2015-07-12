@@ -2,6 +2,8 @@
 
 SUBDIRS = . tests
 
+test_programs = call-test0 call-test1 call-test2 call-test3 call-test4 call-test5 call-testm
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libspiro.pc
 
@@ -39,4 +41,15 @@ test:	${TEST_PROGS}
 .PHONY: test
 # run make test as part of make check
 check-local: test
+
+check-valgrind:
+if HAVEVALGRIND
+	$(MAKE);
+	$(VALGRIND) --error-exitcode=1 $(builddir)/tests/unit-test
+	(for arg in $(test_programs); do \
+	$(LIBTOOL) --mode=execute $(VALGRIND) --error-exitcode=1 $(builddir)/tests/$${arg} ; \
+	done)
+else
+	echo "install Valgrind, then run ./configure again"
+endif
 

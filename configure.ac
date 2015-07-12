@@ -52,6 +52,7 @@ AC_PROG_LN_S
 AC_PROG_MKDIR_P
 AC_PROG_MAKE_SET
 AC_PROG_SED
+AC_PATH_PROGS([VALGRIND],[valgrind])
 AC_CONFIG_HEADERS([spiro-config.h])
 
 #-------------------------------------------
@@ -203,6 +204,7 @@ AC_SUBST([LS_CFLAGS])
 AC_SUBST([LS_LIB])
 AC_SUBST([WCFLAGS])
 AC_SUBST([WLSLIB])
+AM_CONDITIONAL([HAVEVALGRIND],[test "${VALGRIND}"x != x])
 
 #-------------------------------------------
 AC_PROG_LIBTOOL
