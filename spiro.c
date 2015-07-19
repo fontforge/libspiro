@@ -489,6 +489,19 @@ setup_path(const spiro_cp *src, int n)
     double dx, dy;
     spiro_seg *r;
 
+#ifdef CHECK_INPUT_FINITENESS
+    /* Verify that input values are within realistic limits */
+    for (i = 0; i < n; i++) {
+	if (IS_FINITE(src[i].x)==0 || IS_FINITE(src[i].y)==0) {
+#ifdef VERBOSE
+	    fprintf(stderr, "ERROR: LibSpiro: #%d={'%c',%g,%g} is not finite.\n", \
+		    i, src[i].ty, src[i].x, src[i].y);
+#endif
+	    return 0;
+	}
+    }
+#endif
+
     n_seg = src[0].ty == '{' ? n - 1 : n;
     r = (spiro_seg *)malloc((n_seg + 1) * sizeof(spiro_seg));
     if ( r==NULL ) return 0;
@@ -505,20 +518,6 @@ setup_path(const spiro_cp *src, int n)
     r[n_seg].x = src[n_seg % n].x;
     r[n_seg].y = src[n_seg % n].y;
     r[n_seg].ty = src[n_seg % n].ty;
-
-#ifdef CHECK_INPUT_FINITENESS
-    /* Verify that input values are within realistic limits */
-    for (i = 0; i < n; i++) {
-	if (IS_FINITE(r[i].x)==0 || IS_FINITE(r[i].y)==0) {
-#ifdef VERBOSE
-	    fprintf(stderr, "ERROR: LibSpiro: #%d={'%c',%g,%g} is not finite.\n", \
-		    i, src[i].ty, r[i].x, r[i].y);
-#endif
-	    free(r);
-	    return 0;
-	}
-    }
-#endif
 
     for (i = 0; i < n_seg; i++) {
 	dx = r[i + 1].x - r[i].x;
