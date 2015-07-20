@@ -23,7 +23,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <sys/timeb.h>		/* for get_time */
+#ifdef DO_TIME_DAY
+#include <sys/time.h>		/* for gettimeofday */
+#else
+#include <sys/timeb.h>		/* for old get_time */
+#endif
 
 #include "bezctx.c"
 #include "spiro.c"
@@ -31,11 +35,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 int n; /* = 4; */
 
 static double get_time (void) {
+#ifdef DO_TIME_DAY
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+
+    return tv.tv_sec + 1e-6 * tv.tv_usec;
+#else
     struct timeb tb;
 
     ftime(&tb);
 
     return tb.time + 1e-3 * tb.millitm;
+#endif
 }
 
 int test_integ(void) {

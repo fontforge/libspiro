@@ -15,7 +15,7 @@ AM_LDFLAGS = $(WLSLIB) $(LS_LIB) -no-undefined --mode=link
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
 
 DISTCLEANFILES = libspiro.pc
-DISTCHECK_CONFIGURE_FLAGS = --enable-verbose_lib --enable-test_inputs
+DISTCHECK_CONFIGURE_FLAGS = --enable-verbose_lib --enable-test_inputs --enable-test-a-lot
 
 lib_LTLIBRARIES = libspiro.la
 

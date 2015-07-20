@@ -1,3 +1,6 @@
+- 2015-Jul-19
+    * Add patch for failure in hurd-i386 build (debian 1%0.5.20150702-2)
+
 - 2015-Jul-02
     * Libspiro Version 0.5.20150702
     * Important bug fix issue #11 (missing file not included in 0v4).

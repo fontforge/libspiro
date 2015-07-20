@@ -142,6 +142,31 @@ AC_CHECK_HEADER([pthread.h],[havepthreads=true]
 AM_CONDITIONAL([WANTPTHREADS],[test x$havepthreads = xtrue])
 
 #-------------------------------------------
+# call-test uses sys/timeb.h to display test
+# time lengths but libspiro doesn't need it.
+AC_CHECK_FUNC([gettimeofday],[have_gettimeofday=true],[have_gettimeofday=false])
+AC_CHECK_HEADER([sys/time.h],[],[have_gettimeofday=false])
+if test x"${have_gettimeofday}" = xtrue; then
+  AC_DEFINE_UNQUOTED([DO_TIME_DAY],[1],[Use 'gettimeofday()==true, else use older sys/timeb.h])
+else
+  AC_CHECK_HEADER([sys/timeb.h],[],
+    [AC_MSG_ERROR([ERROR: Please install time.h and sys/timeb.h developer files],[1])])
+fi
+
+#-------------------------------------------
+# The 'make check' test 'call-testm.c' runs
+# many threads at once to test calculations.
+# This number is set at a default of 100 to
+# meet automated-test 'time-out' deadlines.
+# Recommend maintainers/developers run 1000+
+testalot=100
+AC_ARG_ENABLE([test_a_lot],
+  AS_HELP_STRING([--enable-test_a_lot],[Run lots of multithread tests.]),
+  [testalot=2000])
+AC_DEFINE_UNQUOTED([S_TESTP],[$testalot],
+  [Do 'S_TESTS' multi-thread 'call-testm' checks when you run 'make check'.])
+
+#-------------------------------------------
 # Platform specific stuff ($host)
 AC_CANONICAL_HOST
 

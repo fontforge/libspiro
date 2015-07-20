@@ -22,7 +22,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/timeb.h>		/* for get_time */
+#ifdef DO_TIME_DAY
+#include <sys/time.h>		/* for gettimeofday */
+#else
+#include <sys/timeb.h>		/* for old get_time */
+#endif
 
 #include "spiroentrypoints.h"	/* call spiro through here */
 #include "bezctx.h"		/* bezctx structure */
@@ -35,11 +39,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #endif
 
 static double get_time (void) {
+#ifdef DO_TIME_DAY
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+
+    return tv.tv_sec + 1e-6 * tv.tv_usec;
+#else
     struct timeb tb;
 
     ftime(&tb);
 
     return tb.time + 1e-3 * tb.millitm;
+#endif
 }
 
 #ifndef DO_CALL_TESTM
@@ -470,7 +482,7 @@ int test_multi_curves(void) {
     /* 10x larger curves due to rounding errors on double values, */
     /* so, we either need a more complex curve test-check at end, */
     /* or we can cleverly increase in increments of "1/S_TESTS".  */
-#define S_TESTS 4000
+#define S_TESTS S_TESTP*4
 
 #ifdef HAVE_PTHREADS
     pthread_attr_t tattr;
