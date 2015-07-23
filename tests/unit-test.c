@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
+#include "spiro-config.h"	/* for ./configure test settings like VERBOSE */
 #ifdef DO_TIME_DAY
 #include <sys/time.h>		/* for gettimeofday */
 #else
