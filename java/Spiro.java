@@ -50,8 +50,8 @@ public class Spiro {
 	double [/*5 */] al; /* lower part of band-diagonal decomposition */
 
 	void copyfrom(final bandmat from) {
-	    System.arraycopy(a ,0,from.a ,0,11);
-	    System.arraycopy(al,0,from.al,0,5 );
+	    System.arraycopy(from.a ,0,a ,0,11);
+	    System.arraycopy(from.al,0,al,0,5 );
 	}
 
 	static void arraycopy(bandmat [] from, int fromi, bandmat [] to, int toi, int nelem ) {
