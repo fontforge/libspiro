@@ -2,12 +2,15 @@
 
 SUBDIRS = . tests
 
-test_programs = call-test0 call-test1 call-test2 call-test3 call-test4 call-test5 call-testm
+test_programs = call-test0 call-test1 call-test2 call-test3 call-test4 \
+		call-test5 call-test6 call-test7 call-test8 call-test9 \
+		call-test10 call-test11 call-test12 call-test13        \
+		call-testm
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libspiro.pc
 
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
+ACLOCAL_AMFLAGS = -I m4 $(ACLOCAL_FLAGS)
 
 AM_CFLAGS = $(WCFLAGS) $(LS_CFLAGS)
 AM_LDFLAGS = $(WLSLIB) $(LS_LIB) -no-undefined --mode=link
@@ -28,7 +31,8 @@ EXTRA_DIST = bezctx.md get-spiro-src.sh README-RaphLevien README.md zmisc.h \
 	java/ShowPlate.java java/Spiro.java java/SpiroBezierContext.java    \
 	java/SpiroCanvas.java java/SpiroCP.java java/SpiroGeneralPath.java  \
 	java/SpiroPointType.java README-GeorgeWilliams fontforge-debug.txt  \
-	fontforge.sh m4/ax_check_compile_flag.m4 tests/call-test.c
+	fontforge.sh m4/ax_check_compile_flag.m4 tests/call-test.c	    \
+	path5.png path6.png
 
 include_HEADERS = bezctx.h bezctx_intf.h spiro.h spiroentrypoints.h
 
@@ -36,7 +40,7 @@ libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status libtool
 
 # test: run all tests in cwd and subdirs
-test:	${TEST_PROGS}
+test:	$(TEST_PROGS)
 
 .PHONY: test
 # run make test as part of make check
@@ -47,7 +51,7 @@ if HAVEVALGRIND
 	$(MAKE);
 	$(VALGRIND) --error-exitcode=1 $(builddir)/tests/unit-test
 	(for arg in $(test_programs); do \
-	$(LIBTOOL) --mode=execute $(VALGRIND) --error-exitcode=1 $(builddir)/tests/$${arg} ; \
+	$(LIBTOOL) --mode=execute $(VALGRIND) --error-exitcode=1 $(builddir)/tests/$$(arg) ; \
 	done)
 else
 	echo "install Valgrind, then run ./configure again"

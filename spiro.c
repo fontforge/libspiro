@@ -1,6 +1,7 @@
 /*
 ppedit - A pattern plate editor for Spiro splines.
-Copyright (C) 2007 Raph Levien
+Copyright (C) 2007... Raph Levien
+Copyright (C) 2013... Joe Da Silva (improvements plus 'a','h')
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -489,6 +490,13 @@ setup_path(const spiro_cp *src, int n)
     double dx, dy;
     spiro_seg *r;
 
+    if (src[0].ty == 'h' || src[n - 1].ty == 'a') { /* pair */
+#ifdef VERBOSE
+	fprintf(stderr, "ERROR: LibSpiro: cannot use cp type 'h' as start, or 'a' as end.\n");
+#endif
+	return 0;
+    }
+
 #ifdef CHECK_INPUT_FINITENESS
     /* Verify that input values are within realistic limits */
     for (i = 0; i < n; i++) {
@@ -520,6 +528,15 @@ setup_path(const spiro_cp *src, int n)
     r[n_seg].ty = src[n_seg % n].ty;
 
     for (i = 0; i < n_seg; i++) {
+	if (r[i].ty == 'h' || (i == n_seg-1 && i > 0 && r[i].ty == '}' && r[i - 1].ty == 'a')) {
+	    /* behave like a disconnected pair of '[' & ']' */
+	    /* point 'a' holds vector to old 'h' and now we */
+	    /* change x,y here to be the same as point 'a'. */
+	    /* curve fitting is based on vectors and angles */
+	    /* but final curves will be based on x,y points */
+	    r[i].x = r[i - 1].x;
+	    r[i].y = r[i - 1].y;
+	}
 	dx = r[i + 1].x - r[i].x;
 	dy = r[i + 1].y - r[i].y;
 #ifndef CHECK_INPUT_FINITENESS
@@ -547,7 +564,7 @@ setup_path(const spiro_cp *src, int n)
 	ilast = i;
 #ifdef VERBOSE
 	printf("input #%d={'%c',%g,%g}, hypot=%g, atan2=%g, bend_th=%g\n", \
-		    i, src[i].ty, r[i].x, r[i].y, r[i]. seg_th, r[i].seg_th, r[i].bend_th);
+		    i, src[i].ty, r[i].x, r[i].y, r[i].seg_ch, r[i].seg_th, r[i].bend_th);
 #endif
     }
 #ifdef VERBOSE
@@ -638,12 +655,13 @@ banbks11(const bandmat *m, const int *perm, double *v, int n)
 static int compute_jinc(char ty0, char ty1)
 {
     if (ty0 == 'o' || ty1 == 'o' ||
-	ty0 == ']' || ty1 == '[')
+	ty0 == ']' || ty1 == '[' ||
+	ty0 == 'h' || ty1 == 'a')
 	return 4;
     else if (ty0 == 'c' && ty1 == 'c')
 	return 2;
-    else if (((ty0 == '{' || ty0 == 'v' || ty0 == '[') && ty1 == 'c') ||
-	     (ty0 == 'c' && (ty1 == '}' || ty1 == 'v' || ty1 == ']')))
+    else if ((ty1 == 'c' && (ty0 == '{' || ty0 == 'v' || ty0 == '[' || ty0 == 'a')) ||
+	     (ty0 == 'c' && (ty1 == '}' || ty1 == 'v' || ty1 == ']' || ty1 == 'h')))
 	return 1;
     else
 	return 0;
@@ -719,7 +737,8 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 	compute_pderivs(&s[i], ends, derivs, jinc);
 
 	/* constraints crossing left */
-	if (ty0 == 'o' || ty0 == 'c' || ty0 == '[' || ty0 == ']') {
+	if (ty0 == 'o' || ty0 == 'c' || ty0 == '[' || ty0 == ']' || \
+	    ty0 == 'a' || ty0 == 'h') {
 	    jthl = jj++;
 	    jj %= nmat;
 	    jk0l = jj++;
@@ -731,23 +750,24 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 	}
 
 	/* constraints on left */
-	if ((ty0 == '[' || ty0 == 'v' || ty0 == '{' || ty0 == 'c') &&
-	    jinc == 4) {
+	if ((ty0 == '[' || ty0 == 'v' || ty0 == '{' || ty0 == 'c' || \
+	     ty0 == 'a') && jinc == 4) {
 	    if (ty0 != 'c')
 		jk1l = jj++;
 	    jk2l = jj++;
 	}
 
 	/* constraints on right */
-	if ((ty1 == ']' || ty1 == 'v' || ty1 == '}' || ty1 == 'c') &&
-	    jinc == 4) {
+	if ((ty1 == ']' || ty1 == 'v' || ty1 == '}' || ty1 == 'c' || \
+	     ty1 == 'h') && jinc == 4) {
 	    if (ty1 != 'c')
 		jk1r = jj++;
 	    jk2r = jj++;
 	}
 
 	/* constraints crossing right */
-	if (ty1 == 'o' || ty1 == 'c' || ty1 == '[' || ty1 == ']') {
+	if (ty1 == 'o' || ty1 == 'c' || ty1 == '[' || ty1 == ']' || \
+	    ty1 == 'a' || ty1 == 'h') {
 	    jthr = jj;
 	    jk0r = (jj + 1) % nmat;
 	    if (ty1 == 'o') {
@@ -951,20 +971,28 @@ free_spiro(spiro_seg *s)
 void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
 {
-    int i, nsegs;
+    int i, j, nsegs;
     double x0, y0, x1, y1;
+
+#ifdef VERBOSE
+    printf("spiro_to_bpath n=%d s=%d bc=%d\n",n,s==NULL ? 0:1,bc==NULL ? 0:1);
+#endif
 
     if (s==NULL || n <= 0 || bc==NULL) return;
 
-    nsegs = s[n - 1].ty == '}' ? n - 1 : n;
+    nsegs = s[n - 1].ty == '}' ? \
+	    s[n - 2].ty == 'a' ? n - 2 : n - 1 : n;
 
-    for (i = 0; i < nsegs; i++) {
-	x0 = s[i].x; x1 = s[i + 1].x;
-	y0 = s[i].y; y1 = s[i + 1].y;
-
-	if (i == 0)
+    for (i=j=0; i < nsegs; i++,j++) {
+	x0 = s[i].x; y0 = s[i].y;
+	if (i == 0) {
 	    bezctx_moveto(bc, x0, y0, s[0].ty == '{');
-	bezctx_mark_knot(bc, i);
+	    if (nsegs > 1 && s[1].ty == 'h') ++i;
+	} else
+	    if (s[i].ty == 'a') ++i;
+	x1 = s[i + 1].x; y1 = s[i + 1].y;
+
+	bezctx_mark_knot(bc, j);
 	spiro_seg_to_bpath(s[i].ks, x0, y0, x1, y1, bc, 0);
     }
 }

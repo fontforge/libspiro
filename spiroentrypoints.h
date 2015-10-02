@@ -19,7 +19,7 @@
 
 /* These 2 functions are kept for backwards compatibility for older */
 /* programs. Please use the functions listed afterwards that return */
-/* success/failure replies when done.				    */
+/* success/failure replies when done. See ver 0.2.20130930 or later */
 extern void TaggedSpiroCPsToBezier(spiro_cp *spiros,bezctx *bc);
 extern void SpiroCPsToBezier(spiro_cp *spiros,int n,int isclosed,bezctx *bc);
 
@@ -50,4 +50,13 @@ extern int SpiroCPsToBezier0(spiro_cp *spiros,int n,int isclosed,bezctx *bc);
 /* where spiro success/failure replies are passd back through *done */
 extern void TaggedSpiroCPsToBezier1(spiro_cp *spiros,bezctx *bc,int *done);
 extern void SpiroCPsToBezier1(spiro_cp *spiros,int n,int isclosed,bezctx *bc,int *done);
+
+
+
+/* These functions are available in libspiro-0.6.2015xxxx or higher */
+
+    /* Curve crossing point with a 'fixed angle' of crossing */
+#define SPIRO_ANCHOR		'a'
+    /* Curve crossing handle cp(hx,hy) relative to cp(ax,ay) */
+#define SPIRO_HANDLE		'h'
 #endif

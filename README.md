@@ -65,7 +65,7 @@ make install
 
 FontForge will autodetect libspiro when it is installed in the usual way.
 
-An exception to this is with the Mac bundled version (where `FontForge.app` is copied to `/Applications`.) To install your compiled version into the bundle, run ```sh ./configure --prefix=/Applications/FontForge.app/Contents/Resources/opt/local/ ```
+An exception to this is with the Mac bundled version (where `FontForge.app` is copied to `/Applications`). To install your compiled version into the bundle, run ```sh ./configure --prefix=/Applications/FontForge.app/Contents/Resources/opt/local/ ```
 
 #### Crash Reporting
 
@@ -100,11 +100,13 @@ typedef struct {
 } spiro_cp;
 
     /* Possible values of the "ty" field. */
-#define SPIRO_CORNER		'v'
-#define SPIRO_G4		'o'
-#define SPIRO_G2		'c'
-#define SPIRO_LEFT		'['
-#define SPIRO_RIGHT		']'
+#define SPIRO_CORNER	'v'
+#define SPIRO_G4	'o'
+#define SPIRO_G2	'c'
+#define SPIRO_LEFT	'['
+#define SPIRO_RIGHT	']'
+#define SPIRO_ANCHOR	'a'
+#define SPIRO_HANDLE	'h'
 
     /* For a closed contour add an extra cp with a ty set to */
 #define SPIRO_END		'z'
@@ -114,14 +116,36 @@ typedef struct {
 #define SPIRO_END_OPEN_CONTOUR	'}'
 ```
 
-A spiro control point contains a location and a point type. There are five basic types of spiro control points:
+A spiro control point contains a location and a point type. There are six basic types of spiro control points:
 
 - A corner point – where the slopes and curvatures of the incoming and outgoing splines are unconstrained
 - A G4 curve point – Continuous up to the fourth derivative
 - A G2 curve point – Continuous up to the second derivative.
-- A left constraint point – Used to connect a curved line to a straight one
-- A right constraint point – Used to connect a straight line to a curved one.
+- A left constraint point – Used to connect a curve to a straight line
+- A right constraint point – Used to connect a straight line to a curve.
   If you have a contour which is drawn clockwise, and you have a straight segment at the top, then the left point of that straight segment should be a left constraint, and the right point should be a right constraint.
+- An anchor - Is a knot point with a fixed angle (followed by the handle cp which creates the angle).
+  The anchor behaves as both left and right constraint points at one single point.
+
+The left constraint, right constraint, anchor and handle points are easiest explained using
+examples from path5 and path6 which are both tested in tests/call-test.c
+
+![](path5.png) ![](path6.png)
+```c
+path5[]		path6[]
+{  0,   0,'{'},	{  0,   0,'{'},
+{100, 100,'c'},	{100, 100,'c'},
+{200, 200,'['},	{200, 200,'a'},
+{300, 200,']'},	{300, 200,'h'},
+{400, 150,'c'},	{300, 150,'c'},
+{300, 100,'['},	{200, 100,'a'},
+{200, 100,']'},	{150, 100,'h'},
+{150,  50,'c'},	{150,  50,'c'},
+{100,   0,'['},	{100,   0,'a'},
+{  0,-100,']'},	{  0,-100,'h'},
+{-50,-200,'c'},	{ 50,-100,'c'},
+{-80,-250,'}'},	{ 20,-150,'}'},
+```
 
 #### The bezier context
 
@@ -202,7 +226,7 @@ Or call `TaggedSpiroCPsToBezier0`. This routine requires that the array of spiro
    points[4].x =    0; points[4].y =    0; points[4].ty = SPIRO_END;
 ```
 
-(The location of this last point is irrelevant).
+(The x,y location of this last SPIRO_END point is irrelevant).
 
 An open curve will have the type of the first control point set to `SPIRO_OPEN_CONTOUR` and the last to `SPIRO_END_OPEN_CONTOUR`.
 

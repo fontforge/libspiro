@@ -55,7 +55,7 @@ static double get_time (void) {
 }
 
 #ifndef DO_CALL_TESTM
-/* Expected run_spiro() test data results for path{0/1/2/4/5}[]. */
+/* Expected run_spiro() test data results for path0/1/2/4/5/6[]. */
 typedef struct {
     double b, ch, th;
 } rs_check_vals;
@@ -98,19 +98,80 @@ rs_check_vals verify_rs4[] = {		/* iteration2 */
     {-1.570796, 141.421356, -2.356194}	/* o,100,   0 */
 };					/* o,  0,-100 */
 
-rs_check_vals verify_rs5[] = {		/* iteration4 */
-    {0.000000, 141.421356, 0.785398},	/* {,  0,   0 */
-    {0.000000, 141.421356, 0.785398},	/* c,100, 100 */
-    {-0.785398, 100.000000, 0.000000},	/* [,200, 200 */
-    {-0.463648, 111.803399, -0.463648},	/* ],300, 200 */
-    {-2.214297, 111.803399, -2.677945},	/* c,400, 150 */
-    {-0.463648, 100.000000, 3.141593},	/* [,300, 100 */
-    {0.785398, 70.710678, -2.356194},	/* ],200, 100 */
-    {0.000000, 70.710678, -2.356194},	/* c,150,  50 */
-    {0.000000, 141.421356, -2.356194},	/* [,100,   0 */
-    {0.321751, 111.803399, -2.034444},	/* ],  0,-100 */
-    {-0.076772, 58.309519, -2.111216}	/* c,-50,-200 */
-};					/* },-80,-250 */
+rs_check_vals verify_rs5[] = {		/* iteration4	verify_rs6 */
+    {0.000000, 141.421356, 0.785398},	/* {,  0,   0	{,  0,   0 */
+    {0.000000, 141.421356, 0.785398},	/* c,100, 100	c,100, 100 */
+    {-0.785398, 100.000000, 0.000000},	/* [,200, 200	a,200, 200 */
+    {-0.463648, 111.803399, -0.463648},	/* ],300, 200	h,300, 200 */
+    {-2.214297, 111.803399, -2.677945},	/* c,400, 150	c,300, 150 */
+    {-0.463648, 100.000000, 3.141593},	/* [,300, 100	a,200, 100 */
+    {0.785398, 70.710678, -2.356194},	/* ],200, 100	h,100, 100 */
+    {0.000000, 70.710678, -2.356194},	/* c,150,  50	c,150,  50 */
+    {0.000000, 141.421356, -2.356194},	/* [,100,   0	a,100,   0 */
+    {0.321751, 111.803399, -2.034444},	/* ],  0,-100	h,  0,-100 */
+    {-0.076772, 58.309519, -2.111216}	/* c,-50,-200	c, 50,-100 */
+};					/* },-80,-250	}, 20,-150 */
+
+rs_check_vals verify_rs7[] = {		/* iteration4 */
+    {-0.950547, 50.990195, 0.197396},	/* o,  0, 200 */
+    {-1.534449, 215.870331, -1.337053},	/* o, 50, 210 */
+    {-0.233743, 50.000000, -1.570796},	/* a,100,   0 */
+    {-0.484478, 214.709106, -2.055274},	/* h,100, -50 */
+    {-0.986650, 50.249378, -3.041924},	/* a,  0,-190 */
+    {-1.228091, 210.237960, 2.013171},	/* h,-50,-195 */
+    {-0.342706, 50.249378, 1.670465},	/* a,-90,   0 */
+    {-0.522523, 219.317122, 1.147942}	/* h,-95,  50 */
+};					/* z, path12  */
+
+rs_check_vals verify_rs8[] = {		/* iteration4 */
+    {-0.950547, 50.990195, 0.197396},	/* o,  0, 200 */
+    {-1.534449, 215.870331, -1.337053},	/* o, 50, 210 */
+    {-0.233743, 50.000000, -1.570796},	/* a,100,   0 */
+    {-0.484478, 214.709106, -2.055274},	/* h,100, -50 */
+    {-0.986650, 50.249378, -3.041924},	/* a,  0,-190 */
+    {-1.228091, 210.237960, 2.013171},	/* h,-50,-195 */
+    {-0.342706, 50.249378, 1.670465}	/* a,-90,   0 */
+};					/* h,-95,  50 */
+
+rs_check_vals verify_rs9[] = {		/* iteration9 */
+    {-1.570796, 141.421356, 0.785398},	/* o,-100,  0 */
+    {-1.570796, 141.421356, -0.785398},	/* o,  0, 100 */
+    {-1.570796, 141.421356, -2.356194},	/* o,100,   0 */
+    {-1.570796, 141.421356, 2.356194}	/* o,  0,-100 */
+};
+
+rs_check_vals verify_rs10[] = {		/* iteration4 */
+    {-0.233743, 50.000000, -1.570796},	/* a,100,   0 */
+    {-0.484478, 214.709106, -2.055274},	/* h,100, -50 */
+    {-0.986650, 50.249378, -3.041924},	/* a,  0,-190 */
+    {-1.228091, 210.237960, 2.013171},	/* h,-50,-195 */
+    {-0.342706, 50.249378, 1.670465},	/* a,-90,   0 */
+    {-0.522523, 219.317122, 1.147942},	/* h,-95,  50 */
+    {-0.950547, 50.990195, 0.197396},	/* o,  0, 200 */
+    {-1.534449, 215.870331, -1.337053}	/* o, 50, 210 */
+};
+
+rs_check_vals verify_rs11[] = {		/* iteration4 */
+    {-0.233743, 50.000000, -1.570796},	/* a,100,   0 */
+    {-0.484478, 214.709106, -2.055274},	/* h,100, -50 */
+    {-0.986650, 50.249378, -3.041924},	/* a,  0,-190 */
+    {-1.228091, 210.237960, 2.013171},	/* h,-50,-195 */
+    {-0.342706, 50.249378, 1.670465},	/* a,-90,   0 */
+    {-0.522523, 219.317122, 1.147942},	/* h,-95,  50 */
+    {-0.950547, 50.990195, 0.197396},	/* o,  0, 200 */
+    {-1.534449, 215.870331, -1.337053}	/* o, 50, 210 */
+};					/* a,100,   0 */
+
+rs_check_vals verify_rs13[] = {		/* iteration4 */
+    { 0.000000, 50.000000, -1.570796},	/* {,100,   0 */
+    {-0.484478, 214.709106, -2.055274},	/* h,100, -50 */
+    {-0.986650, 50.249378, -3.041924},	/* a,  0,-190 */
+    {-1.228091, 210.237960, 2.013171},	/* h,-50,-195 */
+    {-0.342706, 50.249378, 1.670465},	/* a,-90,   0 */
+    {-0.522523, 219.317122, 1.147942},	/* h,-95,  50 */
+    {-0.950547, 50.990195, 0.197396},	/* o,  0, 200 */
+    {-1.534449, 215.870331, -1.337053}	/* }, 50, 210 */
+};					/* a,100,   0 */
 #endif
 
 void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
@@ -171,7 +232,7 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	{-100,    0, SPIRO_G4},
 	{   0,  100, SPIRO_G4},
 	{ 100,    0, SPIRO_G4},
-	{   0, -100, SPIRO_G4},
+	{   0, -100, SPIRO_G4}
     };
     int knot4[] = {
 	2, 2, 2, 0
@@ -192,6 +253,63 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
     };
     int knot5[] = {
 	1, 4, 1, 3, 3, 1, 4, 2, 1, 2, 1, 0
+    };
+    spiro_cp path6[] = { /* verify curve data with ah. */
+	{  0,   0, '{'},
+	{100, 100, 'c'},
+	{200, 200, 'a'},
+	{300, 200, 'h'},
+	{300, 150, 'c'},
+	{200, 100, 'a'},
+	{100, 100, 'h'},
+	{150,  50, 'c'},
+	{100,   0, 'a'},
+	{  0,-100, 'h'},
+	{ 50,-100, 'c'},
+	{ 20,-150, '}'}
+    };
+    int knot6[] = {
+	1, 4, 3, 3, 4, 2, 2, 1, 0, 0, 0, 0
+    };
+    spiro_cp path7[] = { /* loop stops with ah curves. */
+	{  0, 200, 'o'},
+	{ 50, 210, 'o'},
+	{100,   0, 'a'},
+	{100, -50, 'h'},
+	{  0,-190, 'a'},
+	{-50,-195, 'h'},
+	{-90,   0, 'a'},
+	{-95,  50, 'h'},/* call_tests 7 and 8 end here */
+	{  0,   0, 'z'} /* call_test 12 ends with ah z */
+    };
+    int knot7[] = {
+	1, 1, 5, 5, 6, 3, 0, 0, 0
+    };
+    spiro_cp path10[] = { /* start loop with ah curves */
+	{100,   0, 'a'},
+	{100, -50, 'h'},
+	{  0,-190, 'a'},
+	{-50,-195, 'h'},
+	{-90,   0, 'a'},
+	{-95,  50, 'h'},
+	{  0, 200, 'o'},
+	{ 50, 210, 'o'}
+    };
+    int knot10[] = {
+	5, 6, 3, 1, 1, 5, 0, 0
+    };
+    spiro_cp path13[] = { /* start open curve using {h */
+	{100,   0, '{'},
+	{100, -50, 'h'},
+	{  0,-190, 'a'},
+	{-50,-195, 'h'},
+	{-90,   0, 'a'},
+	{-95,  50, 'h'},
+	{  0, 200, 'o'},
+	{ 50, 210, '}'}
+    };
+    int knot13[] = {
+	5, 6, 3, 1, 1, 5, 0, 0
     };
     int i;
 
@@ -224,14 +342,52 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	spiro[i].y = path4[i].y;
 	spiro[i].ty = path4[i].ty;
 	nextknot[i] = knot4[i];
-    } else for (i = 0; i < 12; i++) {
+    } else if ( c==5 ) for (i = 0; i < 12; i++) {
 	spiro[i].x = path5[i].x;
 	spiro[i].y = path5[i].y;
 	spiro[i].ty = path5[i].ty;
 	nextknot[i] = knot5[i];
+    } else if ( c==6 ) for (i = 0; i < 12; i++) {
+	spiro[i].x = path6[i].x;
+	spiro[i].y = path6[i].y;
+	spiro[i].ty = path6[i].ty;
+	nextknot[i] = knot6[i];
+    } else if ( c==7 || c==8 ) for (i = 0; i < 8; i++) {
+	/* path7[]_co[7]==closed_curve, path8[]_co[8]==open_curve */
+	spiro[i].x = path7[i].x;
+	spiro[i].y = path7[i].y;
+	spiro[i].ty = path7[i].ty;
+	nextknot[i] = knot7[i];
+    } else if ( c==9 ) for (i = 0; i < 4; i++) {
+	/* path9[] is closed curve version of path4[] open curve. */
+	spiro[i].x = path4[i].x;
+	spiro[i].y = path4[i].y;
+	spiro[i].ty = path4[i].ty;
+	nextknot[i] = knot4[i];
+    } else if ( c==10 || c==11 ) for (i = 0; i < 8; i++) {
+	/* path10[]_co[10]=closedcurve, path11[]_co[10]=opencurve */
+	spiro[i].x = path10[i].x;
+	spiro[i].y = path10[i].y;
+	spiro[i].ty = path10[i].ty;
+	nextknot[i] = knot10[i];
+    } else  if ( c==12 ) for (i = 0; i < 9; i++) {
+	/* call_test12 checks curve ending in ah with following z */
+	/* and declare cl[12] len=8 so run_spiro() can work okay. */
+	spiro[i].x = path7[i].x;
+	spiro[i].y = path7[i].y;
+	spiro[i].ty = path7[i].ty;
+	nextknot[i] = knot7[i];
+    } else for (i = 0; i < 8; i++) {
+	/* path13[] is open curve based on path11[] using '{','}' */
+	spiro[i].x = path13[i].x;
+	spiro[i].y = path13[i].y;
+	spiro[i].ty = path13[i].ty;
+	nextknot[i] = knot13[i];
     }
 }
-int cl[] = {16, 6, 4, 6, 4, 12};
+int cl[] = {16, 6, 4, 6, 4, 12, 12, 8, 8, 4, 8, 8, 8, 8}; /* len. */
+int ck[] = {16, 6, 4, 6, 4, 12, 9, 4, 4, 4, 4, 4, 4, 4};
+int co[] = {1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0}; /* close=1 */
 
 #ifndef DO_CALL_TESTM
 /* Provide bare-bones do-nothing functions for testing. This only */
@@ -270,7 +426,7 @@ int test_curve(int c) {
     spiro_seg *segs = NULL;
     bezctx *bc;
     rs_check_vals *rsp;
-    int i,done;
+    int i,j,done;
 
     /* Load sample data so that we can see if library is callable */
     load_test_curve(spiro,nextknot,c);
@@ -288,26 +444,50 @@ int test_curve(int c) {
     else if ( c==2 ) rsp = verify_rs2;
     /* else if ( c==3 ) rsp = NULL; expecting failure to converge */
     else if ( c==4 ) rsp = verify_rs4;
-    else	     rsp = verify_rs5;
+    else if ( c==5 ) rsp = verify_rs5;
+    else if ( c==6 ) rsp = verify_rs5; /* same angles used for #6 */
+    else if ( c==7 ) rsp = verify_rs7; /* stop curve with ah code */
+    else if ( c==8 ) rsp = verify_rs8;
+    else if ( c==9 ) rsp = verify_rs9;
+    else if ( c==10 ) rsp = verify_rs10; /* start curve using ah. */
+    else if ( c==11 ) rsp = verify_rs11;
+    else if ( c==12 ) rsp = verify_rs7; /* test #12 uses path7[]. */
+    else	      rsp = verify_rs13; /* almost same as path11 */
 
     /* Quick visual check shows X,Y knots match with each pathN[] */
-    for (i=0; i < cl[c]-1; i++) {
-	printf("curve %d, line %d x=%f y=%f t=%c bend=%f ch=%f th=%f ",c,i,segs[i].x,segs[i].y,segs[i].ty,segs[i].bend_th,segs[i].seg_ch,segs[i].seg_th);
+    for (i=j=0; i < cl[c]-1; i++,j++) {
+	if ( spiro[i].ty == 'h' ) {
+	    --j;
+	    printf("curve %d ctrl %d t=%c x=%f y=%f (handle)\n", \
+	      c,j,segs[i].ty,spiro[i].x,spiro[i].y);
+	}
+	printf("curve %d line %d t=%c x=%f y=%f bend=%f ch=%f th=%f ",c,j, \
+	  segs[i].ty,segs[i].x,segs[i].y,segs[i].bend_th,segs[i].seg_ch,segs[i].seg_th);
 	/* Let computer verify that run_spiro() data is PASS/FAIL */
-	if ( (fabs(segs[i].x - spiro[i].x) > 1e-5) ||
+	/* Tests including ah data more complicated to verify xy, */
+	/* therefore, skip testing xy for call_tests shown below. */
+	if ( (segs[i].ty != spiro[i].ty) ||
+#if !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST12) && !defined(DO_CALL_TEST13)
+	     (fabs(segs[i].x - spiro[i].x) > 1e-5) ||
 	     (fabs(segs[i].y - spiro[i].y) > 1e-5) ||
-	     (segs[i].ty != spiro[i].ty) ||
+#endif
 	     (fabs(segs[i].bend_th - rsp[i].b) > 1e-5) ||
 	     (fabs(segs[i].seg_ch - rsp[i].ch) > 1e-5) ||
 	     (fabs(segs[i].seg_th - rsp[i].th) > 1e-5) ) {
 	    printf("FAIL\nerror found with run_spiro() data. Results are not the same.\n");
-	    printf("expected line %d x=%f y=%f t=%c bend=%f ch=%f th=%f \n",i,spiro[i].x,spiro[i].y,spiro[i].ty,rsp[i].b,rsp[i].ch,rsp[i].th);
+	    printf("expected line %d t=%c x=%f y=%f bend=%f ch=%f th=%f\n", j, \
+	      spiro[i].ty,spiro[i].x,spiro[i].y,rsp[i].b,rsp[i].ch,rsp[i].th);
 	    free(segs);
 	    return -2;
 	} else
 	    printf("PASS\n");
     }
-    printf("curve %d, line %d x=%f y=%f t=%c\n",c,i,segs[i].x,segs[i].y,segs[i].ty);
+    printf("curve %d ",c);
+    if ( spiro[i].ty == '}' || spiro[i].ty == 'z' )
+	printf("stop %d t=%c x=%f y=%f\n",j,segs[i].ty,segs[i].x,segs[i].y);
+    else
+	printf("line %d t=%c x=%f y=%f bend=%f ch=%f th=%f\n", j,segs[i].ty, \
+	  segs[i].x,segs[i].y,segs[i].bend_th,segs[i].seg_ch,segs[i].seg_th);
 
     /* Quick visual check shows X,Y knots match with each pathN[] */
     printf("---\ntesting spiro_to_bpath() using data from run_spiro(data=path%d[],len=%d).\n",c,cl[c]);
@@ -316,7 +496,7 @@ int test_curve(int c) {
 
     free(segs);
 
-#ifndef DO_CALL_TEST4
+#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11)
     /* Check if TaggedSpiroCPsToBezier0() works okay */
     printf("---\ntesting TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
     if ( TaggedSpiroCPsToBezier0(spiro,bc)!=1 ) {
@@ -325,14 +505,16 @@ int test_curve(int c) {
     }
 #endif
 
+#if !defined(DO_CALL_TEST12)
     /* Check if SpiroCPsToBezier0() works okay */
     printf("---\ntesting SpiroCPsToBezier0() using data=path%d[].\n",c);
-    if ( SpiroCPsToBezier0(spiro,cl[c],(c==0 ? 1 : 0),bc)!=1 ) {
+    if ( SpiroCPsToBezier0(spiro,cl[c],co[c],bc)!=1 ) {
 	printf("error with SpiroCPsToBezier0() using data=path%d[].\n",c);
 	return -4;
     }
+#endif
 
-#ifndef DO_CALL_TEST4
+#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11)
     /* Check if TaggedSpiroCPsToBezier1() works okay */
     printf("---\ntesting TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
     TaggedSpiroCPsToBezier1(spiro,bc,&done);
@@ -342,13 +524,15 @@ int test_curve(int c) {
     }
 #endif
 
+#if !defined(DO_CALL_TEST12)
     /* Check if SpiroCPsToBezier1() works okay */
     printf("---\ntesting SpiroCPsToBezier1() using data=path%d[].\n",c);
-    SpiroCPsToBezier1(spiro,cl[c],(c==0 ? 1 : 0),bc,&done);
+    SpiroCPsToBezier1(spiro,cl[c],co[c],bc,&done);
     if ( done!=1 ) {
 	printf("error with SpiroCPsToBezier1() using data=path%d[].\n",c);
 	return -6;
     }
+#endif
 
     free(bc);
     return 0;
@@ -482,7 +666,7 @@ int test_multi_curves(void) {
     /* 10x larger curves due to rounding errors on double values, */
     /* so, we either need a more complex curve test-check at end, */
     /* or we can cleverly increase in increments of "1/S_TESTS".  */
-#define S_TESTS S_TESTP*4
+#define S_TESTS S_TESTP*5
 
 #ifdef HAVE_PTHREADS
     pthread_attr_t tattr;
@@ -490,8 +674,6 @@ int test_multi_curves(void) {
     pthread_pcurve pdata[S_TESTS];
 
     printf("---\nMulti-thread testing of libspiro.\n");
-    /* pthread default limit is currently about 380 without mods. */
-    /* new processors will allow more, older processors use less. */
 #else
     printf("---\nSequential tests of libspiro.\n");
 #endif
@@ -524,12 +706,13 @@ int test_multi_curves(void) {
 	 (nextknot=(int**)calloc(S_TESTS,sizeof(int*)))==NULL )
 	goto test_multi_curves_exit;
     for (i=0; i < S_TESTS; ) {
-	/* NOTE: S_TESTS has to be multiple of 4 here. */
-	/* because we test using path[0/1/2/5]tables,  */
-	/* ...and path[3] is used to test NOT success. */
-	/* ...and path[4] is too fast @ 4 interations. */
+	/* NOTE: S_TESTS has to be multiple of 5 here. */
+	/* because we test with path[0/1/2/5/6]tables, */
+	/* ...and path[3] is used to test NOT success, */
+	/* ...and path[4] is too fast @ 4 interations, */
+	/* ...and path[7/8] ah complicates node check. */
 	if ( (spiro[i]=malloc(cl[0]*sizeof(spiro_cp)))==NULL || \
-	      (nextknot[i]=calloc(cl[0]+1,sizeof(int)))==NULL )
+	      (nextknot[i]=calloc(cl[0],sizeof(int)))==NULL )
 	    goto test_multi_curves_exit;
 	load_test_curve(spiro[i],nextknot[i],0);
 	scl[i++]=cl[0];
@@ -548,6 +731,11 @@ int test_multi_curves(void) {
 	    goto test_multi_curves_exit;
 	load_test_curve(spiro[i],nextknot[i],5);
 	scl[i++]=cl[5];
+	if ( (spiro[i]=malloc(cl[6]*sizeof(spiro_cp)))==NULL || \
+	      (nextknot[i]=calloc(cl[6],sizeof(int)))==NULL )
+	    goto test_multi_curves_exit;
+	load_test_curve(spiro[i],nextknot[i],6);
+	scl[i++]=cl[6];
     }
 
     /* Change to different sizes to make sure no duplicates */
@@ -612,8 +800,8 @@ int test_multi_curves(void) {
 
     for (i=0; i < S_TESTS; i++)
 	if ( pdata[i].ret!=1 ) {
-	    printf("error with TaggedSpiroCPsToBezier0() using data=%d.\n",i);
 	    ret=ret-i;
+	    printf("error %d with TaggedSpiroCPsToBezier0() using data=%d.\n",ret,i);
 	    goto test_multi_curves_exit;
 	}
     /* All threads returned okay, Now, go check all data is good. */
@@ -623,8 +811,8 @@ int test_multi_curves(void) {
     /* operating systems to verify libspiro has no static values. */
     for (i=0; i < S_TESTS; i++) {
 	if ( TaggedSpiroCPsToBezier0(spiro[i],(bezctx*)(bc[i]))!=1 ) {
-	    printf("error with TaggedSpiroCPsToBezier0() using data=%d.\n",i);
 	    ret=ret-i;
+	    printf("error %d with TaggedSpiroCPsToBezier0() using data=%d.\n",ret,i);
 	    goto test_multi_curves_exit;
 	}
     }
@@ -640,29 +828,44 @@ int test_multi_curves(void) {
 	printf("test[%d], input spiro[0..%d], output bc->my_curve[0..%d]\n", \
 		   i, scl[i]-1, bc[i]->len-1);
 #endif
-	for (j=0; j < scl[i] && temp[j].ty!='z'; j++) {
-	    ty = bc[i]->my_curve[k].ty;
-	    x  = bc[i]->my_curve[k].x1;
-	    y  = bc[i]->my_curve[k].y1;
-	    if ( ty=='q' ) {
-		x = bc[i]->my_curve[k].x2;
-		y = bc[i]->my_curve[k].y2;
-	    }
-	    if ( ty=='c' ) {
-		x = bc[i]->my_curve[k].x3;
-		y = bc[i]->my_curve[k].y3;
-	    }
+	for (j=l=0; j < scl[i] && temp[j].ty!='z'; j++,l++) {
+	    if (temp[j].ty=='h') {
 #ifdef VERBOSE
-	    printf("  s[%d][ty=%c x=%g y=%g], pk=%d mc[%d][x=%g y=%g]\n", \
-		   j,temp[j].ty,temp[j].x,temp[j].y,pk[j],k,x,y);
+		printf("  s[%d][ty=%c x=%g y=%g] is handle 'h' to anchor 'a'.\n", \
+			l-1,temp[j].ty,temp[j].x,temp[j].y);
 #endif
-	    if ( (fabs(temp[j].x - x) > 1e-8) || (fabs(temp[j].y - y) > 1e-8) ) {
-		/* close-enough for testing 10x range of doubles. */
-		printf("error with test_multi_curves() using data %d\n",i);
-		ret=ret-i;
-		goto test_multi_curves_exit;
+		--l;
+	    } else {
+		ty = bc[i]->my_curve[k].ty;
+		x  = bc[i]->my_curve[k].x1;
+		y  = bc[i]->my_curve[k].y1;
+		if ( ty=='q' ) {
+		    x = bc[i]->my_curve[k].x2;
+		    y = bc[i]->my_curve[k].y2;
+		}
+		if ( ty=='c' ) {
+		    x = bc[i]->my_curve[k].x3;
+		    y = bc[i]->my_curve[k].y3;
+		}
+#ifdef VERBOSE
+		printf("  s[%d][ty=%c x=%g y=%g], pk=%d mc[%d][x=%g y=%g]\n", \
+			l,temp[j].ty,temp[j].x,temp[j].y,pk[j],k,x,y);
+#endif
+		if ( (fabs(temp[j].x - x) > 1e-8) || (fabs(temp[j].y - y) > 1e-8) ) {
+		    /* close-enough for testing 10x range of doubles. */
+		    if ( j == scl[i]-2 && temp[j+1].ty=='z' )
+			; /* Exception: skip test of this code point. */
+			/* x and/or y are not valid for 'this' check, */
+			/* If ending in 'z', then prior code point is */
+			/* changed to a curve end point, which is '}' */
+		    else {
+			ret=ret-i;
+			printf("error %d with test_multi_curves() using data %d\n",ret,i);
+			goto test_multi_curves_exit;
+		    }
+		}
+		k += pk[l]+1;
 	    }
-	    k += pk[j]+1;
 	}
     }
 
@@ -710,6 +913,34 @@ int main(int argc, char **argv) {
 #endif
 #ifdef DO_CALL_TEST5
     ret=test_curve(5);	/* verify curve data with []. */
+#endif
+#ifdef DO_CALL_TEST6
+    ret=test_curve(6);	/* verify curve data with ah. */
+#endif
+#ifdef DO_CALL_TEST7
+    ret=test_curve(7);	/* loop stops with ah curves. */
+#endif
+#ifdef DO_CALL_TEST8
+    ret=test_curve(8);	/* this open curve ends in ah */
+#endif
+#ifdef DO_CALL_TEST9
+    ret=test_curve(9);	/* path4[] as a closed curve. */
+#endif
+#ifdef DO_CALL_TEST10
+    /* TODO: see why can start using c, o, but not a. */
+    ret=test_curve(10);	/* start loop with ah curves. */
+#endif
+#ifdef DO_CALL_TEST11
+    /* TODO: see why can start using c, o, but not a. */
+    ret=test_curve(11);	/* start open curve using ah. */
+#endif
+#ifdef DO_CALL_TEST12
+    /* TODO: knot counts not matched for taggedspiro, */
+    /* therefore use !defined(DO_CALL_TEST12) for now */
+    ret=test_curve(12);	/* do path7[] with a z ending */
+#endif
+#ifdef DO_CALL_TEST13
+    ret=test_curve(13);	/* start open curve using {h. */
 #endif
 #ifdef DO_CALL_TESTM
     ret=test_multi_curves();
