@@ -80,13 +80,13 @@ Mac OS X: A helping script, `./fontforge.sh` is provided to run FontForge inside
 
 ### Programming with libspiro in C
 
-- Basic Type
+- Basic Types
   - [spiro control point](#the-spiro-control-point)
   - [bézier context](#the-bezier-context)
 - [Header file](#calling-into-libspiro)
 - Entry points
-  - int [SpiroCPsToBezier0](#spirocpstobezier)(spiro_cp *,int n,int is_closed,bezctx *)
-  - int [TaggedSpiroCPsToBezier0](#taggedspirocpstobezier)(spiro_cp *,bezctx *)
+  - int [SpiroCPsToBezier0](#spirocpstobezier0)(spiro_cp *,int n,int is_closed,bezctx *)
+  - int [TaggedSpiroCPsToBezier0](#taggedspirocpstobezier0)(spiro_cp *,bezctx *)
 
 #### Basic Types
 
@@ -207,10 +207,12 @@ Then call `SpiroCPsToBezier0`, a routine which takes 4 arguments and returns bc 
 3. Whether this describes a closed (True) or open (False) contour
 4. A bézier results output context
 5. An integer success flag. 1 = completed task and have valid bézier results, or  0 = unable to complete task, bézier results are invalid.
-   ```c
+
+  ```c
     bc = new_bezctx_ps();
     success = SpiroCPsToBezier0(points,4,True,bc)
     bezctx_ps_close(bc);
+  ```
 
 #### TaggedSpiroCPsToBezier0
 
@@ -248,6 +250,7 @@ In this case there is no need to provide a point count nor an open/closed contou
 1. An array of input spiros
 2. A bézier results output context
 3. An integer success flag. 1 = completed task and have valid bézier results, or  0 = unable to complete task, bézier results are invalid.
+
    ```c
     bc = new_bezctx_ps();
     success = TaggedSpiroCPsToBezier0(points,bc)

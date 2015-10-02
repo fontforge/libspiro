@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "spiro-config.h"	/* for ./configure test settings like VERBOSE */
 #ifdef DO_TIME_DAY
 #include <sys/time.h>		/* for gettimeofday */
 #else
@@ -31,7 +33,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "spiroentrypoints.h"	/* call spiro through here */
 #include "bezctx.h"		/* bezctx structure */
 
-#include "spiro-config.h"	/* for ./configure test settings like VERBOSE */
 #ifdef DO_CALL_TESTM
 #ifdef HAVE_PTHREADS
 #include <pthread.h>		/* multi-thread check. Not part of libspiro */
