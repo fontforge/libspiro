@@ -1,7 +1,11 @@
 #ifndef _SPIROENTRYPOINTS_H
-# define _SPIROENTRYPOINTS_H
-# include "bezctx_intf.h"
-# include "spiro.h"
+#define _SPIROENTRYPOINTS_H
+#include "bezctx_intf.h"
+#include "spiro.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
     /* Possible values of the "ty" field. */
 #define SPIRO_CORNER		'v'
@@ -59,4 +63,8 @@ extern void SpiroCPsToBezier1(spiro_cp *spiros,int n,int isclosed,bezctx *bc,int
 #define SPIRO_ANCHOR		'a'
     /* Curve crossing handle cp(hx,hy) relative to cp(ax,ay) */
 #define SPIRO_HANDLE		'h'
+
+#ifdef __cplusplus
+}
+#endif
 #endif

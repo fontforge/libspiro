@@ -1,5 +1,10 @@
 #ifndef _BEZCTX_INTF_H
 #define _BEZCTX_INTF_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct _bezctx bezctx;
 
 bezctx *
@@ -20,4 +25,8 @@ bezctx_curveto(bezctx *bc, double x1, double y1, double x2, double y2,
 
 void
 bezctx_mark_knot(bezctx *bc, int knot_idx);
+
+#ifdef __cplusplus
+}
+#endif
 #endif

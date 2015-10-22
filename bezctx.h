@@ -2,6 +2,10 @@
 #define _BEZCTX_H
 #include "bezctx_intf.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct _bezctx {
     /* Called by spiro to start a contour */
     void (*moveto)(bezctx *bc, double x, double y, int is_open);
@@ -20,4 +24,7 @@ struct _bezctx {
 
     void (*mark_knot)(bezctx *bc, int knot_idx);
 };
+#ifdef __cplusplus
+}
+#endif
 #endif

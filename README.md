@@ -128,7 +128,7 @@ A spiro control point contains a location and a point type. There are six basic 
   The anchor behaves as both left and right constraint points at one single point.
 
 The left constraint, right constraint, anchor and handle points are easiest explained using
-examples from path5 and path6 which are both tested in tests/call-test.c
+examples from path5 and path6 which are tested in tests/call-test5.c and tests/call-test6.c
 
 ![](path5.png) ![](path6.png)
 ```c

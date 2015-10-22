@@ -1,6 +1,10 @@
 #ifndef _SPIRO_H
 #define _SPIRO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 /* User passes an array of SpiroCP in this format for Spiro to solve */
     double x;		/* Spiro CodePoint Xloc */
@@ -34,4 +38,8 @@ void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc);
 
 double get_knot_th(const spiro_seg *s, int i);
+
+#ifdef __cplusplus
+}
+#endif
 #endif
