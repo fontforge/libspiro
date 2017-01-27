@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 # Copyright (C) 2013,2014,2015 by Joe Da Silva
 
-AC_PREREQ([2.61])
+AC_PREREQ([2.64])
 #-------------------------------------------
 # PackageTimestamp version
 m4_define([spiro_package_stamp], [20150702])
