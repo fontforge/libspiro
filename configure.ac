@@ -28,14 +28,15 @@ m4_define([spiro_info],
           [spiro_major_version:spiro_minor_version:0])
 m4_define([spiro_package_name], [libspiro])
 
-#-------------------------------------------
 AC_INIT([spiro],[spiro_version],[fontforge-devel@lists.sourceforge.net],
 	[spiro_package_name],[https://github.com/fontforge/libspiro])
-AC_CONFIG_SRCDIR([spiro.c])
-AM_INIT_AUTOMAKE([foreign -Wall])
 
 #-------------------------------------------
+AC_CONFIG_SRCDIR([spiro.c])
 AC_CONFIG_MACRO_DIR([m4])
+AC_CANONICAL_HOST
+AC_CANONICAL_BUILD
+AM_INIT_AUTOMAKE([foreign -Wall])
 
 #-------------------------------------------
 # automake 1.12 seems to require AM_PROG_AR,
@@ -45,15 +46,18 @@ m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 LT_INIT
 AC_SUBST([LIBTOOL_DEPS])
 
+# Check building environment
+# AC_CHECK_TOOL([CC],[gcc],[:])
 AC_PROG_CC
-AC_PROG_INSTALL
 AC_ENABLE_SHARED
 AC_PROG_LN_S
 AC_PROG_MKDIR_P
 AC_PROG_MAKE_SET
 AC_PROG_SED
-AC_PATH_PROGS([VALGRIND],[valgrind])
+AC_CHECK_TOOL([VALGRIND],[valgrind],[:])
+AC_CHECK_TOOL([STRIP],[strip],[:])
 AC_CONFIG_HEADERS([spiro-config.h])
+AC_PROG_INSTALL
 
 #-------------------------------------------
 # Indicate this is a release build and that
@@ -168,7 +172,6 @@ AC_DEFINE_UNQUOTED([S_TESTP],[$testalot],
 
 #-------------------------------------------
 # Platform specific stuff ($host)
-AC_CANONICAL_HOST
 
 #-------------------------------------------
 # Compiler and Linker flags to override auto
