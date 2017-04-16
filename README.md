@@ -267,30 +267,30 @@ In this case there is no need to provide a point count nor an open/closed contou
 
 - `SpiroCP`
   ```java
-    public class SpiroCP {
+  public class SpiroCP {
     public double x,y;
     SpiroPointType type;
     public SpiroCP(double xx, double yy, SpiroPointType ty);
     public String toString();
-}
+  }
   ```
 
 - `SpiroBezierContext` – a Java interface used in conversion of an array of SpiroCPs to a Bézier contour.
 
   ```java
-    public interface SpiroBezierContext {
+  public interface SpiroBezierContext {
     void MoveTo(double x, double y, boolean isOpen);
     void LineTo(double x, double y);
     void QuadTo(double x1, double y1, double x2, double y2);
     void CubicTo(double x1, double y1, double x2, double y2, double x3, double y3);
     void MarkKnot(int knotIdx);
-    }
+  }
   ```
 
 - `Spiro` – a class with only static members:
 
   ```java
-    public class Spiro {
+  public class Spiro {
     // takes an array of SpiroCPs and converts to a Bézier
     static public void
       SpiroCPsToBezier(SpiroCP [] spiros,int n,boolean isclosed,
@@ -305,5 +305,5 @@ In this case there is no need to provide a point count nor an open/closed contou
       throws IOException;
     static public SpiroCP [][]
       ReadPlateFile(BufferedReader input) throws IOException;
-    }
+  }
   ```
