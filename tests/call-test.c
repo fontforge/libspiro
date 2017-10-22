@@ -197,6 +197,20 @@ rs_check_vals verify_rs13[] = {		/* iteration4 */
     {-0.950547, 50.990195, 0.197396},	/* o,  0, 200 */
     {-1.534449, 215.870331, -1.337053}	/* }, 50, 210 */
 };					/* a,100,   0 */
+
+rs_check_vals verify_rs14[] = {			/* iteration9 */
+    {-1.570796, 141.421356e10, 0.785398},	/* o,-100,  0 */
+    {-1.570796, 141.421356e10, -0.785398},	/* o,  0, 100 */
+    {-1.570796, 141.421356e10, -2.356194},	/* o,100,   0 */
+    {-1.570796, 141.421356e10, 2.356194}	/* o,  0,-100 */
+};
+
+rs_check_vals verify_rs15[] = {		/* iteration5 */
+    {-1.570796, 141.421356e-42, 0.785398},	/* o,-100,  0 */
+    {-1.570796, 141.421356e-42, -0.785398},	/* o,  0, 100 */
+    {-1.570796, 141.421356e-42, -2.356194},	/* o,100,   0 */
+    {-1.570796, 141.421356e-42, 2.356194}	/* o,  0,-100 */
+};
 #endif
 
 void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
@@ -347,6 +361,18 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
     int knot13[] = {
 	5, 6, 3, 1, 1, 5, 0, 0
     };
+    spiro_cp path14[] = { /* very big path[4] version. */
+	{-100e10,    0, SPIRO_G4},
+	{   0,  100e10, SPIRO_G4},
+	{ 100e10,    0, SPIRO_G4},
+	{   0, -100e10, SPIRO_G4}
+    };
+    spiro_cp path15[] = { /* very tiny path[4] version */
+	{-100e-42,    0, SPIRO_G4},
+	{   0,  100e-42, SPIRO_G4},
+	{ 100e-42,    0, SPIRO_G4},
+	{   0, -100e-42, SPIRO_G4}
+    };
     int i;
 
     /* Load static variable tables into memory because */
@@ -413,17 +439,29 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	spiro[i].y = path7[i].y;
 	spiro[i].ty = path7[i].ty;
 	nextknot[i] = knot7[i];
-    } else for (i = 0; i < 8; i++) {
+    } else if ( c==13 ) for (i = 0; i < 8; i++) {
 	/* path13[] is open curve based on path11[] using '{','}' */
 	spiro[i].x = path13[i].x;
 	spiro[i].y = path13[i].y;
 	spiro[i].ty = path13[i].ty;
 	nextknot[i] = knot13[i];
+    } else if ( c==14 ) for (i = 0; i < 4; i++) {
+	/* path14[] is a very big version of closed curve path9[] */
+	spiro[i].x = path14[i].x;
+	spiro[i].y = path14[i].y;
+	spiro[i].ty = path14[i].ty;
+	nextknot[i] = knot4[i];
+    } else for (i = 0; i < 4; i++) {
+	/* path15[] is a very small copy of path9[] closed curve. */
+	spiro[i].x = path15[i].x;
+	spiro[i].y = path15[i].y;
+	spiro[i].ty = path15[i].ty;
+	nextknot[i] = knot4[i];
     }
 }
-int cl[] = {16, 6, 4, 6, 4, 12, 12, 8, 8, 4, 8, 8, 8, 8}; /* len. */
-int ck[] = {16, 6, 4, 6, 4, 12, 9, 4, 4, 4, 4, 4, 4, 4};
-int co[] = {1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0}; /* close=1 */
+int cl[] = {16, 6, 4, 6, 4, 12, 12, 8, 8, 4, 8, 8, 8, 8, 4, 4}; /* len. */
+int ck[] = {16, 6, 4, 6, 4, 12, 9, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+int co[] = {1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1}; /* close=1 */
 
 #ifndef DO_CALL_TESTM
 /* Provide bare-bones do-nothing functions for testing. This only */
@@ -459,6 +497,7 @@ bezctx *new_bezctx_test(void) {
 int test_curve(int c) {
     spiro_cp spiro[16];
     int nextknot[17];
+    double d[3];
     spiro_seg *segs = NULL;
     bezctx *bc;
     rs_check_vals *rsp;
@@ -467,12 +506,23 @@ int test_curve(int c) {
     /* Load sample data so that we can see if library is callable */
     load_test_curve(spiro,nextknot,c);
 
-    /* Check if run_spiro works okay */
+    d[0] = 1.; d[1] = d[1] = 0.;
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15)
+    /* Do run_spiro0 instead (these tests are far from -0.5..+0.5 */
+    d[0] = -1.;
+    printf("---\ntesting run_spiro0() using data=path%d[].\n",c);
+    if ( (segs=run_spiro0(spiro,d,cl[c]))==0 ) {
+	printf("error with run_spiro0() using data=path%d[].\n",c);
+	return -1;
+    }
+#else
+    /* Check if run_spiro works okay (try backwards compatiblity) */
     printf("---\ntesting run_spiro() using data=path%d[].\n",c);
     if ( (segs=run_spiro(spiro,cl[c]))==0 ) {
 	printf("error with run_spiro() using data=path%d[].\n",c);
 	return -1;
     }
+#endif
 
     /* Load pointer to verification data to ensure it works right */
     if ( c==0 )	     rsp = verify_rs0;
@@ -488,7 +538,9 @@ int test_curve(int c) {
     else if ( c==10 ) rsp = verify_rs10; /* start curve using ah. */
     else if ( c==11 ) rsp = verify_rs11;
     else if ( c==12 ) rsp = verify_rs7; /* test #12 uses path7[]. */
-    else	      rsp = verify_rs13; /* almost same as path11 */
+    else if ( c==13 ) rsp = verify_rs13; /* almost same as path11 */
+    else if ( c==14 ) rsp = verify_rs14; /* very large path9 copy */
+    else	      rsp = verify_rs15; /* sub-atomic path9 copy */
 
     /* Quick visual check shows X,Y knots match with each pathN[] */
     for (i=j=0; i < cl[c]-1; i++,j++) {
@@ -503,14 +555,26 @@ int test_curve(int c) {
 	/* Tests including ah data more complicated to verify xy, */
 	/* therefore, skip testing xy for call_tests shown below. */
 	if ( (segs[i].ty != spiro[i].ty) ||
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15)
+#if defined(DO_CALL_TEST14)
+	     (fabs((segs[i].x * d[0] + d[1]) - spiro[i].x) > 1e5) ||
+	     (fabs((segs[i].y * d[0] + d[2]) - spiro[i].y) > 1e5) ||
+	     (fabs(segs[i].seg_ch * d[0] - rsp[i].ch) > 1e5) ||
+#else
+	     (fabs((segs[i].x * d[0] + d[1]) - spiro[i].x) > 1e-47) ||
+	     (fabs((segs[i].y * d[0] + d[2]) - spiro[i].y) > 1e-47) ||
+	     (fabs(segs[i].seg_ch * d[0] - rsp[i].ch) > 1e-47) ||
+#endif
+#else
 #if !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST12) && !defined(DO_CALL_TEST13)
 	     (fabs(segs[i].x - spiro[i].x) > 1e-5) ||
 	     (fabs(segs[i].y - spiro[i].y) > 1e-5) ||
 #endif
-	     (fabs(segs[i].bend_th - rsp[i].b) > 1e-5) ||
 	     (fabs(segs[i].seg_ch - rsp[i].ch) > 1e-5) ||
+#endif
+	     (fabs(segs[i].bend_th - rsp[i].b) > 1e-5) ||
 	     (fabs(segs[i].seg_th - rsp[i].th) > 1e-5) ) {
-	    printf("FAIL\nerror found with run_spiro() data. Results are not the same.\n");
+	  printf("FAIL\nerror found with run_spiro() data. Results are not the same.\n");
 	    printf("expected line %d t=%c x=%f y=%f bend=%f ch=%f th=%f\n", j, \
 	      spiro[i].ty,spiro[i].x,spiro[i].y,rsp[i].b,rsp[i].ch,rsp[i].th);
 	    free(segs);
@@ -528,11 +592,15 @@ int test_curve(int c) {
     /* Quick visual check shows X,Y knots match with each pathN[] */
     printf("---\ntesting spiro_to_bpath() using data from run_spiro(data=path%d[],len=%d).\n",c,cl[c]);
     bc = new_bezctx_test();
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15)
+    spiro_to_bpath0(segs,d,cl[c],bc);
+#else
     spiro_to_bpath(segs,cl[c],bc);
+#endif
 
     free(segs);
 
-#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11)
+#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST14) && !defined(DO_CALL_TEST15) 
     /* Check if TaggedSpiroCPsToBezier0() works okay */
     printf("---\ntesting TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
     if ( TaggedSpiroCPsToBezier0(spiro,bc)!=1 ) {
@@ -550,7 +618,7 @@ int test_curve(int c) {
     }
 #endif
 
-#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11)
+#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST14) && !defined(DO_CALL_TEST15)
     /* Check if TaggedSpiroCPsToBezier1() works okay */
     printf("---\ntesting TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
     TaggedSpiroCPsToBezier1(spiro,bc,&done);
@@ -780,8 +848,14 @@ int test_multi_curves(void) {
     for (i=0; i < S_TESTS; i++) {
 	temp = spiro[i];
 	for (j=0; j < scl[i]; j++) {
-	    temp[j].x = temp[j].x * (i/S_TESTS+1) + i;
-	    temp[j].y = temp[j].y * (i/S_TESTS+1) + i;
+	    if ( i&1 ) {
+		temp[j].x = temp[j].x * (i/S_TESTS+1) + i;
+		temp[j].y = temp[j].y * (i/S_TESTS+1) + i;
+	    } else {
+		/* Scaling bug fixed. Scale & shift at will */
+		temp[j].x *= (i+1); temp[j].x += i*1000.;
+		temp[j].y *= (i+1); temp[j].y += i*3000.;
+	    }
 	}
     }
 
@@ -887,8 +961,8 @@ int test_multi_curves(void) {
 		printf("  s[%d][ty=%c x=%g y=%g], pk=%d mc[%d][x=%g y=%g]\n", \
 			l,temp[j].ty,temp[j].x,temp[j].y,pk[j],k,x,y);
 #endif
-		if ( (fabs(temp[j].x - x) > 1e-8) || (fabs(temp[j].y - y) > 1e-8) ) {
-		    /* close-enough for testing 10x range of doubles. */
+		if ( (fabs(temp[j].x - x) > 1e-5) || (fabs(temp[j].y - y) > 1e-5) ) {
+		    /* close-enough for testing 1..10000 value ranges */
 		    if ( j == scl[i]-2 && temp[j+1].ty=='z' )
 			; /* Exception: skip test of this code point. */
 			/* x and/or y are not valid for 'this' check, */
@@ -981,6 +1055,12 @@ int main(int argc, char **argv) {
 #endif
 #ifdef DO_CALL_TEST13
     ret=test_curve(13);	/* start open curve using {h. */
+#endif
+#ifdef DO_CALL_TEST14
+    ret=test_curve(14);	/* go very big! go very tiny! */
+#endif
+#ifdef DO_CALL_TEST15
+    ret=test_curve(15);	/* go very big! go very tiny! */
 #endif
 #ifdef DO_CALL_TESTM
     ret=test_multi_curves();

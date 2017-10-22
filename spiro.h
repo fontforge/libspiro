@@ -29,15 +29,21 @@ struct spiro_seg_s {
 typedef struct spiro_seg_s spiro_seg;
 
 spiro_seg *
-run_spiro(const spiro_cp *src, int n);
+run_spiro(const spiro_cp *src, int n); /* deprecated */
 
 void
 free_spiro(spiro_seg *s);
 
 void
-spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc);
+spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc); /* deprecated */
 
 double get_knot_th(const spiro_seg *s, int i);
+
+spiro_seg *
+run_spiro0(const spiro_cp *src, double *dim, int n);
+
+void
+spiro_to_bpath0(const spiro_seg *s, double *dim, int n, bezctx *bc);
 
 #ifdef __cplusplus
 }

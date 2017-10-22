@@ -11,7 +11,7 @@ LDADDS = $(top_builddir)/.libs/libspiro.la
 noinst_PROGRAMS = unit-test  call-test0 call-test1 call-test2 call-test3 \
 		  call-test4 call-test5 call-test6 call-test7 call-test8 \
 		  call-test9 call-test10 call-test11 call-test12	 \
-		  call-test13 call-testm
+		  call-test13 call-test14 call-test15 call-testm
 
 unit_test_SOURCES = unit-test.c
 
@@ -56,6 +56,12 @@ call_test12_LDADD = $(LDADDS)
 
 call_test13_SOURCES = call-test13.c
 call_test13_LDADD = $(LDADDS)
+
+call_test14_SOURCES = call-test14.c
+call_test14_LDADD = $(LDADDS)
+
+call_test15_SOURCES = call-test15.c
+call_test15_LDADD = $(LDADDS)
 
 call_testm_SOURCES = call-testm.c
 call_testm_LDADD = $(LDADDS)

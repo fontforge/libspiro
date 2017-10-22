@@ -416,6 +416,14 @@ integrate_spiro(const double ks[4], double xy[2], int n)
 #endif
 }
 
+static void
+set_dm_to_1(double *dm)
+{
+    /* assume spiro within -0.5 to +0.5 */
+    /* values loaded: scale, xoff, yoff */
+    dm[0] = 1.; dm[1] = dm[2] = 0.;
+}
+
 static double
 compute_ends(const double ks[4], double ends[2][4], double seg_ch)
 {
@@ -484,10 +492,11 @@ mod_2pi(double th)
 }
 
 static spiro_seg *
-setup_path(const spiro_cp *src, int n)
+setup_path0(const spiro_cp *src, double *dm, int n)
 {
     int i, ilast, n_seg;
     double dx, dy;
+    double xmin, xmax, ymin, ymax;
     spiro_seg *r;
 
     if (src[0].ty == 'h' || src[n - 1].ty == 'a') { /* pair */
@@ -512,19 +521,42 @@ setup_path(const spiro_cp *src, int n)
 
     n_seg = src[0].ty == '{' ? n - 1 : n;
     r = (spiro_seg *)malloc((n_seg + 1) * sizeof(spiro_seg));
-    if ( r==NULL ) return 0;
+    if (r==NULL) return 0;
+
+    if (dm[0] < 0.9) {
+	/* for math to be scalable fit it within -0.5..+0.5 */
+	xmin = xmax = src[0].x; ymin = ymax = src[0].y;
+	for (i = 0; i < n_seg; i++) {
+	    if (src[i].ty != 'z' && src[i].ty != 'h') {
+		if (src[i].x < xmin) xmin = src[i].x; else
+		if (src[i].x > xmax) xmax = src[i].x;
+		if (src[i].y < ymin) ymin = src[i].y; else
+		if (src[i].y > ymax) ymax = src[i].y;
+	    }
+	}
+	dm[1] /* xoff */ = (xmin + xmax) / 2; xmax -= xmin;
+	dm[2] /* yoff */ = (ymin + ymax) / 2; ymax -= ymin;
+	dm[0] /* scale */ = fabs((fabs(xmax) >= fabs(ymax)) ? xmax : ymax);
+	if (xmax >= ymax) dm[0] = xmax; else dm[0] = ymax;
+	dm[0] /* scale */ /= 500.; /* ~ backwards compatible */
+	/* set_dm_to_1(dm); testing */
+    }
+#ifdef VERBOSE
+	printf("scale=%g, x_offset=%g, y_offset=%g\n", dm[0], dm[1], dm[2]);
+#endif
+//    }
 
     for (i = 0; i < n_seg; i++) {
-	r[i].x = src[i].x;
-	r[i].y = src[i].y;
+	r[i].x = (src[i].x - dm[1]) / dm[0];
+	r[i].y = (src[i].y - dm[2]) / dm[0];
 	r[i].ty = src[i].ty;
 	r[i].ks[0] = 0.;
 	r[i].ks[1] = 0.;
 	r[i].ks[2] = 0.;
 	r[i].ks[3] = 0.;
     }
-    r[n_seg].x = src[n_seg % n].x;
-    r[n_seg].y = src[n_seg % n].y;
+    r[n_seg].x = (src[n_seg % n].x - dm[1]) / dm[0];
+    r[n_seg].y = (src[n_seg % n].y - dm[2]) / dm[0];
     r[n_seg].ty = src[n_seg % n].ty;
 
     for (i = 0; i < n_seg; i++) {
@@ -546,7 +578,7 @@ setup_path(const spiro_cp *src, int n)
 	    IS_FINITE((r[i].seg_ch = hypot(dx, dy)))==0) {
 #ifdef VERBOSE
 	    fprintf(stderr, "ERROR: LibSpiro: #%d={'%c',%g,%g} hypot error.\n", \
-		    i, src[i].ty, r[i].x, r[i].y);
+		    i, src[i].ty, src[i].x, src[i].y);
 #endif
 	    free(r);
 	    return 0;
@@ -563,15 +595,24 @@ setup_path(const spiro_cp *src, int n)
 	    r[i].bend_th = mod_2pi(r[i].seg_th - r[ilast].seg_th);
 	ilast = i;
 #ifdef VERBOSE
-	printf("input #%d={'%c',%g,%g}, hypot=%g, atan2=%g, bend_th=%g\n", \
-		    i, src[i].ty, r[i].x, r[i].y, r[i].seg_ch, r[i].seg_th, r[i].bend_th);
+	printf("input #%d={'%c',%g=>%g,%g=>%g}, hypot=%g, atan2=%g, bend_th=%g\n", \
+		    i, src[i].ty, src[i].x, r[i].x, src[i].y, r[i].y, r[i].seg_ch, r[i].seg_th, r[i].bend_th);
 #endif
     }
 #ifdef VERBOSE
     if (n_seg < n)
-	printf("input #%d={'%c',%g,%g}\n", i, src[i].ty, r[i].x, r[i].y);
+	printf("input #%d={'%c',%g=>%g,%g=>%g}\n", i, src[i].ty, src[i].x, r[i].x, src[i].y, r[i].y);
 #endif
     return r;
+}
+
+/* deprecated / backwards compatibility / not scalable */
+static spiro_seg *
+setup_path(const spiro_cp *src, int n)
+{
+    double dm[3];
+    set_dm_to_1(dm);
+    return setup_path0(src, dm, n);
 }
 
 static void
@@ -891,7 +932,7 @@ solve_spiro(spiro_seg *s, int nseg)
 }
 
 static void
-spiro_seg_to_bpath(const double ks[4],
+spiro_seg_to_bpath0(const double ks[4], double *dm,
 		   double x0, double y0, double x1, double y1,
 		   bezctx *bc, int depth)
 {
@@ -904,7 +945,7 @@ spiro_seg_to_bpath(const double ks[4],
 	fabs((1./48) * ks[3]);
 
     if (bend <= 1e-8) {
-	bezctx_lineto(bc, x1, y1);
+	bezctx_lineto(bc, (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
     } else {
 	seg_ch = hypot(x1 - x0, y1 - y0);
 	seg_th = atan2(y1 - y0, x1 - x0);
@@ -921,7 +962,9 @@ spiro_seg_to_bpath(const double ks[4],
 	    vl = (scale * (1./3)) * sin(th_even - th_odd);
 	    ur = (scale * (1./3)) * cos(th_even + th_odd);
 	    vr = (scale * (1./3)) * sin(th_even + th_odd);
-	    bezctx_curveto(bc, x0 + ul, y0 + vl, x1 - ur, y1 - vr, x1, y1);
+	    bezctx_curveto(bc, ((x0 + ul) * dm[0] + dm[1]), ((y0 + vl) * dm[0] + dm[2]),
+				((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]),
+				(x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
 	} else {
 	    /* subdivide */
 	    ksub[0] = .5 * ks[0] - .125 * ks[1] + (1./64) * ks[2] - (1./768) * ks[3];
@@ -934,24 +977,34 @@ spiro_seg_to_bpath(const double ks[4],
 	    integrate_spiro(ksub, xysub, N_IS);
 	    xmid = x0 + cth * xysub[0] - sth * xysub[1];
 	    ymid = y0 + cth * xysub[1] + sth * xysub[0];
-	    spiro_seg_to_bpath(ksub, x0, y0, xmid, ymid, bc, depth + 1);
+	    spiro_seg_to_bpath0(ksub, dm, x0, y0, xmid, ymid, bc, depth + 1);
 	    ksub[0] += .25 * ks[1] + (1./384) * ks[3];
 	    ksub[1] += .125 * ks[2];
 	    ksub[2] += (1./16) * ks[3];
-	    spiro_seg_to_bpath(ksub, xmid, ymid, x1, y1, bc, depth + 1);
+	    spiro_seg_to_bpath0(ksub, dm, xmid, ymid, x1, y1, bc, depth + 1);
 	}
     }
 }
 
+static void
+spiro_seg_to_bpath(const double ks[4],
+		   double x0, double y0, double x1, double y1,
+		   bezctx *bc, int depth)
+{
+    double dm[3];
+    set_dm_to_1(dm);
+    spiro_seg_to_bpath0(ks, dm, x0, y0, x1, y1, bc, depth);
+}
+
 spiro_seg *
-run_spiro(const spiro_cp *src, int n)
+run_spiro0(const spiro_cp *src, double *dm, int n)
 {
     int converged, nseg;
     spiro_seg *s;
 
     if (src==NULL || n <= 0) return 0;
 
-    s = setup_path(src, n);
+    s = setup_path0(src, dm, n);
     if (s) {
 	nseg = src[0].ty == '{' ? n - 1 : n;
 	converged = 1 ; /* this value is for when nseg == 1; else actual value determined below */
@@ -962,6 +1015,16 @@ run_spiro(const spiro_cp *src, int n)
     return 0;
 }
 
+
+/* deprecated / backwards compatibility / not scalable */
+spiro_seg *
+run_spiro(const spiro_cp *src, int n)
+{
+    double dm[3];
+    set_dm_to_1(dm);
+    return run_spiro0(src, dm, n);
+}
+
 void
 free_spiro(spiro_seg *s)
 {
@@ -969,13 +1032,13 @@ free_spiro(spiro_seg *s)
 }
 
 void
-spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
+spiro_to_bpath0(const spiro_seg *s, double *dm, int n, bezctx *bc)
 {
     int i, j, nsegs;
     double x0, y0, x1, y1;
 
 #ifdef VERBOSE
-    printf("spiro_to_bpath n=%d s=%d bc=%d\n",n,s==NULL ? 0:1,bc==NULL ? 0:1);
+    printf("spiro_to_bpath0 n=%d s=%d bc=%d\n",n,s==NULL ? 0:1,bc==NULL ? 0:1);
 #endif
 
     if (s==NULL || n <= 0 || bc==NULL) return;
@@ -986,15 +1049,24 @@ spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
     for (i=j=0; i < nsegs; i++,j++) {
 	x0 = s[i].x; y0 = s[i].y;
 	if (i == 0) {
-	    bezctx_moveto(bc, x0, y0, s[0].ty == '{');
+	    bezctx_moveto(bc, (x0 * dm[0] + dm[1]), (y0 * dm[0] + dm[2]), s[0].ty == '{');
 	    if (nsegs > 1 && s[1].ty == 'h') ++i;
 	} else
 	    if (s[i].ty == 'a') ++i;
 	x1 = s[i + 1].x; y1 = s[i + 1].y;
 
 	bezctx_mark_knot(bc, j);
-	spiro_seg_to_bpath(s[i].ks, x0, y0, x1, y1, bc, 0);
+	spiro_seg_to_bpath0(s[i].ks, dm, x0, y0, x1, y1, bc, 0);
     }
+}
+
+/* deprecated / backwards compatibility / not scalable */
+void
+spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
+{
+    double dm[3];
+    set_dm_to_1(dm);
+    spiro_to_bpath0(s, dm, n, bc);
 }
 
 double
