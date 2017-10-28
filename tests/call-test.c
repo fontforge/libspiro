@@ -198,18 +198,18 @@ rs_check_vals verify_rs13[] = {		/* iteration4 */
     {-1.534449, 215.870331, -1.337053}	/* }, 50, 210 */
 };					/* a,100,   0 */
 
-rs_check_vals verify_rs14[] = {			/* iteration9 */
-    {-1.570796, 141.421356e10, 0.785398},	/* o,-100,  0 */
-    {-1.570796, 141.421356e10, -0.785398},	/* o,  0, 100 */
-    {-1.570796, 141.421356e10, -2.356194},	/* o,100,   0 */
-    {-1.570796, 141.421356e10, 2.356194}	/* o,  0,-100 */
+rs_check_vals verify_rs14[] = {			/* iteration9	     */
+    {-1.570796, 141.421356e10, 0.785398},	/* o,-100e10,	   0 */
+    {-1.570796, 141.421356e10, -0.785398},	/* o,	   0, 100e10 */
+    {-1.570796, 141.421356e10, -2.356194},	/* o, 100e10,	   0 */
+    {-1.570796, 141.421356e10, 2.356194}	/* o,	   0,-100e10 */
 };
 
-rs_check_vals verify_rs15[] = {		/* iteration5 */
-    {-1.570796, 141.421356e-42, 0.785398},	/* o,-100,  0 */
-    {-1.570796, 141.421356e-42, -0.785398},	/* o,  0, 100 */
-    {-1.570796, 141.421356e-42, -2.356194},	/* o,100,   0 */
-    {-1.570796, 141.421356e-42, 2.356194}	/* o,  0,-100 */
+rs_check_vals verify_rs15[] = {			/* iteration9	       */
+    {-1.570796, 141.421356e-42, 0.785398},	/* o,-100e-42,	     0 */
+    {-1.570796, 141.421356e-42, -0.785398},	/* o,	    0, 100e-42 */
+    {-1.570796, 141.421356e-42, -2.356194},	/* o, 100e-42,	     0 */
+    {-1.570796, 141.421356e-42, 2.356194}	/* o,	    0,-100e-42 */
 };
 #endif
 
@@ -497,7 +497,7 @@ bezctx *new_bezctx_test(void) {
 int test_curve(int c) {
     spiro_cp spiro[16];
     int nextknot[17];
-    double d[3];
+    double d[5];
     spiro_seg *segs = NULL;
     bezctx *bc;
     rs_check_vals *rsp;
@@ -511,7 +511,7 @@ int test_curve(int c) {
     /* Do run_spiro0 instead (these tests are far from -0.5..+0.5 */
     d[0] = -1.;
     printf("---\ntesting run_spiro0() using data=path%d[].\n",c);
-    if ( (segs=run_spiro0(spiro,d,cl[c]))==0 ) {
+    if ( (segs=run_spiro0(spiro,d,0,cl[c]))==0 ) {
 	printf("error with run_spiro0() using data=path%d[].\n",c);
 	return -1;
     }
@@ -593,7 +593,7 @@ int test_curve(int c) {
     printf("---\ntesting spiro_to_bpath() using data from run_spiro(data=path%d[],len=%d).\n",c,cl[c]);
     bc = new_bezctx_test();
 #if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15)
-    spiro_to_bpath0(segs,d,cl[c],bc);
+    spiro_to_bpath0(spiro,segs,d,0,cl[c],bc);
 #else
     spiro_to_bpath(segs,cl[c],bc);
 #endif
@@ -853,8 +853,8 @@ int test_multi_curves(void) {
 		temp[j].y = temp[j].y * (i/S_TESTS+1) + i;
 	    } else {
 		/* Scaling bug fixed. Scale & shift at will */
-		temp[j].x *= (i+1); temp[j].x += i*1000.;
-		temp[j].y *= (i+1); temp[j].y += i*3000.;
+		temp[j].x *= (i+1); temp[j].x += i*1000. - 5000.;
+		temp[j].y *= (i+1); temp[j].y += i*3000. - 9000.;
 	    }
 	}
     }

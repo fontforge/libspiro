@@ -166,7 +166,7 @@ struct _bezctx {
     void (*curveto)(bezctx *bc, double x1, double y1, double x2, double y2,
             double x3, double y3);
 
-    /* I'm not entirely sure what this does -- I just leave it blank */
+    /* Called by spiro to notify calling function this is a knot point */
     void (*mark_knot)(bezctx *bc, int knot_idx);
 };
 ```
