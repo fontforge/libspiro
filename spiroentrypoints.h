@@ -21,48 +21,50 @@ extern "C" {
     /* For an open contour the last cp must have a ty set to */
 #define SPIRO_END_OPEN_CONTOUR	'}'
 
-/* These 2 functions are kept for backwards compatibility for older */
+/* These 6 functions are kept for backwards compatibility for older */
 /* programs. Please use the functions listed afterwards that return */
-/* success/failure replies when done. See ver 0.2.20130930 or later */
+/* success/failure replies when done. See version 20190731 or later */
 extern void TaggedSpiroCPsToBezier(spiro_cp *spiros,bezctx *bc);
 extern void SpiroCPsToBezier(spiro_cp *spiros,int n,int isclosed,bezctx *bc);
 
-
-
 /* These functions are available in libspiro-0.2.20130930 or higher */
+extern int TaggedSpiroCPsToBezier0(spiro_cp *spiros,bezctx *bc);
+extern int SpiroCPsToBezier0(spiro_cp *spiros,int n,int isclosed,bezctx *bc);
 
-/* The two functions below return 1 upon success and 0 upon failure */
+/* These functions are available in libspiro-0.3.20150131 or higher */
+extern void TaggedSpiroCPsToBezier1(spiro_cp *spiros,bezctx *bc,int *done);
+extern void SpiroCPsToBezier1(spiro_cp *spiros,int n,int isclosed,bezctx *bc,int *done);
+
+/* These functions are available in libspiro-20190731 or higher and */
+/* give you best flexibility compared to earlier libspiro versions. */
 
 /* The spiros array should indicate it's own end... So              */
 /* Open contours must have the ty field of the first cp set to '{'  */
 /*               and have the ty field of the last cp set to '}'    */
 /* Closed contours must have an extra cp at the end whose ty is 'z' */
 /*               the x&y values of this extra cp are ignored        */
-extern int TaggedSpiroCPsToBezier0(spiro_cp *spiros,bezctx *bc);
+/* ncq allows you to toggle different outputs independent of spiros */
+extern int TaggedSpiroCPsToBezier2(spiro_cp *spiros,int ncq,bezctx *bc);
 
 /* The first argument is an array of spiro control points.          */
 /* Open contours do not need to start with '{', nor to end with '}' */
 /* Close contours do not need to end with 'z'                       */
-extern int SpiroCPsToBezier0(spiro_cp *spiros,int n,int isclosed,bezctx *bc);
-
-
-
-/* These functions are available in libspiro-0.3.20150131 or higher */
-
-/* If you can't use TaggedSpiroCPsToBezier0(), SpiroCPsToBezier0(), */
-/* these functions are enhanced versions of the original functions, */
-/* where spiro success/failure replies are passd back through *done */
-extern void TaggedSpiroCPsToBezier1(spiro_cp *spiros,bezctx *bc,int *done);
-extern void SpiroCPsToBezier1(spiro_cp *spiros,int n,int isclosed,bezctx *bc,int *done);
-
-
-
-/* These functions are available in libspiro-0.6.2015xxxx or higher */
+/* ncq allows you to toggle different outputs independent of spiros */
+extern int SpiroCPsToBezier2(spiro_cp *spiros,int n,int ncq,int isclosed,bezctx *bc);
 
     /* Curve crossing point with a 'fixed angle' of crossing */
 #define SPIRO_ANCHOR		'a'
     /* Curve crossing handle cp(hx,hy) relative to cp(ax,ay) */
 #define SPIRO_HANDLE		'h'
+
+/* int ncq flags and values */
+#define SPIRO_ARC_CUB_QUAD_CLR	0x8FFF
+#define SPIRO_ARC_CUB_QUAD_MASK	0x7000
+#define SPIRO_CUBIC_TO_BEZIER	0x0000
+#define SPIRO_CUBIC_MIN_MAYBE	0x1000
+#define SPIRO_ARC_MAYBE		0x2000
+#define SPIRO_ARC_MIN_MAYBE	0x3000
+#define SPIRO_QUAD_TO_BEZIER	0x4000
 
 #ifdef __cplusplus
 }

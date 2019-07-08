@@ -1,5 +1,5 @@
 /* Test libspiro normal library calls
-Copyright (C) 2013,2014,2015, Joe Da Silva
+Copyright (C) 2013,2014,2015,2016,2017,2018,2019 Joe Da Silva
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -451,17 +451,39 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	spiro[i].y = path14[i].y;
 	spiro[i].ty = path14[i].ty;
 	nextknot[i] = knot4[i];
-    } else for (i = 0; i < 4; i++) {
+    } else if ( c==15 ) for (i = 0; i < 4; i++) {
 	/* path15[] is a very small copy of path9[] closed curve. */
 	spiro[i].x = path15[i].x;
 	spiro[i].y = path15[i].y;
 	spiro[i].ty = path15[i].ty;
 	nextknot[i] = knot4[i];
+    } else if ( c==16 ) for (i = 0; i < 4; i++) {
+	/* path16[] uses path4[] as first try at quadratic output */
+	spiro[i].x = path4[i].x;
+	spiro[i].y = path4[i].y;
+	spiro[i].ty = path4[i].ty;
+	nextknot[i] = knot4[i];
+    } else if ( c==17 ) for (i = 0; i < 4; i++) {
+	/* path17[] is closed curve version of path4[] open curve */
+	spiro[i].x = path4[i].x;
+	spiro[i].y = path4[i].y;
+	spiro[i].ty = path4[i].ty;
+	nextknot[i] = knot4[i];
+    } else if ( c==18 ) for (i = 0; i < 4; i++) {
+	spiro[i].x = path2[i].x;
+	spiro[i].y = path2[i].y;
+	spiro[i].ty = path2[i].ty;
+	nextknot[i] = knot2[i];
+    } else for (i = 0; i < 16; i++) {
+	spiro[i].x = path0[i].x;
+	spiro[i].y = path0[i].y;
+	spiro[i].ty = path0[i].ty;
+	nextknot[i] = knot0[i];
     }
 }
-int cl[] = {16, 6, 4, 6, 4, 12, 12, 8, 8, 4, 8, 8, 8, 8, 4, 4}; /* len. */
-int ck[] = {16, 6, 4, 6, 4, 12, 9, 4, 4, 4, 4, 4, 4, 4, 4, 4};
-int co[] = {1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1}; /* close=1 */
+int cl[] = {16, 6, 4, 6, 4, 12, 12, 8, 8, 4, 8, 8, 8, 8, 4, 4, 4, 4, 4, 16}; /* len. */
+int ck[] = {16, 6, 4, 6, 4, 12, 9, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 16};
+int co[] = {1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1}; /* close=1 */
 
 #ifndef DO_CALL_TESTM
 /* Provide bare-bones do-nothing functions for testing. This only */
@@ -507,7 +529,16 @@ int test_curve(int c) {
     load_test_curve(spiro,nextknot,c);
 
     d[0] = 1.; d[1] = d[1] = 0.;
-#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15)
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+#if defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+    /* run_spiro0 with various paths to test a simple arc output. */
+    d[0] = -1.;
+    printf("---\ntesting run_spiro0(q) using data=path%d[].\n",c);
+    if ( (segs=run_spiro0(spiro,d,SPIRO_ARC_MAYBE,cl[c]))==0 ) {
+	printf("error with run_spiro0(q) using data=path%d[].\n",c);
+	return -1;
+    }
+#else
     /* Do run_spiro0 instead (these tests are far from -0.5..+0.5 */
     d[0] = -1.;
     printf("---\ntesting run_spiro0() using data=path%d[].\n",c);
@@ -515,6 +546,7 @@ int test_curve(int c) {
 	printf("error with run_spiro0() using data=path%d[].\n",c);
 	return -1;
     }
+#endif
 #else
     /* Check if run_spiro works okay (try backwards compatiblity) */
     printf("---\ntesting run_spiro() using data=path%d[].\n",c);
@@ -540,7 +572,11 @@ int test_curve(int c) {
     else if ( c==12 ) rsp = verify_rs7; /* test #12 uses path7[]. */
     else if ( c==13 ) rsp = verify_rs13; /* almost same as path11 */
     else if ( c==14 ) rsp = verify_rs14; /* very large path9 copy */
-    else	      rsp = verify_rs15; /* sub-atomic path9 copy */
+    else if ( c==15 ) rsp = verify_rs15; /* sub-atomic path9 copy */
+    else if ( c==16 ) rsp = verify_rs4; /* path4 arc curve output */
+    else if ( c==17 ) rsp = verify_rs4; /* path4 arc curve closed */
+    else if ( c==18 ) rsp = verify_rs2; /* trying many iterations */
+    else	      rsp = verify_rs0; /* long list, arc output. */
 
     /* Quick visual check shows X,Y knots match with each pathN[] */
     for (i=j=0; i < cl[c]-1; i++,j++) {
@@ -555,8 +591,8 @@ int test_curve(int c) {
 	/* Tests including ah data more complicated to verify xy, */
 	/* therefore, skip testing xy for call_tests shown below. */
 	if ( (segs[i].ty != spiro[i].ty) ||
-#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15)
-#if defined(DO_CALL_TEST14)
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
 	     (fabs((segs[i].x * d[0] + d[1]) - spiro[i].x) > 1e5) ||
 	     (fabs((segs[i].y * d[0] + d[2]) - spiro[i].y) > 1e5) ||
 	     (fabs(segs[i].seg_ch * d[0] - rsp[i].ch) > 1e5) ||
@@ -592,15 +628,18 @@ int test_curve(int c) {
     /* Quick visual check shows X,Y knots match with each pathN[] */
     printf("---\ntesting spiro_to_bpath() using data from run_spiro(data=path%d[],len=%d).\n",c,cl[c]);
     bc = new_bezctx_test();
-#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15)
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+#if defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+    spiro_to_bpath0(spiro,segs,d,SPIRO_ARC_MAYBE,cl[c],bc);
+#else
     spiro_to_bpath0(spiro,segs,d,0,cl[c],bc);
+#endif
 #else
     spiro_to_bpath(segs,cl[c],bc);
 #endif
-
     free(segs);
 
-#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST14) && !defined(DO_CALL_TEST15) 
+#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST14) && !defined(DO_CALL_TEST15) && !defined(DO_CALL_TEST16) && !defined(DO_CALL_TEST17)
     /* Check if TaggedSpiroCPsToBezier0() works okay */
     printf("---\ntesting TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
     if ( TaggedSpiroCPsToBezier0(spiro,bc)!=1 ) {
@@ -618,7 +657,7 @@ int test_curve(int c) {
     }
 #endif
 
-#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST14) && !defined(DO_CALL_TEST15)
+#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST14) && !defined(DO_CALL_TEST15) && !defined(DO_CALL_TEST16) && !defined(DO_CALL_TEST17)
     /* Check if TaggedSpiroCPsToBezier1() works okay */
     printf("---\ntesting TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
     TaggedSpiroCPsToBezier1(spiro,bc,&done);
@@ -635,6 +674,22 @@ int test_curve(int c) {
     if ( done!=1 ) {
 	printf("error with SpiroCPsToBezier1() using data=path%d[].\n",c);
 	return -6;
+    }
+#endif
+
+#if defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17)
+    /* Now verify we also have simple arc output too */
+    printf("---\ntesting SpiroCPsToBezier2() using data=path%d[].\n",c);
+    if ( SpiroCPsToBezier2(spiro,cl[c],SPIRO_ARC_MAYBE,co[c],bc)!=1 ) {
+	printf("error with SpiroCPsToBezier2() using data=path%d[].\n",c);
+	return -7;
+    }
+#endif
+#if defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+    printf("---\ntesting TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
+    if ( TaggedSpiroCPsToBezier2(spiro,SPIRO_ARC_MAYBE,bc)!=1 ) {
+	printf("error with TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
+	return -8;
     }
 #endif
 
@@ -1061,6 +1116,18 @@ int main(int argc, char **argv) {
 #endif
 #ifdef DO_CALL_TEST15
     ret=test_curve(15);	/* go very big! go very tiny! */
+#endif
+#ifdef DO_CALL_TEST16
+    ret=test_curve(16);	/* testing arc output path4[] */
+#endif
+#ifdef DO_CALL_TEST17
+    ret=test_curve(17);	/* do arc closed curve outut. */
+#endif
+#ifdef DO_CALL_TEST18
+    ret=test_curve(18);	/* do iterative as arc output */
+#endif
+#ifdef DO_CALL_TEST19
+    ret=test_curve(19);	/* do lengthy output with arc */
 #endif
 #ifdef DO_CALL_TESTM
     ret=test_multi_curves();

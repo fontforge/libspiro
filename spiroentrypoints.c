@@ -1,6 +1,7 @@
 /*
 libspiro - conversion between spiro control points and bezier's
-Copyright (C) 2007 Raph Levien
+Copyright (C) 2007... Raph Levien
+Copyright (C) 2013... Joe Da Silva
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -22,67 +23,69 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include "spiroentrypoints.h"
 
-
-/* These two functions are kept for backwards compatibility */
+/* These six functions are kept for backwards compatibility */
 void SpiroCPsToBezier(spiro_cp *spiros,int n,int isclosed,bezctx *bc) {
-    SpiroCPsToBezier0(spiros,n,isclosed,bc);
+    SpiroCPsToBezier2(spiros,n,0,isclosed,bc);
 }
 void TaggedSpiroCPsToBezier(spiro_cp *spiros,bezctx *bc) {
-    TaggedSpiroCPsToBezier0(spiros,bc);
+    TaggedSpiroCPsToBezier2(spiros,0,bc);
+}
+int SpiroCPsToBezier0(spiro_cp *spiros,int n,int isclosed,bezctx *bc) {
+    return SpiroCPsToBezier2(spiros,n,0,isclosed,bc);
+}
+int TaggedSpiroCPsToBezier0(spiro_cp *spiros,bezctx *bc) {
+    return TaggedSpiroCPsToBezier2(spiros,0,bc);
+}
+void SpiroCPsToBezier1(spiro_cp *spiros,int n,int isclosed,bezctx *bc,int *done) {
+    *done = SpiroCPsToBezier2(spiros,n,0,isclosed,bc);
+}
+void TaggedSpiroCPsToBezier1(spiro_cp *spiros,bezctx *bc,int *done) {
+    *done = TaggedSpiroCPsToBezier2(spiros,0,bc);
 }
 
-int
-SpiroCPsToBezier0(spiro_cp *spiros,int n,int isclosed,bezctx *bc)
-{
-    double dm[5];
+
+
+int SpiroCPsToBezier2(spiro_cp *spiros,int n,int ncq,int isclosed,bezctx *bc) {
+    double dm[6];
     spiro_seg *s;
 
-    if ( n<=0 )
-	return 0;
+    if ( n<=0 || ncq<0 ) return 0; /* invalid input */
+
     dm[0] = -1.;
     if ( isclosed )
-	s = run_spiro0(spiros,dm,0,n);
+	s = run_spiro0(spiros,dm,ncq,n);
     else {
 	char oldty_start = spiros[0].ty;
 	char oldty_end   = spiros[n-1].ty;
 	spiros[0].ty = '{';
 	spiros[n-1].ty = '}';
-	s = run_spiro0(spiros,dm,0,n);
+	s = run_spiro0(spiros,dm,ncq,n);
 	spiros[n-1].ty = oldty_end;
 	spiros[0].ty = oldty_start;
     }
     if (s) {
-	spiro_to_bpath0(spiros,s,dm,0,n,bc);
+	spiro_to_bpath0(spiros,s,dm,ncq,n,bc);
 	free_spiro(s);
 	return 1; /* success */
     }
-    return 0 ; /* spiro did not converge or encountered non-finite values */
+    return 0; /* spiro did not converge or encountered non-finite values */
 }
 
-int
-TaggedSpiroCPsToBezier0(spiro_cp *spiros,bezctx *bc)
-{
-    double dm[5];
+int TaggedSpiroCPsToBezier2(spiro_cp *spiros,int ncq,bezctx *bc) {
+    double dm[6];
     spiro_seg *s;
     int n;
 
     for ( n=0; spiros[n].ty!='z' && spiros[n].ty!='}'; ++n );
     if ( spiros[n].ty == '}' ) ++n;
 
-    if ( n<=0 ) return 0; /* invalid input */
+    if ( n<=0 || ncq<0 ) return 0; /* invalid input */
     dm[0] = -1.;
-    s = run_spiro0(spiros,dm,0,n);
+    s = run_spiro0(spiros,dm,ncq,n);
     if (s) {
-	spiro_to_bpath0(spiros,s,dm,0,n,bc);
+	spiro_to_bpath0(spiros,s,dm,ncq,n,bc);
 	free_spiro(s);
 	return 1; /* success */
     }
-    return 0 ; /* spiro did not converge or encountered non-finite values */
-}
-
-void SpiroCPsToBezier1(spiro_cp *spiros,int n,int isclosed,bezctx *bc,int *done) {
-    *done = SpiroCPsToBezier0(spiros,n,isclosed,bc);
-}
-void TaggedSpiroCPsToBezier1(spiro_cp *spiros,bezctx *bc,int *done) {
-    *done = TaggedSpiroCPsToBezier0(spiros,bc);
+    return 0; /* spiro did not converge or encountered non-finite values */
 }

@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 #include <string.h>
 
+#include "spiroentrypoints.h"
 #include "bezctx_intf.h"
 #include "spiro.h"
 
@@ -610,7 +611,7 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 static spiro_seg *
 setup_path(const spiro_cp *src, int n)
 {
-    double dm[5];
+    double dm[6];
     set_dm_to_1(dm);
     return setup_path0(src, dm, n);
 }
@@ -962,7 +963,8 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 	th = atan2(xy[1], xy[0]);
 	scale = seg_ch / ch;
 	rot = seg_th - th;
-	if (abs(depth) > 5 || bend < 1.) {
+	if ((abs(depth) > 5 || bend < dm[5]) && ncq == 0) {
+	    // calculate cubic, and output bezier points
 	    th_even = (1./384) * ks[3] + (1./8) * ks[1] + rot;
 	    th_odd = (1./48) * ks[2] + .5 * ks[0];
 	    ul = (scale * (1./3)) * cos(th_even - th_odd);
@@ -983,9 +985,6 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 	    }
 	} else {
 	    /* subdivide */
-#ifdef VERBOSE
-		printf("...subdivide curve...\n");
-#endif
 	    ksub[0] = .5 * ks[0] - .125 * ks[1] + (1./64) * ks[2] - (1./768) * ks[3];
 	    ksub[1] = .25 * ks[1] - (1./16) * ks[2] + (1./128) * ks[3];
 	    ksub[2] = .125 * ks[2] - (1./32) * ks[3];
@@ -996,11 +995,26 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 	    integrate_spiro(ksub, xysub, N_IS);
 	    xmid = x0 + cth * xysub[0] - sth * xysub[1];
 	    ymid = y0 + cth * xysub[1] + sth * xysub[0];
-	    spiro_seg_to_bpath0(ksub, dm, x0, y0, xmid, ymid, bc, ncq, -(abs(depth) + 1));
-	    ksub[0] += .25 * ks[1] + (1./384) * ks[3];
-	    ksub[1] += .125 * ks[2];
-	    ksub[2] += (1./16) * ks[3];
-	    spiro_seg_to_bpath0(ksub, dm, xmid, ymid, x1, y1, bc, ncq, (depth >= 0 ? ++depth : --depth));
+	    if (ncq < 0 && (abs(depth) > 5 || bend < dm[5])) {
+		// looks like an arc if you need one (output arc thru quadto)
+		if (depth >= 0 || depth < -4) {
+#ifdef VERBOSE
+		    printf("...to next knot point...\n");
+#endif
+		    bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), dm[3], dm[4]);
+		} else {
+		    bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
+		}
+	    } else {
+#ifdef VERBOSE
+		printf("...subdivide curve...\n");
+#endif
+		spiro_seg_to_bpath0(ksub, dm, x0, y0, xmid, ymid, bc, ncq, -(abs(depth) + 1));
+		ksub[0] += .25 * ks[1] + (1./384) * ks[3];
+		ksub[1] += .125 * ks[2];
+		ksub[2] += (1./16) * ks[3];
+		spiro_seg_to_bpath0(ksub, dm, xmid, ymid, x1, y1, bc, ncq, (depth >= 0 ? ++depth : --depth));
+	    }
 	}
     }
 }
@@ -1010,7 +1024,7 @@ spiro_seg_to_bpath(const double ks[4],
 		   double x0, double y0, double x1, double y1,
 		   bezctx *bc, int depth)
 {
-    double dm[5];
+    double dm[6];
     set_dm_to_1(dm); dm[3] = x1; dm[4] = y1;
     spiro_seg_to_bpath0(ks, dm, x0, y0, x1, y1, bc, 0, depth);
 }
@@ -1021,7 +1035,7 @@ run_spiro0(const spiro_cp *src, double *dm, int ncq, int n)
     int converged, nseg;
     spiro_seg *s;
 
-    if (src==NULL || n <= 0) return 0;
+    if (src==NULL || n <= 0 || ncq < 0) return 0;
 
     s = setup_path0(src, dm, n);
     if (s) {
@@ -1039,7 +1053,7 @@ run_spiro0(const spiro_cp *src, double *dm, int ncq, int n)
 spiro_seg *
 run_spiro(const spiro_cp *src, int n)
 {
-    double dm[5];
+    double dm[6];
     set_dm_to_1(dm);
     return run_spiro0(src, dm, 0, n);
 }
@@ -1058,13 +1072,29 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
     double x0, y0, x1, y1;
 
 #ifdef VERBOSE
-    printf("spiro_to_bpath0 n=%d s=%d bc=%d\n",n,s==NULL ? 0:1,bc==NULL ? 0:1);
+    printf("spiro_to_bpath0 ncq=0x%x n=%d s=%d bc=%d\n",ncq,n,s==NULL ? 0:1,bc==NULL ? 0:1);
 #endif
 
-    if (s==NULL || n <= 0 || bc==NULL) return;
+    if (s==NULL || n <= 0 || ncq < 0 || bc==NULL) return;
 
     nsegs = s[n - 1].ty == '}' ? \
 	    s[n - 2].ty == 'a' ? n - 2 : n - 1 : n;
+    dm[5] = 1.; // default cubic to bezier bend
+/*testing*/ //	dm[5] = .3;
+    if ( (ncq &= SPIRO_ARC_CUB_QUAD_MASK)==0 ) {
+	/* default action = cubic bezier output */;
+    } else if (ncq == SPIRO_CUBIC_MIN_MAYBE) { // visual inspection advised
+	ncq = 0; // NOTE: experimental, best to look at results first
+	dm[5] = M_PI / 2 + .000001;
+    } else if (ncq == SPIRO_ARC_MAYBE) { // visual inspection advised
+	ncq = -1; // NOTE: these are arcs, not quadratic
+    } else if (ncq == SPIRO_ARC_MIN_MAYBE) { // visual inspection advised
+	ncq = -1; // NOTE: these are arcs, not quadratic
+	dm[5] = M_PI / 2 + .000001;
+    } else if (ncq == SPIRO_QUAD_TO_BEZIER) {
+	/* approximate a cubic using quadratic arcs */
+	dm[5] = .25;
+    }
 
     for (i=j=0; i < nsegs; i++,j++) {
 	x0 = s[i].x; y0 = s[i].y;
@@ -1079,7 +1109,11 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 	    if (s[i].ty == 'a') ++i;
 	x1 = s[i + 1].x; y1 = s[i + 1].y;
 	if (src != NULL) {
-	    dm[3] = src[i + 1].x; dm[4] = src[i + 1].y;
+	    if ((i + 1 == n && nsegs == n) || src[i].ty == 'z') {
+		dm[3] = src[0].x; dm[4] = src[0].y;
+	    } else {
+		dm[3] = src[i + 1].x; dm[4] = src[i + 1].y;
+	    }
 	} else {
 	    dm[3] = (x1 * dm[0] + dm[1]); dm[4] = (y1 * dm[0] + dm[2]);
 	}
@@ -1093,7 +1127,7 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
 {
-    double dm[5];
+    double dm[6];
     set_dm_to_1(dm);
     spiro_to_bpath0(NULL, s, dm, 0, n, bc);
 }
