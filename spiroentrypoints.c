@@ -44,12 +44,13 @@ void TaggedSpiroCPsToBezier1(spiro_cp *spiros,bezctx *bc,int *done) {
 }
 
 
-
 int SpiroCPsToBezier2(spiro_cp *spiros,int n,int ncq,int isclosed,bezctx *bc) {
     double dm[6];
     spiro_seg *s;
 
     if ( n<=0 || ncq<0 ) return 0; /* invalid input */
+    if ( n > 1 && (ncq & SPIRO_REVERSE_SRC) && spiroreverse(spiros,n) )
+	return 0;
 
     dm[0] = -1.;
     if ( isclosed )
@@ -80,6 +81,8 @@ int TaggedSpiroCPsToBezier2(spiro_cp *spiros,int ncq,bezctx *bc) {
     if ( spiros[n].ty == '}' ) ++n;
 
     if ( n<=0 || ncq<0 ) return 0; /* invalid input */
+    if ( n > 1 && (ncq & SPIRO_REVERSE_SRC) && spiroreverse(spiros,n) )
+	return 0;
     dm[0] = -1.;
     s = run_spiro0(spiros,dm,ncq,n);
     if (s) {

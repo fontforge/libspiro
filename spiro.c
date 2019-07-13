@@ -522,7 +522,7 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 
     n_seg = src[0].ty == '{' ? n - 1 : n;
     r = (spiro_seg *)malloc((n_seg + 1) * sizeof(spiro_seg));
-    if (r==NULL) return 0;
+    if (r == NULL) return 0;
 
     if (dm[0] < 0.9) {
 	/* for math to be scalable fit it within -0.5..+0.5 */
@@ -696,8 +696,8 @@ banbks11(const bandmat *m, const int *perm, double *v, int n)
 
 static int compute_jinc(char ty0, char ty1)
 {
-    if (ty0 == 'o' || ty1 == 'o' ||
-	ty0 == ']' || ty1 == '[' ||
+    if (ty0 == 'o' || ty1 == 'o' || \
+	ty0 == ']' || ty1 == '[' || \
 	ty0 == 'h' || ty1 == 'a')
 	return 4;
     else if (ty0 == 'c' && ty1 == 'c')
@@ -1029,6 +1029,86 @@ spiro_seg_to_bpath(const double ks[4],
     spiro_seg_to_bpath0(ks, dm, x0, y0, x1, y1, bc, 0, depth);
 }
 
+/* This function reverses src path for calling application. */
+/* Spiro calculations might not translate well in the other */
+/* direction, however, there may be a need to reverse path. */
+/* Function leaves src unmodified if cannot reverse values. */
+int
+spiroreverse(spiro_cp *src, int n)
+{
+    char c;
+    int i, j;
+    double x, y;
+    spiro_cp *tmp;
+
+    if (n > 2 && src[0].ty == '{' && \
+	(src[1].ty == 'h' || src[n - 2].ty == 'a')) {
+#ifdef VERBOSE
+	fprintf(stderr, "ERROR: LibSpiro: cannot reverse this list because it starts with '{','h' or ends with 'a','}'.\n");
+#endif
+	return 0;
+    }
+
+    if (src[n - 1].ty == 'z') --n;
+
+    tmp = (spiro_cp *)malloc(n * sizeof(spiro_cp));
+    if (tmp == NULL) return 0;
+
+#ifdef VERBOSE
+fprintf(stderr, "reverse n=%d values:\n",n);
+#endif
+
+    for (i=0,j=--n; i <= j; i++, j--) {
+	/* NOTE: For graphic programs that repeat this over */
+	/* and over again, this reversal is best done once, */
+	/* and then you use the reversed string repeatedly; */
+	/* This helps avoid wasting time to recalculate the */
+	/* string over and over again unnecessarily. Script */
+	/* and non-graphic programs tend to need this once, */
+	/* or speed isn't as important as script simplicity */
+	/* so this suggestion (to pre-save) is unnecessary. */
+	tmp[j].ty = src[i].ty; tmp[j].x = src[i].x; tmp[j].y = src[i].y;
+	if (i == j) break;
+	tmp[i].ty = src[j].ty; tmp[i].x = src[j].x; tmp[i].y = src[j].y;
+    }
+    for (i=0; i <= n; i++) {
+	c = tmp[i].ty;
+	if (c == '[')
+	    tmp[i].ty = ']';
+	else if (c == ']')
+	    tmp[i].ty = '[';
+	else if (c == '{')
+	    tmp[i].ty = '}';
+	else if (c == '}')
+	    tmp[i].ty = '{';
+	else if (c == 'h') {
+	    tmp[i].ty = 'a';
+	    x = tmp[i].x; tmp[i].x = tmp[i + 1].x; x -= tmp[i].x;
+	    y = tmp[i].y; tmp[i].y = tmp[i + 1].y; y -= tmp[i].y;
+	    if ( tmp[++i].ty != 'a')
+		goto errspiroreverse;
+	    tmp[i].ty = 'h';
+	    tmp[i].x -= x;
+	    tmp[i].y -= y;
+	} else if (c == 'a')
+	    goto errspiroreverse;
+    }
+    for (i=0; i <= n; i++) {
+	src[i].ty = tmp[i].ty;
+	src[i].x = tmp[i].x;
+	src[i].y = tmp[i].y;
+#ifdef VERBOSE
+	printf("reversed %d: ty=%c, x=%g, y=%g\n", i, src[i].ty, src[i].x, src[i].y );
+#endif
+    }
+    free(tmp);
+    return 1;
+
+errspiroreverse:
+    free(tmp);
+    return 0;
+}
+
 spiro_seg *
 run_spiro0(const spiro_cp *src, double *dm, int ncq, int n)
 {
@@ -1047,7 +1127,6 @@ run_spiro0(const spiro_cp *src, double *dm, int ncq, int n)
     }
     return 0;
 }
-
 
 /* deprecated / backwards compatibility / not scalable */
 spiro_seg *

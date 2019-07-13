@@ -58,7 +58,8 @@ extern int SpiroCPsToBezier2(spiro_cp *spiros,int n,int ncq,int isclosed,bezctx 
 #define SPIRO_HANDLE		'h'
 
 /* int ncq flags and values */
-#define SPIRO_ARC_CUB_QUAD_CLR	0x8FFF
+#define SPIRO_REVERSE_SRC	0x0800
+#define SPIRO_ARC_CUB_QUAD_CLR	0x7FFF
 #define SPIRO_ARC_CUB_QUAD_MASK	0x7000
 #define SPIRO_CUBIC_TO_BEZIER	0x0000
 #define SPIRO_CUBIC_MIN_MAYBE	0x1000

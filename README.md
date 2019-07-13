@@ -85,8 +85,8 @@ Mac OS X: A helping script, `./fontforge.sh` is provided to run FontForge inside
   - [bézier context](#the-bezier-context)
 - [Header file](#calling-into-libspiro)
 - Entry points
-  - int [SpiroCPsToBezier0](#spirocpstobezier0)(spiro_cp *,int n,int is_closed,bezctx *)
-  - int [TaggedSpiroCPsToBezier0](#taggedspirocpstobezier0)(spiro_cp *,bezctx *)
+  - int [SpiroCPsToBezier2](#spirocpstobezier2)(spiro_cp *,int n,int ncq,int is_closed,bezctx *)
+  - int [TaggedSpiroCPsToBezier2](#taggedspirocpstobezier2)(spiro_cp *,int ncq,bezctx *)
 
 #### Basic Types
 
@@ -183,7 +183,7 @@ Your program needs this Libspiro header file:
 
 You must define a bézier context that is appropriate for your internal splines (See [Raph's PostScript example](bezctx.md)).
 
-#### SpiroCPsToBezier0
+#### SpiroCPsToBezier2
 
 You must create an array of spiro control points:
 
@@ -200,23 +200,24 @@ You must create an array of spiro control points:
 
 ![](closedspiro.png)
 
-Then call `SpiroCPsToBezier0`, a routine which takes 4 arguments and returns bc and an integer pass/fail flag.
+Then call `SpiroCPsToBezier2`, a routine which takes 5 arguments and returns bc and an integer pass/fail flag.
 
 1. An array of input spiros
 2. The number of elements in the spiros array
-3. Whether this describes a closed (True) or open (False) contour
-4. A bézier results output context
-5. An integer success flag. 1 = completed task and have valid bézier results, or  0 = unable to complete task, bézier results are invalid.
+3. Additional ncq control variable (default==0)
+4. Whether this describes a closed (True=1) or open (False=0) contour
+5. A bézier results output context
+6. An integer success flag. 1 = completed task and have valid bézier results, or  0 = unable to complete task, bézier results are invalid.
 
   ```c
     bc = new_bezctx_ps();
-    success = SpiroCPsToBezier0(points,4,True,bc)
+    success = SpiroCPsToBezier2(points,4,ncq,True,bc)
     bezctx_ps_close(bc);
   ```
 
-#### TaggedSpiroCPsToBezier0
+#### TaggedSpiroCPsToBezier2
 
-Or call `TaggedSpiroCPsToBezier0`. This routine requires that the array of spiro control points be tagged according to Raph's internal conventions. A closed curve will have an extra control point attached to the end of it with a type of `SPIRO_END`;
+Or call `TaggedSpiroCPsToBezier2`. This routine requires that the array of spiro control points be tagged according to Raph's internal conventions. A closed curve will have an extra control point attached to the end of it with a type of `SPIRO_END`;
 
 ```c
    spiro_cp points[5];
@@ -249,11 +250,12 @@ In this case there is no need to provide a point count nor an open/closed contou
 
 1. An array of input spiros
 2. A bézier results output context
-3. An integer success flag. 1 = completed task and have valid bézier results, or  0 = unable to complete task, bézier results are invalid.
+3. Additional ncq control variable (default==0)
+4. An integer success flag. 1 = completed task and have valid bézier results, or  0 = unable to complete task, bézier results are invalid.
 
    ```c
     bc = new_bezctx_ps();
-    success = TaggedSpiroCPsToBezier0(points,bc)
+    success = TaggedSpiroCPsToBezier2(points,ncq,bc)
     bezctx_ps_close(bc);
    ```
 
