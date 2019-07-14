@@ -550,7 +550,7 @@ int test_curve(int c) {
     /* check if spiro values are reversed correctly on input path */
     printf("---\ntesting spiroreverse() using data=path%d[].\n",c);
     if ( (spiroreverse(spiro,cl[c])) ) {
-	printf("error with spiroreverse() using data=path%d[].\n",c);
+	fprintf(stderr,"error with spiroreverse() using data=path%d[].\n",c);
 	return -1;
     }
     /* just do a visual check to verify types and points look ok. */
@@ -565,7 +565,7 @@ int test_curve(int c) {
     d[0] = -1.;
     printf("---\ntesting run_spiro0(q) using data=path%d[].\n",c);
     if ( (segs=run_spiro0(spiro,d,SPIRO_ARC_MAYBE,cl[c]))==0 ) {
-	printf("error with run_spiro0(q) using data=path%d[].\n",c);
+	fprintf(stderr,"error with run_spiro0(q) using data=path%d[].\n",c);
 	return -1;
     }
 #else
@@ -573,7 +573,7 @@ int test_curve(int c) {
     d[0] = -1.;
     printf("---\ntesting run_spiro0() using data=path%d[].\n",c);
     if ( (segs=run_spiro0(spiro,d,0,cl[c]))==0 ) {
-	printf("error with run_spiro0() using data=path%d[].\n",c);
+	fprintf(stderr,"error with run_spiro0() using data=path%d[].\n",c);
 	return -1;
     }
 #endif
@@ -581,7 +581,7 @@ int test_curve(int c) {
     /* Check if run_spiro works okay (try backwards compatiblity) */
     printf("---\ntesting run_spiro() using data=path%d[].\n",c);
     if ( (segs=run_spiro(spiro,cl[c]))==0 ) {
-	printf("error with run_spiro() using data=path%d[].\n",c);
+	fprintf(stderr,"error with run_spiro() using data=path%d[].\n",c);
 	return -1;
     }
 #endif
@@ -640,8 +640,8 @@ int test_curve(int c) {
 #endif
 	     (fabs(segs[i].bend_th - rsp[i].b) > 1e-5) ||
 	     (fabs(segs[i].seg_th - rsp[i].th) > 1e-5) ) {
-	  printf("FAIL\nerror found with run_spiro() data. Results are not the same.\n");
-	    printf("expected line %d t=%c x=%f y=%f bend=%f ch=%f th=%f\n", j, \
+	  fprintf(stderr,"FAIL\nerror found with run_spiro() data. Results are not the same.\n");
+	    fprintf(stderr,"expected line %d t=%c x=%f y=%f bend=%f ch=%f th=%f\n", j, \
 	      spiro[i].ty,spiro[i].x,spiro[i].y,rsp[i].b,rsp[i].ch,rsp[i].th);
 	    free(segs);
 	    return -2;
@@ -675,7 +675,7 @@ int test_curve(int c) {
     /* Check if TaggedSpiroCPsToBezier0() works okay */
     printf("---\ntesting TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
     if ( TaggedSpiroCPsToBezier0(spiro,bc)!=1 ) {
-	printf("error with TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
+	fprintf(stderr,"error with TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
 	return -3;
     }
 #endif
@@ -684,7 +684,7 @@ int test_curve(int c) {
     /* Check if SpiroCPsToBezier0() works okay */
     printf("---\ntesting SpiroCPsToBezier0() using data=path%d[].\n",c);
     if ( SpiroCPsToBezier0(spiro,cl[c],co[c],bc)!=1 ) {
-	printf("error with SpiroCPsToBezier0() using data=path%d[].\n",c);
+	fprintf(stderr,"error with SpiroCPsToBezier0() using data=path%d[].\n",c);
 	return -4;
     }
 #endif
@@ -694,7 +694,7 @@ int test_curve(int c) {
     printf("---\ntesting TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
     TaggedSpiroCPsToBezier1(spiro,bc,&done);
     if ( done!=1 ) {
-	printf("error with TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
+	fprintf(stderr,"error with TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
 	return -5;
     }
 #endif
@@ -704,7 +704,7 @@ int test_curve(int c) {
     printf("---\ntesting SpiroCPsToBezier1() using data=path%d[].\n",c);
     SpiroCPsToBezier1(spiro,cl[c],co[c],bc,&done);
     if ( done!=1 ) {
-	printf("error with SpiroCPsToBezier1() using data=path%d[].\n",c);
+	fprintf(stderr,"error with SpiroCPsToBezier1() using data=path%d[].\n",c);
 	return -6;
     }
 #endif
@@ -713,14 +713,14 @@ int test_curve(int c) {
     /* Now verify we also have simple arc output too */
     printf("---\ntesting SpiroCPsToBezier2() using data=path%d[].\n",c);
     if ( SpiroCPsToBezier2(spiro,cl[c],SPIRO_ARC_MAYBE,co[c],bc)!=1 ) {
-	printf("error with SpiroCPsToBezier2() using data=path%d[].\n",c);
+	fprintf(stderr,"error with SpiroCPsToBezier2() using data=path%d[].\n",c);
 	return -7;
     }
 #endif
 #if defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
     printf("---\ntesting TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
     if ( TaggedSpiroCPsToBezier2(spiro,SPIRO_ARC_MAYBE,bc)!=1 ) {
-	printf("error with TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
+	fprintf(stderr,"error with TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
 	return -8;
     }
 #endif
@@ -733,15 +733,15 @@ int test_curve(int c) {
 	/* Check if SpiroCPsToBezier2() works okay */
 	printf("---\ntesting SpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
 	if ( SpiroCPsToBezier2(spiro,cl[c],SPIRO_REVERSE_SRC,co[c],bc)!=1 ) {
-	    printf("error with SpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
-	    return -10;
+	    fprintf(stderr,"error with SpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
+	    return -9;
 	}
     } else { /* c==22 || c==23 || c==24 */
 	/* Check if TaggedSpiroCPsToBezier2() works okay */
 	printf("---\ntesting TaggedSpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
 	if ( TaggedSpiroCPsToBezier2(spiro,SPIRO_REVERSE_SRC,bc)!=1 ) {
-	    printf("error with TaggedSpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
-	    return -11;
+	    fprintf(stderr,"error with TaggedSpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
+	    return -10;
 	}
     }
 #endif
@@ -1009,7 +1009,7 @@ int test_multi_curves(void) {
 	l=i;
 	while (--i >= k)
 	    if ( pthread_join(curve_test[i],NULL) ) {
-		printf("bad pthread_join[%d]\n",i);
+		fprintf(stderr,"bad pthread_join[%d]\n",i);
 		j=-1;
 	    }
 	k=++l;
@@ -1019,7 +1019,7 @@ int test_multi_curves(void) {
     for (i=0; i < S_TESTS; i++)
 	if ( pdata[i].ret!=1 ) {
 	    ret=ret-i;
-	    printf("error %d with TaggedSpiroCPsToBezier0() using data=%d.\n",ret,i);
+	    fprintf(stderr,"error %d with TaggedSpiroCPsToBezier0() using data=%d.\n",ret,i);
 	    goto test_multi_curves_exit;
 	}
     /* All threads returned okay, Now, go check all data is good. */
@@ -1030,7 +1030,7 @@ int test_multi_curves(void) {
     for (i=0; i < S_TESTS; i++) {
 	if ( TaggedSpiroCPsToBezier0(spiro[i],(bezctx*)(bc[i]))!=1 ) {
 	    ret=ret-i;
-	    printf("error %d with TaggedSpiroCPsToBezier0() using data=%d.\n",ret,i);
+	    fprintf(stderr,"error %d with TaggedSpiroCPsToBezier0() using data=%d.\n",ret,i);
 	    goto test_multi_curves_exit;
 	}
     }
@@ -1078,7 +1078,7 @@ int test_multi_curves(void) {
 			/* changed to a curve end point, which is '}' */
 		    else {
 			ret=ret-i;
-			printf("error %d with test_multi_curves() using data %d\n",ret,i);
+			fprintf(stderr,"error %d with test_multi_curves() using data %d\n",ret,i);
 			goto test_multi_curves_exit;
 		    }
 		}

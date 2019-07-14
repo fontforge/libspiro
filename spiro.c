@@ -1055,7 +1055,7 @@ spiroreverse(spiro_cp *src, int n)
     if (tmp == NULL) return -1;
 
 #ifdef VERBOSE
-fprintf(stderr, "reverse n=%d values:\n",n);
+    printf("reverse n=%d values:\n",n);
 #endif
 
     for (i=0,j=--n; i <= j; i++, j--) {
