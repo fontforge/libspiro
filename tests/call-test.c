@@ -549,7 +549,7 @@ int test_curve(int c) {
 #if defined(DO_CALL_TEST20)
     /* check if spiro values are reversed correctly on input path */
     printf("---\ntesting spiroreverse() using data=path%d[].\n",c);
-    if ( (spiroreverse(spiro,cl[c]))!=1 ) {
+    if ( (spiroreverse(spiro,cl[c])) ) {
 	printf("error with spiroreverse() using data=path%d[].\n",c);
 	return -1;
     }
@@ -558,7 +558,6 @@ int test_curve(int c) {
     for (i=0; i < cl[c]; i++) {
 	printf("  reversed %d: ty=%c, x=%g, y=%g\n", i,spiro[i].ty,spiro[i].x,spiro[i].y);
     }
-    return 0;
 #else
 #if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
 #if defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
@@ -585,7 +584,6 @@ int test_curve(int c) {
 	printf("error with run_spiro() using data=path%d[].\n",c);
 	return -1;
     }
-#endif
 #endif
 
     /* Load pointer to verification data to ensure it works right */
@@ -670,6 +668,7 @@ int test_curve(int c) {
     spiro_to_bpath(segs,cl[c],bc);
 #endif
     free(segs);
+#endif
 
 #if !defined(DO_CALL_TEST20)
 #if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST14) && !defined(DO_CALL_TEST15) && !defined(DO_CALL_TEST16) && !defined(DO_CALL_TEST17)
@@ -726,11 +725,24 @@ int test_curve(int c) {
     }
 #endif
 #else
-    /* Tests 20 & 21 we check reversal in spiroentry */
-    printf("---\ntesting SpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
-    if ( SpiroCPsToBezier2(spiro,cl[c],SPIRO_REVERSE_SRC,co[c],bc)!=1 ) {
-	printf("error with SpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
-	return -9;
+    /* We already visually checked output for spiroreverse above. */
+    /* Some reversed paths (above) will fail (like path20), so we */
+    /* reverse the reversed spiro path so we can use current test */
+    /* functions & values (so that this actually tests something) */
+    if (c == 20 || c == 21) {
+	/* Check if SpiroCPsToBezier2() works okay */
+	printf("---\ntesting SpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
+	if ( SpiroCPsToBezier2(spiro,cl[c],SPIRO_REVERSE_SRC,co[c],bc)!=1 ) {
+	    printf("error with SpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
+	    return -10;
+	}
+    } else { /* c==22 || c==23 || c==24 */
+	/* Check if TaggedSpiroCPsToBezier2() works okay */
+	printf("---\ntesting TaggedSpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
+	if ( TaggedSpiroCPsToBezier2(spiro,SPIRO_REVERSE_SRC,bc)!=1 ) {
+	    printf("error with TaggedSpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
+	    return -11;
+	}
     }
 #endif
 

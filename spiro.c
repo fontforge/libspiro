@@ -1046,13 +1046,13 @@ spiroreverse(spiro_cp *src, int n)
 #ifdef VERBOSE
 	fprintf(stderr, "ERROR: LibSpiro: cannot reverse this list because it starts with '{','h' or ends with 'a','}'.\n");
 #endif
-	return 0;
+	return -1;
     }
 
     if (src[n - 1].ty == 'z') --n;
 
     tmp = (spiro_cp *)malloc(n * sizeof(spiro_cp));
-    if (tmp == NULL) return 0;
+    if (tmp == NULL) return -1;
 
 #ifdef VERBOSE
 fprintf(stderr, "reverse n=%d values:\n",n);
@@ -1102,11 +1102,11 @@ fprintf(stderr, "reverse n=%d values:\n",n);
 #endif
     }
     free(tmp);
-    return 1;
+    return 0;
 
 errspiroreverse:
     free(tmp);
-    return 0;
+    return -1;
 }
 
 spiro_seg *
