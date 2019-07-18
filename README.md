@@ -82,6 +82,7 @@ Mac OS X: A helping script, `./fontforge.sh` is provided to run FontForge inside
 
 - Basic Types
   - [spiro control point](#the-spiro-control-point)
+  - [ncq control value](#the-ncq-control-value)
   - [bézier context](#the-bezier-context)
 - [Header file](#calling-into-libspiro)
 - Entry points
@@ -147,6 +148,44 @@ path5[]		path6[]
 {-80,-250,'}'},	{ 20,-150,'}'},
 ```
 
+
+## The ncq control value
+
+There is a need to pass additional information to libspiro, and therefore the 'ncq' value was added.
+'ncq' can be thought of as toggle switches telling libspiro how to work with the source spiro control points.
+Below is the current toggle switch definitions, and default 'ncq' value is zero.
+
+```c
+/* int ncq flags and values */
+#define SPIRO_RETRO_VER1	0x0400
+#define SPIRO_REVERSE_SRC	0x0800
+#define SPIRO_ARC_CUB_QUAD_CLR	0x7FFF
+#define SPIRO_ARC_CUB_QUAD_MASK	0x7000
+#define SPIRO_CUBIC_TO_BEZIER	0x0000
+#define SPIRO_CUBIC_MIN_MAYBE	0x1000
+#define SPIRO_ARC_MAYBE		0x2000
+#define SPIRO_ARC_MIN_MAYBE	0x3000
+#define SPIRO_QUAD_TO_BEZIER	0x4000
+```
+
+The definitions for ncq (above) are:
+
+SPIRO_RETRO_VER1:
+This newer version of libspiro has modified the way path calculations are made.
+The reason for this was seen as an advantage, because it allows a user to scale and move spiro paths, which is a common expectation in graphics, and there are other added advantages, such as making the path as part of templates, and more.
+An effort was made to keep results as close to original as possible, but this was not possible due to scaling factors in the calculations.
+As the main user for libspiro is FontForge, users such as font designers may see the least change since scaling targets x={0..1000}, y={0..1000}, while other users in graphics may see changes since they can be using scales much larger than 1000.
+The good news here is 'SPIRO_RETRO_VER1' allows the user to toggle libspiro to use the older calculation method if the user needs backwards compatibility, otherwise, leaving this off allows spiros to use the new calculation method which allows scaling and moving spiro paths.
+Older programs that use the older libspiro interfaces will see no-change since they use the older calculation method to maintain backwards compatibility.
+
+SPIRO_REVERSE_SRC:
+There may be a need to reverse the spiro path direction.
+This option edits the source spiro path, and reverses the information, then proceeds to continue doing libspiro calculations with the reversed path.
+When libspiro is done calculating bezier output, you will also have a reversed (input) spiro path, therefore save the new spiro path if you need it.
+This simplifies this process for the calling program to a simple option 'SPIRO_REVERSE_SRC', and the results are up to date as per ths version of libspiro.
+NOTE - libspiro calculations are a one-way calculation, so you are not likely to see the same results in the reverse spiro path direction, but if you need this option, it is available here.
+
+
 #### The bezier context
 
 ```c
@@ -203,7 +242,7 @@ You must create an array of spiro control points:
 Then call `SpiroCPsToBezier2`, a routine which takes 5 arguments and returns bc and an integer pass/fail flag.
 
 1. An array of input spiros
-2. The number of elements in the spiros array
+2. The number of elements in the spiros array (this example has 4)
 3. Additional ncq control variable (default==0)
 4. Whether this describes a closed (True=1) or open (False=0) contour
 5. A bézier results output context
@@ -246,7 +285,7 @@ An open curve will have the type of the first control point set to `SPIRO_OPEN_C
 
 (In an open contour the point types of the first and last control points are going to be ignored).
 
-In this case there is no need to provide a point count nor an open/closed contour flag. That information can be obtained from the control points themselves. So `TaggedSpiroCPsToBezier0` only takes 2 arguments and returns bc and an integer pass/fail flag.
+In this case there is no need to provide a point count nor an open/closed contour flag. That information can be obtained from the control points themselves. So `TaggedSpiroCPsToBezier2` only takes 3 arguments and returns bc and an integer pass/fail flag.
 
 1. An array of input spiros
 2. A bézier results output context

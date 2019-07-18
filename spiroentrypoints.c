@@ -25,22 +25,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 /* These six functions are kept for backwards compatibility */
 void SpiroCPsToBezier(spiro_cp *spiros,int n,int isclosed,bezctx *bc) {
-    SpiroCPsToBezier2(spiros,n,0,isclosed,bc);
+    SpiroCPsToBezier2(spiros,n,SPIRO_RETRO_VER1,isclosed,bc);
 }
 void TaggedSpiroCPsToBezier(spiro_cp *spiros,bezctx *bc) {
-    TaggedSpiroCPsToBezier2(spiros,0,bc);
+    TaggedSpiroCPsToBezier2(spiros,SPIRO_RETRO_VER1,bc);
 }
 int SpiroCPsToBezier0(spiro_cp *spiros,int n,int isclosed,bezctx *bc) {
-    return SpiroCPsToBezier2(spiros,n,0,isclosed,bc);
+    return SpiroCPsToBezier2(spiros,n,SPIRO_RETRO_VER1,isclosed,bc);
 }
 int TaggedSpiroCPsToBezier0(spiro_cp *spiros,bezctx *bc) {
-    return TaggedSpiroCPsToBezier2(spiros,0,bc);
+    return TaggedSpiroCPsToBezier2(spiros,SPIRO_RETRO_VER1,bc);
 }
 void SpiroCPsToBezier1(spiro_cp *spiros,int n,int isclosed,bezctx *bc,int *done) {
-    *done = SpiroCPsToBezier2(spiros,n,0,isclosed,bc);
+    *done = SpiroCPsToBezier2(spiros,n,SPIRO_RETRO_VER1,isclosed,bc);
 }
 void TaggedSpiroCPsToBezier1(spiro_cp *spiros,bezctx *bc,int *done) {
-    *done = TaggedSpiroCPsToBezier2(spiros,0,bc);
+    *done = TaggedSpiroCPsToBezier2(spiros,SPIRO_RETRO_VER1,bc);
 }
 
 
@@ -52,7 +52,6 @@ int SpiroCPsToBezier2(spiro_cp *spiros,int n,int ncq,int isclosed,bezctx *bc) {
     if ( n > 1 && (ncq & SPIRO_REVERSE_SRC) && spiroreverse(spiros,n) )
 	return 0;
 
-    dm[0] = -1.;
     if ( isclosed )
 	s = run_spiro0(spiros,dm,ncq,n);
     else {
@@ -83,7 +82,6 @@ int TaggedSpiroCPsToBezier2(spiro_cp *spiros,int ncq,bezctx *bc) {
     if ( n<=0 || ncq<0 ) return 0; /* invalid input */
     if ( n > 1 && (ncq & SPIRO_REVERSE_SRC) && spiroreverse(spiros,n) )
 	return 0;
-    dm[0] = -1.;
     s = run_spiro0(spiros,dm,ncq,n);
     if (s) {
 	spiro_to_bpath0(spiros,s,dm,ncq,n,bc);

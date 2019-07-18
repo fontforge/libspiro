@@ -640,7 +640,8 @@ int test_curve(int c) {
 #endif
 	     (fabs(segs[i].bend_th - rsp[i].b) > 1e-5) ||
 	     (fabs(segs[i].seg_th - rsp[i].th) > 1e-5) ) {
-	  fprintf(stderr,"FAIL\nerror found with run_spiro() data. Results are not the same.\n");
+	  printf("FAIL\n");
+	  fprintf(stderr,"Error found with run_spiro() data. Results are not the same.\n");
 	    fprintf(stderr,"expected line %d t=%c x=%f y=%f bend=%f ch=%f th=%f\n", j, \
 	      spiro[i].ty,spiro[i].x,spiro[i].y,rsp[i].b,rsp[i].ch,rsp[i].th);
 	    free(segs);
@@ -671,7 +672,24 @@ int test_curve(int c) {
 #endif
 
 #if !defined(DO_CALL_TEST20)
-#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST14) && !defined(DO_CALL_TEST15) && !defined(DO_CALL_TEST16) && !defined(DO_CALL_TEST17)
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17)
+    /* Now verify we also have simple arc output too */
+    printf("---\ntesting SpiroCPsToBezier2() using data=path%d[].\n",c);
+    if ( SpiroCPsToBezier2(spiro,cl[c],SPIRO_ARC_MAYBE,co[c],bc)!=1 ) {
+	fprintf(stderr,"error with SpiroCPsToBezier2() using data=path%d[].\n",c);
+	return -7;
+    }
+#endif
+#if defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+    printf("---\ntesting TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
+    if ( TaggedSpiroCPsToBezier2(spiro,SPIRO_ARC_MAYBE,bc)!=1 ) {
+	fprintf(stderr,"error with TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
+	return -8;
+    }
+#endif
+#else
+#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11)
     /* Check if TaggedSpiroCPsToBezier0() works okay */
     printf("---\ntesting TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
     if ( TaggedSpiroCPsToBezier0(spiro,bc)!=1 ) {
@@ -689,7 +707,7 @@ int test_curve(int c) {
     }
 #endif
 
-#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST14) && !defined(DO_CALL_TEST15) && !defined(DO_CALL_TEST16) && !defined(DO_CALL_TEST17)
+#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11)
     /* Check if TaggedSpiroCPsToBezier1() works okay */
     printf("---\ntesting TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
     TaggedSpiroCPsToBezier1(spiro,bc,&done);
@@ -708,22 +726,8 @@ int test_curve(int c) {
 	return -6;
     }
 #endif
+#endif
 
-#if defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17)
-    /* Now verify we also have simple arc output too */
-    printf("---\ntesting SpiroCPsToBezier2() using data=path%d[].\n",c);
-    if ( SpiroCPsToBezier2(spiro,cl[c],SPIRO_ARC_MAYBE,co[c],bc)!=1 ) {
-	fprintf(stderr,"error with SpiroCPsToBezier2() using data=path%d[].\n",c);
-	return -7;
-    }
-#endif
-#if defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
-    printf("---\ntesting TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
-    if ( TaggedSpiroCPsToBezier2(spiro,SPIRO_ARC_MAYBE,bc)!=1 ) {
-	fprintf(stderr,"error with TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
-	return -8;
-    }
-#endif
 #else
     /* We already visually checked output for spiroreverse above. */
     /* Some reversed paths (above) will fail (like path20), so we */
@@ -768,7 +772,7 @@ typedef struct {
 void *test_a_curve(void *pdata) {
     pthread_pcurve *data = (pthread_pcurve*)pdata;
     /*printf("start pthread %d\n",data->ret);*/
-    data->ret = TaggedSpiroCPsToBezier0(data->spiro,data->bc);
+    data->ret = TaggedSpiroCPsToBezier2(data->spiro,0,data->bc);
     /*printf("done\n");*/
     return 0;
 }
@@ -1003,7 +1007,7 @@ int test_multi_curves(void) {
 	pthread_attr_destroy(&tattr);	/* Free thread attribute */
 	if ( j!=-1 ) {
 	    /* Test another curve while waiting for threads to finish */
-	    pdata[i].ret = TaggedSpiroCPsToBezier0(pdata[i].spiro,pdata[i].bc);
+	    pdata[i].ret = TaggedSpiroCPsToBezier2(pdata[i].spiro,0,pdata[i].bc);
 	    printf("running simultaneous threads[%d..%d]\n",k,i);
 	}
 	l=i;
@@ -1019,7 +1023,7 @@ int test_multi_curves(void) {
     for (i=0; i < S_TESTS; i++)
 	if ( pdata[i].ret!=1 ) {
 	    ret=ret-i;
-	    fprintf(stderr,"error %d with TaggedSpiroCPsToBezier0() using data=%d.\n",ret,i);
+	    fprintf(stderr,"error %d with TaggedSpiroCPsToBezier2() using data=%d.\n",ret,i);
 	    goto test_multi_curves_exit;
 	}
     /* All threads returned okay, Now, go check all data is good. */

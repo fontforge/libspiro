@@ -540,7 +540,6 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 	dm[0] /* scale */ = fabs((fabs(xmax) >= fabs(ymax)) ? xmax : ymax);
 	if (xmax >= ymax) dm[0] = xmax; else dm[0] = ymax;
 	dm[0] /* scale */ /= 500.; /* ~ backwards compatible */
-	/* set_dm_to_1(dm); testing */
     }
 #ifdef VERBOSE
 	printf("scale=%g, x_offset=%g, y_offset=%g\n", dm[0], dm[1], dm[2]);
@@ -1025,8 +1024,8 @@ spiro_seg_to_bpath(const double ks[4],
 		   bezctx *bc, int depth)
 {
     double dm[6];
-    set_dm_to_1(dm); dm[3] = x1; dm[4] = y1;
-    spiro_seg_to_bpath0(ks, dm, x0, y0, x1, y1, bc, 0, depth);
+    dm[3] = x1; dm[4] = y1;
+    spiro_seg_to_bpath0(ks, dm, x0, y0, x1, y1, bc, SPIRO_RETRO_VER1, depth);
 }
 
 /* This function reverses src path for calling application. */
@@ -1117,6 +1116,8 @@ run_spiro0(const spiro_cp *src, double *dm, int ncq, int n)
 
     if (src==NULL || n <= 0 || ncq < 0) return 0;
 
+    if ( (ncq & SPIRO_RETRO_VER1) ) set_dm_to_1(dm); else dm[0] = -1.;
+
     s = setup_path0(src, dm, n);
     if (s) {
 	nseg = src[0].ty == '{' ? n - 1 : n;
@@ -1133,8 +1134,7 @@ spiro_seg *
 run_spiro(const spiro_cp *src, int n)
 {
     double dm[6];
-    set_dm_to_1(dm);
-    return run_spiro0(src, dm, 0, n);
+    return run_spiro0(src, dm, SPIRO_RETRO_VER1, n);
 }
 
 void
@@ -1207,8 +1207,7 @@ void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
 {
     double dm[6];
-    set_dm_to_1(dm);
-    spiro_to_bpath0(NULL, s, dm, 0, n, bc);
+    spiro_to_bpath0(NULL, s, dm, SPIRO_RETRO_VER1, n, bc);
 }
 
 double
