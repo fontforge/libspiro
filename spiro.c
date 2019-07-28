@@ -544,7 +544,6 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 #ifdef VERBOSE
 	printf("scale=%g, x_offset=%g, y_offset=%g\n", dm[0], dm[1], dm[2]);
 #endif
-//    }
 
     for (i = 0; i < n_seg; i++) {
 	r[i].x = (src[i].x - dm[1]) / dm[0];
@@ -963,7 +962,7 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 	scale = seg_ch / ch;
 	rot = seg_th - th;
 	if ((abs(depth) > 5 || bend < dm[5]) && ncq == 0) {
-	    // calculate cubic, and output bezier points
+	    /* calculate cubic, and output bezier points */
 	    th_even = (1./384) * ks[3] + (1./8) * ks[1] + rot;
 	    th_odd = (1./48) * ks[2] + .5 * ks[0];
 	    ul = (scale * (1./3)) * cos(th_even - th_odd);
@@ -994,15 +993,37 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 	    integrate_spiro(ksub, xysub, N_IS);
 	    xmid = x0 + cth * xysub[0] - sth * xysub[1];
 	    ymid = y0 + cth * xysub[1] + sth * xysub[0];
-	    if (ncq < 0 && (abs(depth) > 5 || bend < dm[5])) {
-		// looks like an arc if you need one (output arc thru quadto)
-		if (depth >= 0 || depth < -4) {
+	    if (abs(depth) > 5 || bend < dm[5]) {
+		if (ncq < 0) {
+		    /* looks like an arc if needed (use quadto output) */
+		    if (depth >= 0 || depth < -4) {
 #ifdef VERBOSE
-		    printf("...to next knot point...\n");
+			printf("...to next knot point...\n");
 #endif
-		    bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), dm[3], dm[4]);
+			bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), dm[3], dm[4]);
+		    } else {
+			bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
+		    }
 		} else {
-		    bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
+		    /* create quadratic bezier approximations */
+		    th_even = (1./384) * ks[3] + (1./8) * ks[1] + rot;
+		    th_odd = (1./48) * ks[2] + .5 * ks[0];
+		    ul = (scale * (1./6)) * cos(th_even - th_odd);
+		    vl = (scale * (1./6)) * sin(th_even - th_odd);
+		    ur = (scale * (1./6)) * cos(th_even + th_odd);
+		    vr = (scale * (1./6)) * sin(th_even + th_odd);
+		    bezctx_quadto(bc, ((x0 + ul) * dm[0] + dm[1]), ((y0 + vl) * dm[0] + dm[2]), \
+					(xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]));
+		    if (depth >= 0 || depth < -4) {
+#ifdef VERBOSE
+			printf("...to next knot point...\n");
+#endif
+			bezctx_quadto(bc, ((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]), \
+					    dm[3], dm[4]);
+		    } else {
+			bezctx_quadto(bc, ((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]), \
+					    (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
+		    }
 		}
 	    } else {
 #ifdef VERBOSE
@@ -1158,21 +1179,21 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 
     nsegs = s[n - 1].ty == '}' ? \
 	    s[n - 2].ty == 'a' ? n - 2 : n - 1 : n;
-    dm[5] = 1.; // default cubic to bezier bend
-/*testing*/ //	dm[5] = .3;
+    dm[5] = 1.; /* default cubic to bezier bend */
+
     if ( (ncq &= SPIRO_ARC_CUB_QUAD_MASK)==0 ) {
 	/* default action = cubic bezier output */;
-    } else if (ncq == SPIRO_CUBIC_MIN_MAYBE) { // visual inspection advised
-	ncq = 0; // NOTE: experimental, best to look at results first
+    } else if (ncq == SPIRO_CUBIC_MIN_MAYBE) { /* visual inspection advised */
+	ncq = 0; /* NOTE: experimental, best to look at results first */
 	dm[5] = M_PI / 2 + .000001;
-    } else if (ncq == SPIRO_ARC_MAYBE) { // visual inspection advised
-	ncq = -1; // NOTE: these are arcs, not quadratic
-    } else if (ncq == SPIRO_ARC_MIN_MAYBE) { // visual inspection advised
-	ncq = -1; // NOTE: these are arcs, not quadratic
+    } else if (ncq == SPIRO_ARC_MAYBE) { /* visual inspection advised */
+	ncq = -1; /* NOTE: these are arcs (maybe), not quadratic */
+    } else if (ncq == SPIRO_ARC_MIN_MAYBE) { /* visual inspection advised */
+	ncq = -1; /* NOTE: these are arcs (maybe), not quadratic */
 	dm[5] = M_PI / 2 + .000001;
-    } else if (ncq == SPIRO_QUAD_TO_BEZIER) {
-	/* approximate a cubic using quadratic arcs */
-	dm[5] = .25;
+    } else if (ncq == SPIRO_QUAD0_TO_BEZIER) {
+	/* roughly approximate a cubic using two quadratic arcs. */
+	ncq = 0x10;
     }
 
     for (i=j=0; i < nsegs; i++,j++) {

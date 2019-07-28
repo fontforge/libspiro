@@ -66,7 +66,7 @@ extern int SpiroCPsToBezier2(spiro_cp *spiros,int n,int ncq,int isclosed,bezctx 
 #define SPIRO_CUBIC_MIN_MAYBE	0x1000
 #define SPIRO_ARC_MAYBE		0x2000
 #define SPIRO_ARC_MIN_MAYBE	0x3000
-#define SPIRO_QUAD_TO_BEZIER	0x4000
+#define SPIRO_QUAD0_TO_BEZIER	0x4000
 
 #ifdef __cplusplus
 }
