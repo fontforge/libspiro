@@ -165,7 +165,7 @@ Below is the current toggle switch definitions, and default 'ncq' value is zero.
 #define SPIRO_CUBIC_MIN_MAYBE	0x1000
 #define SPIRO_ARC_MAYBE		0x2000
 #define SPIRO_ARC_MIN_MAYBE	0x3000
-#define SPIRO_QUAD_TO_BEZIER	0x4000
+#define SPIRO_QUAD0_TO_BEZIER	0x4000
 ```
 
 The definitions for ncq (above) are:
@@ -184,6 +184,18 @@ This option edits the source spiro path, and reverses the information, then proc
 When libspiro is done calculating bezier output, you will also have a reversed (input) spiro path, therefore save the new spiro path if you need it.
 This simplifies this process for the calling program to a simple option 'SPIRO_REVERSE_SRC', and the results are up to date as per ths version of libspiro.
 NOTE - libspiro calculations are a one-way calculation, so you are not likely to see the same results in the reverse spiro path direction, but if you need this option, it is available here.
+
+SPIRO_CUBIC_TO_BEZIER:
+LibSpiro default action is to create cubic bezier curves.
+
+SPIRO_CUBIC_MIN_MAYBE:
+Cubic arcs can potentially be made with greater bends and less points.
+
+SPIRO_ARC_MAYBE and SPIRO_ARC_MIN_MAYBE:
+Instead of the default cubic output, this exposes the midpoint, which might be useful to someone.
+
+SPIRO_QUAD0_TO_BEZIER:
+Rough approximation of quadratic to bezier curves. Knot points will have smooth connection but midpoints may be visually okay or not.
 
 
 #### The bezier context
