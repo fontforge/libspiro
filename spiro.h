@@ -46,6 +46,8 @@ void
 spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 		double *dm, int ncq, int n, bezctx *bc);
 
+int spiroreverse(spiro_cp *src, int n);
+
 #ifdef __cplusplus
 }
 #endif

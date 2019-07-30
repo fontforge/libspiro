@@ -1,5 +1,5 @@
 /* Test libspiro normal library calls
-Copyright (C) 2013,2014,2015, Joe Da Silva
+Copyright (C) 2013,2014,2015,2016,2017,2018,2019 Joe Da Silva
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -288,7 +288,7 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	{100,   0, '['},
 	{  0,-100, ']'},
 	{-50,-200, 'c'},
-	{-80,-250, '}'}
+	{-80,-250, '}'} /* test 23 reverses this list. */
     };
     int knot5[] = {
 	1, 4, 1, 3, 3, 1, 4, 2, 1, 2, 1, 0
@@ -318,7 +318,7 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	{  0,-190, 'a'},
 	{-50,-195, 'h'},
 	{-90,   0, 'a'},
-	{-95,  50, 'h'},/* call_tests 7 and 8 end here */
+	{-95,  50, 'h'},/* tests 7, 8, 20, 21 end here */
 	{  0,   0, 'z'} /* call_test 12 ends with ah z */
     };
     int knot7[] = {
@@ -451,17 +451,56 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	spiro[i].y = path14[i].y;
 	spiro[i].ty = path14[i].ty;
 	nextknot[i] = knot4[i];
-    } else for (i = 0; i < 4; i++) {
+    } else if ( c==15 ) for (i = 0; i < 4; i++) {
 	/* path15[] is a very small copy of path9[] closed curve. */
 	spiro[i].x = path15[i].x;
 	spiro[i].y = path15[i].y;
 	spiro[i].ty = path15[i].ty;
 	nextknot[i] = knot4[i];
+    } else if ( c==16 ) for (i = 0; i < 4; i++) {
+	/* path16[] uses path4[] as first try at quadratic output */
+	spiro[i].x = path4[i].x;
+	spiro[i].y = path4[i].y;
+	spiro[i].ty = path4[i].ty;
+	nextknot[i] = knot4[i];
+    } else if ( c==17 ) for (i = 0; i < 4; i++) {
+	/* path17[] is closed curve version of path4[] open curve */
+	spiro[i].x = path4[i].x;
+	spiro[i].y = path4[i].y;
+	spiro[i].ty = path4[i].ty;
+	nextknot[i] = knot4[i];
+    } else if ( c==18 ) for (i = 0; i < 4; i++) {
+	spiro[i].x = path2[i].x;
+	spiro[i].y = path2[i].y;
+	spiro[i].ty = path2[i].ty;
+	nextknot[i] = knot2[i];
+    } else if ( c==19 ) for (i = 0; i < 16; i++) {
+	spiro[i].x = path0[i].x;
+	spiro[i].y = path0[i].y;
+	spiro[i].ty = path0[i].ty;
+	nextknot[i] = knot0[i];
+    } else if ( c==20 || c==21 || c==22) for (i = 0; i < 9; i++) {
+	/* path20[]=closed, path21[]=open, path22[]=closed_with_z */
+	spiro[i].x = path7[i].x;
+	spiro[i].y = path7[i].y;
+	spiro[i].ty = path7[i].ty;
+    } else if ( c==23 ) for (i = 0; i < 12; i++) {
+	spiro[i].x = path5[i].x;
+	spiro[i].y = path5[i].y;
+	spiro[i].ty = path5[i].ty;
+    } else if ( c==24 ) for (i = 0; i < 16; i++) {
+	spiro[i].x = path0[i].x;
+	spiro[i].y = path0[i].y;
+	spiro[i].ty = path0[i].ty;
+	nextknot[i] = knot0[i];
     }
 }
-int cl[] = {16, 6, 4, 6, 4, 12, 12, 8, 8, 4, 8, 8, 8, 8, 4, 4}; /* len. */
-int ck[] = {16, 6, 4, 6, 4, 12, 9, 4, 4, 4, 4, 4, 4, 4, 4, 4};
-int co[] = {1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1}; /* close=1 */
+int cl[] = {16, 6, 4, 6, 4, 12, 12, 8, 8, 4, 8, 8, 8, 8, 4, 4, 4, 4, 4, 16,
+	    8, 8, 9, 12, 16}; /* len. */
+int ck[] = {16, 6, 4, 6, 4, 12, 9, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 16,
+	    4, 4, 4, 12, 16};
+int co[] = {1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1,
+	    1, 0, 1, 0, 1}; /* close=1 */
 
 #ifndef DO_CALL_TESTM
 /* Provide bare-bones do-nothing functions for testing. This only */
@@ -507,19 +546,42 @@ int test_curve(int c) {
     load_test_curve(spiro,nextknot,c);
 
     d[0] = 1.; d[1] = d[1] = 0.;
-#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15)
+#if defined(DO_CALL_TEST20)
+    /* check if spiro values are reversed correctly on input path */
+    printf("---\ntesting spiroreverse() using data=path%d[].\n",c);
+    if ( (spiroreverse(spiro,cl[c])) ) {
+	fprintf(stderr,"error with spiroreverse() using data=path%d[].\n",c);
+	return -1;
+    }
+    /* just do a visual check to verify types and points look ok. */
+    /* NOTE: spiro[] is NOT replaced if unable to reverse values. */
+    for (i=0; i < cl[c]; i++) {
+	printf("  reversed %d: ty=%c, x=%g, y=%g\n", i,spiro[i].ty,spiro[i].x,spiro[i].y);
+    }
+#else
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+#if defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+    /* run_spiro0 with various paths to test a simple arc output. */
+    d[0] = -1.;
+    printf("---\ntesting run_spiro0(q) using data=path%d[].\n",c);
+    if ( (segs=run_spiro0(spiro,d,SPIRO_ARC_MAYBE,cl[c]))==0 ) {
+	fprintf(stderr,"error with run_spiro0(q) using data=path%d[].\n",c);
+	return -1;
+    }
+#else
     /* Do run_spiro0 instead (these tests are far from -0.5..+0.5 */
     d[0] = -1.;
     printf("---\ntesting run_spiro0() using data=path%d[].\n",c);
     if ( (segs=run_spiro0(spiro,d,0,cl[c]))==0 ) {
-	printf("error with run_spiro0() using data=path%d[].\n",c);
+	fprintf(stderr,"error with run_spiro0() using data=path%d[].\n",c);
 	return -1;
     }
+#endif
 #else
     /* Check if run_spiro works okay (try backwards compatiblity) */
     printf("---\ntesting run_spiro() using data=path%d[].\n",c);
     if ( (segs=run_spiro(spiro,cl[c]))==0 ) {
-	printf("error with run_spiro() using data=path%d[].\n",c);
+	fprintf(stderr,"error with run_spiro() using data=path%d[].\n",c);
 	return -1;
     }
 #endif
@@ -540,7 +602,11 @@ int test_curve(int c) {
     else if ( c==12 ) rsp = verify_rs7; /* test #12 uses path7[]. */
     else if ( c==13 ) rsp = verify_rs13; /* almost same as path11 */
     else if ( c==14 ) rsp = verify_rs14; /* very large path9 copy */
-    else	      rsp = verify_rs15; /* sub-atomic path9 copy */
+    else if ( c==15 ) rsp = verify_rs15; /* sub-atomic path9 copy */
+    else if ( c==16 ) rsp = verify_rs4; /* path4 arc curve output */
+    else if ( c==17 ) rsp = verify_rs4; /* path4 arc curve closed */
+    else if ( c==18 ) rsp = verify_rs2; /* trying many iterations */
+    else	      rsp = verify_rs0; /* long list, arc output. */
 
     /* Quick visual check shows X,Y knots match with each pathN[] */
     for (i=j=0; i < cl[c]-1; i++,j++) {
@@ -555,8 +621,8 @@ int test_curve(int c) {
 	/* Tests including ah data more complicated to verify xy, */
 	/* therefore, skip testing xy for call_tests shown below. */
 	if ( (segs[i].ty != spiro[i].ty) ||
-#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15)
-#if defined(DO_CALL_TEST14)
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
 	     (fabs((segs[i].x * d[0] + d[1]) - spiro[i].x) > 1e5) ||
 	     (fabs((segs[i].y * d[0] + d[2]) - spiro[i].y) > 1e5) ||
 	     (fabs(segs[i].seg_ch * d[0] - rsp[i].ch) > 1e5) ||
@@ -574,8 +640,9 @@ int test_curve(int c) {
 #endif
 	     (fabs(segs[i].bend_th - rsp[i].b) > 1e-5) ||
 	     (fabs(segs[i].seg_th - rsp[i].th) > 1e-5) ) {
-	  printf("FAIL\nerror found with run_spiro() data. Results are not the same.\n");
-	    printf("expected line %d t=%c x=%f y=%f bend=%f ch=%f th=%f\n", j, \
+	  printf("FAIL\n");
+	  fprintf(stderr,"Error found with run_spiro() data. Results are not the same.\n");
+	    fprintf(stderr,"expected line %d t=%c x=%f y=%f bend=%f ch=%f th=%f\n", j, \
 	      spiro[i].ty,spiro[i].x,spiro[i].y,rsp[i].b,rsp[i].ch,rsp[i].th);
 	    free(segs);
 	    return -2;
@@ -592,19 +659,41 @@ int test_curve(int c) {
     /* Quick visual check shows X,Y knots match with each pathN[] */
     printf("---\ntesting spiro_to_bpath() using data from run_spiro(data=path%d[],len=%d).\n",c,cl[c]);
     bc = new_bezctx_test();
-#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15)
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+#if defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+    spiro_to_bpath0(spiro,segs,d,SPIRO_ARC_MAYBE,cl[c],bc);
+#else
     spiro_to_bpath0(spiro,segs,d,0,cl[c],bc);
+#endif
 #else
     spiro_to_bpath(segs,cl[c],bc);
 #endif
-
     free(segs);
+#endif
 
-#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST14) && !defined(DO_CALL_TEST15) 
+#if !defined(DO_CALL_TEST20)
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17) || defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+#if defined(DO_CALL_TEST14) || defined(DO_CALL_TEST15) || defined(DO_CALL_TEST16) || defined(DO_CALL_TEST17)
+    /* Now verify we also have simple arc output too */
+    printf("---\ntesting SpiroCPsToBezier2() using data=path%d[].\n",c);
+    if ( SpiroCPsToBezier2(spiro,cl[c],SPIRO_ARC_MAYBE,co[c],bc)!=1 ) {
+	fprintf(stderr,"error with SpiroCPsToBezier2() using data=path%d[].\n",c);
+	return -7;
+    }
+#endif
+#if defined(DO_CALL_TEST18) || defined(DO_CALL_TEST19)
+    printf("---\ntesting TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
+    if ( TaggedSpiroCPsToBezier2(spiro,SPIRO_ARC_MAYBE,bc)!=1 ) {
+	fprintf(stderr,"error with TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
+	return -8;
+    }
+#endif
+#else
+#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11)
     /* Check if TaggedSpiroCPsToBezier0() works okay */
     printf("---\ntesting TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
     if ( TaggedSpiroCPsToBezier0(spiro,bc)!=1 ) {
-	printf("error with TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
+	fprintf(stderr,"error with TaggedSpiroCPsToBezier0() using data=path%d[].\n",c);
 	return -3;
     }
 #endif
@@ -613,17 +702,17 @@ int test_curve(int c) {
     /* Check if SpiroCPsToBezier0() works okay */
     printf("---\ntesting SpiroCPsToBezier0() using data=path%d[].\n",c);
     if ( SpiroCPsToBezier0(spiro,cl[c],co[c],bc)!=1 ) {
-	printf("error with SpiroCPsToBezier0() using data=path%d[].\n",c);
+	fprintf(stderr,"error with SpiroCPsToBezier0() using data=path%d[].\n",c);
 	return -4;
     }
 #endif
 
-#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11) && !defined(DO_CALL_TEST14) && !defined(DO_CALL_TEST15)
+#if !defined(DO_CALL_TEST4) && !defined(DO_CALL_TEST6) && !defined(DO_CALL_TEST7) && !defined(DO_CALL_TEST8) && !defined(DO_CALL_TEST9) && !defined(DO_CALL_TEST10) && !defined(DO_CALL_TEST11)
     /* Check if TaggedSpiroCPsToBezier1() works okay */
     printf("---\ntesting TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
     TaggedSpiroCPsToBezier1(spiro,bc,&done);
     if ( done!=1 ) {
-	printf("error with TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
+	fprintf(stderr,"error with TaggedSpiroCPsToBezier1() using data=path%d[].\n",c);
 	return -5;
     }
 #endif
@@ -633,8 +722,31 @@ int test_curve(int c) {
     printf("---\ntesting SpiroCPsToBezier1() using data=path%d[].\n",c);
     SpiroCPsToBezier1(spiro,cl[c],co[c],bc,&done);
     if ( done!=1 ) {
-	printf("error with SpiroCPsToBezier1() using data=path%d[].\n",c);
+	fprintf(stderr,"error with SpiroCPsToBezier1() using data=path%d[].\n",c);
 	return -6;
+    }
+#endif
+#endif
+
+#else
+    /* We already visually checked output for spiroreverse above. */
+    /* Some reversed paths (above) will fail (like path20), so we */
+    /* reverse the reversed spiro path so we can use current test */
+    /* functions & values (so that this actually tests something) */
+    if (c == 20 || c == 21) {
+	/* Check if SpiroCPsToBezier2() works okay */
+	printf("---\ntesting SpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
+	if ( SpiroCPsToBezier2(spiro,cl[c],SPIRO_REVERSE_SRC,co[c],bc)!=1 ) {
+	    fprintf(stderr,"error with SpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
+	    return -9;
+	}
+    } else { /* c==22 || c==23 || c==24 */
+	/* Check if TaggedSpiroCPsToBezier2() works okay */
+	printf("---\ntesting TaggedSpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
+	if ( TaggedSpiroCPsToBezier2(spiro,SPIRO_REVERSE_SRC,bc)!=1 ) {
+	    fprintf(stderr,"error with TaggedSpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
+	    return -10;
+	}
     }
 #endif
 
@@ -660,7 +772,7 @@ typedef struct {
 void *test_a_curve(void *pdata) {
     pthread_pcurve *data = (pthread_pcurve*)pdata;
     /*printf("start pthread %d\n",data->ret);*/
-    data->ret = TaggedSpiroCPsToBezier0(data->spiro,data->bc);
+    data->ret = TaggedSpiroCPsToBezier2(data->spiro,0,data->bc);
     /*printf("done\n");*/
     return 0;
 }
@@ -895,13 +1007,13 @@ int test_multi_curves(void) {
 	pthread_attr_destroy(&tattr);	/* Free thread attribute */
 	if ( j!=-1 ) {
 	    /* Test another curve while waiting for threads to finish */
-	    pdata[i].ret = TaggedSpiroCPsToBezier0(pdata[i].spiro,pdata[i].bc);
+	    pdata[i].ret = TaggedSpiroCPsToBezier2(pdata[i].spiro,0,pdata[i].bc);
 	    printf("running simultaneous threads[%d..%d]\n",k,i);
 	}
 	l=i;
 	while (--i >= k)
 	    if ( pthread_join(curve_test[i],NULL) ) {
-		printf("bad pthread_join[%d]\n",i);
+		fprintf(stderr,"bad pthread_join[%d]\n",i);
 		j=-1;
 	    }
 	k=++l;
@@ -911,7 +1023,7 @@ int test_multi_curves(void) {
     for (i=0; i < S_TESTS; i++)
 	if ( pdata[i].ret!=1 ) {
 	    ret=ret-i;
-	    printf("error %d with TaggedSpiroCPsToBezier0() using data=%d.\n",ret,i);
+	    fprintf(stderr,"error %d with TaggedSpiroCPsToBezier2() using data=%d.\n",ret,i);
 	    goto test_multi_curves_exit;
 	}
     /* All threads returned okay, Now, go check all data is good. */
@@ -922,7 +1034,7 @@ int test_multi_curves(void) {
     for (i=0; i < S_TESTS; i++) {
 	if ( TaggedSpiroCPsToBezier0(spiro[i],(bezctx*)(bc[i]))!=1 ) {
 	    ret=ret-i;
-	    printf("error %d with TaggedSpiroCPsToBezier0() using data=%d.\n",ret,i);
+	    fprintf(stderr,"error %d with TaggedSpiroCPsToBezier0() using data=%d.\n",ret,i);
 	    goto test_multi_curves_exit;
 	}
     }
@@ -970,7 +1082,7 @@ int test_multi_curves(void) {
 			/* changed to a curve end point, which is '}' */
 		    else {
 			ret=ret-i;
-			printf("error %d with test_multi_curves() using data %d\n",ret,i);
+			fprintf(stderr,"error %d with test_multi_curves() using data %d\n",ret,i);
 			goto test_multi_curves_exit;
 		    }
 		}
@@ -1061,6 +1173,26 @@ int main(int argc, char **argv) {
 #endif
 #ifdef DO_CALL_TEST15
     ret=test_curve(15);	/* go very big! go very tiny! */
+#endif
+#ifdef DO_CALL_TEST16
+    ret=test_curve(16);	/* testing arc output path4[] */
+#endif
+#ifdef DO_CALL_TEST17
+    ret=test_curve(17);	/* do arc closed curve outut. */
+#endif
+#ifdef DO_CALL_TEST18
+    ret=test_curve(18);	/* do iterative as arc output */
+#endif
+#ifdef DO_CALL_TEST19
+    ret=test_curve(19);	/* do lengthy output with arc */
+#endif
+#ifdef DO_CALL_TEST20
+    /* test spiroreverse and verify path[] directions */
+    if ( (ret=test_curve(20))==0 )
+	if ( (ret=test_curve(21))==0 )
+	    if ( (ret=test_curve(22))==0 )
+		if ( (ret=test_curve(23))==0 )
+		    ret=test_curve(24);
 #endif
 #ifdef DO_CALL_TESTM
     ret=test_multi_curves();

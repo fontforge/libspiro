@@ -7,7 +7,7 @@ or in libraries such as GEGL. There may be other possible uses in future,
 and this library has strong potential in graphical and vector type programs.
 
 Developers interested in also sharing and making use of LibSpiro will likely
-want to read (in this order to understand LibSpiro better):
+want to read (these README files too to understand LibSpiro better):
 README-RaphLevien
 README-GeorgeWilliams
 

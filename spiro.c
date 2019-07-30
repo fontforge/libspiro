@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 #include <string.h>
 
+#include "spiroentrypoints.h"
 #include "bezctx_intf.h"
 #include "spiro.h"
 
@@ -521,7 +522,7 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 
     n_seg = src[0].ty == '{' ? n - 1 : n;
     r = (spiro_seg *)malloc((n_seg + 1) * sizeof(spiro_seg));
-    if (r==NULL) return 0;
+    if (r == NULL) return 0;
 
     if (dm[0] < 0.9) {
 	/* for math to be scalable fit it within -0.5..+0.5 */
@@ -539,12 +540,10 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 	dm[0] /* scale */ = fabs((fabs(xmax) >= fabs(ymax)) ? xmax : ymax);
 	if (xmax >= ymax) dm[0] = xmax; else dm[0] = ymax;
 	dm[0] /* scale */ /= 500.; /* ~ backwards compatible */
-	/* set_dm_to_1(dm); testing */
     }
 #ifdef VERBOSE
 	printf("scale=%g, x_offset=%g, y_offset=%g\n", dm[0], dm[1], dm[2]);
 #endif
-//    }
 
     for (i = 0; i < n_seg; i++) {
 	r[i].x = (src[i].x - dm[1]) / dm[0];
@@ -610,7 +609,7 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 static spiro_seg *
 setup_path(const spiro_cp *src, int n)
 {
-    double dm[5];
+    double dm[6];
     set_dm_to_1(dm);
     return setup_path0(src, dm, n);
 }
@@ -695,8 +694,8 @@ banbks11(const bandmat *m, const int *perm, double *v, int n)
 
 static int compute_jinc(char ty0, char ty1)
 {
-    if (ty0 == 'o' || ty1 == 'o' ||
-	ty0 == ']' || ty1 == '[' ||
+    if (ty0 == 'o' || ty1 == 'o' || \
+	ty0 == ']' || ty1 == '[' || \
 	ty0 == 'h' || ty1 == 'a')
 	return 4;
     else if (ty0 == 'c' && ty1 == 'c')
@@ -962,7 +961,8 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 	th = atan2(xy[1], xy[0]);
 	scale = seg_ch / ch;
 	rot = seg_th - th;
-	if (abs(depth) > 5 || bend < 1.) {
+	if ((abs(depth) > 5 || bend < dm[5]) && ncq == 0) {
+	    /* calculate cubic, and output bezier points */
 	    th_even = (1./384) * ks[3] + (1./8) * ks[1] + rot;
 	    th_odd = (1./48) * ks[2] + .5 * ks[0];
 	    ul = (scale * (1./3)) * cos(th_even - th_odd);
@@ -983,9 +983,6 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 	    }
 	} else {
 	    /* subdivide */
-#ifdef VERBOSE
-		printf("...subdivide curve...\n");
-#endif
 	    ksub[0] = .5 * ks[0] - .125 * ks[1] + (1./64) * ks[2] - (1./768) * ks[3];
 	    ksub[1] = .25 * ks[1] - (1./16) * ks[2] + (1./128) * ks[3];
 	    ksub[2] = .125 * ks[2] - (1./32) * ks[3];
@@ -996,11 +993,48 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 	    integrate_spiro(ksub, xysub, N_IS);
 	    xmid = x0 + cth * xysub[0] - sth * xysub[1];
 	    ymid = y0 + cth * xysub[1] + sth * xysub[0];
-	    spiro_seg_to_bpath0(ksub, dm, x0, y0, xmid, ymid, bc, ncq, -(abs(depth) + 1));
-	    ksub[0] += .25 * ks[1] + (1./384) * ks[3];
-	    ksub[1] += .125 * ks[2];
-	    ksub[2] += (1./16) * ks[3];
-	    spiro_seg_to_bpath0(ksub, dm, xmid, ymid, x1, y1, bc, ncq, (depth >= 0 ? ++depth : --depth));
+	    if (abs(depth) > 5 || bend < dm[5]) {
+		if (ncq < 0) {
+		    /* looks like an arc if needed (use quadto output) */
+		    if (depth >= 0 || depth < -4) {
+#ifdef VERBOSE
+			printf("...to next knot point...\n");
+#endif
+			bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), dm[3], dm[4]);
+		    } else {
+			bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
+		    }
+		} else {
+		    /* create quadratic bezier approximations */
+		    th_even = (1./384) * ks[3] + (1./8) * ks[1] + rot;
+		    th_odd = (1./48) * ks[2] + .5 * ks[0];
+		    ul = (scale * (1./6)) * cos(th_even - th_odd);
+		    vl = (scale * (1./6)) * sin(th_even - th_odd);
+		    ur = (scale * (1./6)) * cos(th_even + th_odd);
+		    vr = (scale * (1./6)) * sin(th_even + th_odd);
+		    bezctx_quadto(bc, ((x0 + ul) * dm[0] + dm[1]), ((y0 + vl) * dm[0] + dm[2]), \
+					(xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]));
+		    if (depth >= 0 || depth < -4) {
+#ifdef VERBOSE
+			printf("...to next knot point...\n");
+#endif
+			bezctx_quadto(bc, ((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]), \
+					    dm[3], dm[4]);
+		    } else {
+			bezctx_quadto(bc, ((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]), \
+					    (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
+		    }
+		}
+	    } else {
+#ifdef VERBOSE
+		printf("...subdivide curve...\n");
+#endif
+		spiro_seg_to_bpath0(ksub, dm, x0, y0, xmid, ymid, bc, ncq, -(abs(depth) + 1));
+		ksub[0] += .25 * ks[1] + (1./384) * ks[3];
+		ksub[1] += .125 * ks[2];
+		ksub[2] += (1./16) * ks[3];
+		spiro_seg_to_bpath0(ksub, dm, xmid, ymid, x1, y1, bc, ncq, (depth >= 0 ? ++depth : --depth));
+	    }
 	}
     }
 }
@@ -1010,9 +1044,89 @@ spiro_seg_to_bpath(const double ks[4],
 		   double x0, double y0, double x1, double y1,
 		   bezctx *bc, int depth)
 {
-    double dm[5];
-    set_dm_to_1(dm); dm[3] = x1; dm[4] = y1;
-    spiro_seg_to_bpath0(ks, dm, x0, y0, x1, y1, bc, 0, depth);
+    double dm[6];
+    dm[3] = x1; dm[4] = y1;
+    spiro_seg_to_bpath0(ks, dm, x0, y0, x1, y1, bc, SPIRO_RETRO_VER1, depth);
+}
+
+/* This function reverses src path for calling application. */
+/* Spiro calculations might not translate well in the other */
+/* direction, however, there may be a need to reverse path. */
+/* Function leaves src unmodified if cannot reverse values. */
+int
+spiroreverse(spiro_cp *src, int n)
+{
+    char c;
+    int i, j;
+    double x, y;
+    spiro_cp *tmp;
+
+    if (n > 2 && src[0].ty == '{' && \
+	(src[1].ty == 'h' || src[n - 2].ty == 'a')) {
+#ifdef VERBOSE
+	fprintf(stderr, "ERROR: LibSpiro: cannot reverse this list because it starts with '{','h' or ends with 'a','}'.\n");
+#endif
+	return -1;
+    }
+
+    if (src[n - 1].ty == 'z') --n;
+
+    tmp = (spiro_cp *)malloc(n * sizeof(spiro_cp));
+    if (tmp == NULL) return -1;
+
+#ifdef VERBOSE
+    printf("reverse n=%d values:\n",n);
+#endif
+
+    for (i=0,j=--n; i <= j; i++, j--) {
+	/* NOTE: For graphic programs that repeat this over */
+	/* and over again, this reversal is best done once, */
+	/* and then you use the reversed string repeatedly; */
+	/* This helps avoid wasting time to recalculate the */
+	/* string over and over again unnecessarily. Script */
+	/* and non-graphic programs tend to need this once, */
+	/* or speed isn't as important as script simplicity */
+	/* so this suggestion (to pre-save) is unnecessary. */
+	tmp[j].ty = src[i].ty; tmp[j].x = src[i].x; tmp[j].y = src[i].y;
+	if (i == j) break;
+	tmp[i].ty = src[j].ty; tmp[i].x = src[j].x; tmp[i].y = src[j].y;
+    }
+    for (i=0; i <= n; i++) {
+	c = tmp[i].ty;
+	if (c == '[')
+	    tmp[i].ty = ']';
+	else if (c == ']')
+	    tmp[i].ty = '[';
+	else if (c == '{')
+	    tmp[i].ty = '}';
+	else if (c == '}')
+	    tmp[i].ty = '{';
+	else if (c == 'h') {
+	    tmp[i].ty = 'a';
+	    x = tmp[i].x; tmp[i].x = tmp[i + 1].x; x -= tmp[i].x;
+	    y = tmp[i].y; tmp[i].y = tmp[i + 1].y; y -= tmp[i].y;
+	    if ( tmp[++i].ty != 'a')
+		goto errspiroreverse;
+	    tmp[i].ty = 'h';
+	    tmp[i].x -= x;
+	    tmp[i].y -= y;
+	} else if (c == 'a')
+	    goto errspiroreverse;
+    }
+    for (i=0; i <= n; i++) {
+	src[i].ty = tmp[i].ty;
+	src[i].x = tmp[i].x;
+	src[i].y = tmp[i].y;
+#ifdef VERBOSE
+	printf("reversed %d: ty=%c, x=%g, y=%g\n", i, src[i].ty, src[i].x, src[i].y );
+#endif
+    }
+    free(tmp);
+    return 0;
+
+errspiroreverse:
+    free(tmp);
+    return -1;
 }
 
 spiro_seg *
@@ -1021,7 +1135,9 @@ run_spiro0(const spiro_cp *src, double *dm, int ncq, int n)
     int converged, nseg;
     spiro_seg *s;
 
-    if (src==NULL || n <= 0) return 0;
+    if (src==NULL || n <= 0 || ncq < 0) return 0;
+
+    if ( (ncq & SPIRO_RETRO_VER1) ) set_dm_to_1(dm); else dm[0] = -1.;
 
     s = setup_path0(src, dm, n);
     if (s) {
@@ -1034,14 +1150,12 @@ run_spiro0(const spiro_cp *src, double *dm, int ncq, int n)
     return 0;
 }
 
-
 /* deprecated / backwards compatibility / not scalable */
 spiro_seg *
 run_spiro(const spiro_cp *src, int n)
 {
-    double dm[5];
-    set_dm_to_1(dm);
-    return run_spiro0(src, dm, 0, n);
+    double dm[6];
+    return run_spiro0(src, dm, SPIRO_RETRO_VER1, n);
 }
 
 void
@@ -1058,13 +1172,29 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
     double x0, y0, x1, y1;
 
 #ifdef VERBOSE
-    printf("spiro_to_bpath0 n=%d s=%d bc=%d\n",n,s==NULL ? 0:1,bc==NULL ? 0:1);
+    printf("spiro_to_bpath0 ncq=0x%x n=%d s=%d bc=%d\n",ncq,n,s==NULL ? 0:1,bc==NULL ? 0:1);
 #endif
 
-    if (s==NULL || n <= 0 || bc==NULL) return;
+    if (s==NULL || n <= 0 || ncq < 0 || bc==NULL) return;
 
     nsegs = s[n - 1].ty == '}' ? \
 	    s[n - 2].ty == 'a' ? n - 2 : n - 1 : n;
+    dm[5] = 1.; /* default cubic to bezier bend */
+
+    if ( (ncq &= SPIRO_ARC_CUB_QUAD_MASK)==0 ) {
+	/* default action = cubic bezier output */;
+    } else if (ncq == SPIRO_CUBIC_MIN_MAYBE) { /* visual inspection advised */
+	ncq = 0; /* NOTE: experimental, best to look at results first */
+	dm[5] = M_PI / 2 + .000001;
+    } else if (ncq == SPIRO_ARC_MAYBE) { /* visual inspection advised */
+	ncq = -1; /* NOTE: these are arcs (maybe), not quadratic */
+    } else if (ncq == SPIRO_ARC_MIN_MAYBE) { /* visual inspection advised */
+	ncq = -1; /* NOTE: these are arcs (maybe), not quadratic */
+	dm[5] = M_PI / 2 + .000001;
+    } else if (ncq == SPIRO_QUAD0_TO_BEZIER) {
+	/* roughly approximate a cubic using two quadratic arcs. */
+	ncq = 0x10;
+    }
 
     for (i=j=0; i < nsegs; i++,j++) {
 	x0 = s[i].x; y0 = s[i].y;
@@ -1079,7 +1209,11 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 	    if (s[i].ty == 'a') ++i;
 	x1 = s[i + 1].x; y1 = s[i + 1].y;
 	if (src != NULL) {
-	    dm[3] = src[i + 1].x; dm[4] = src[i + 1].y;
+	    if ((i + 1 == n && nsegs == n) || src[i].ty == 'z') {
+		dm[3] = src[0].x; dm[4] = src[0].y;
+	    } else {
+		dm[3] = src[i + 1].x; dm[4] = src[i + 1].y;
+	    }
 	} else {
 	    dm[3] = (x1 * dm[0] + dm[1]); dm[4] = (y1 * dm[0] + dm[2]);
 	}
@@ -1093,9 +1227,8 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
 {
-    double dm[5];
-    set_dm_to_1(dm);
-    spiro_to_bpath0(NULL, s, dm, 0, n, bc);
+    double dm[6];
+    spiro_to_bpath0(NULL, s, dm, SPIRO_RETRO_VER1, n, bc);
 }
 
 double
