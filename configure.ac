@@ -1,12 +1,12 @@
 # -*- Autoconf -*-
 dnl Process this file with autoconf to produce a configure script.
 
-# Copyright (C) 2013,2014,2015 by Joe Da Silva
+# Copyright (C) 2013...2019 by Joe Da Silva
 
 AC_PREREQ([2.64])
 #-------------------------------------------
 # PackageTimestamp version
-m4_define([spiro_package_stamp], [20150702])
+m4_define([spiro_package_stamp], [20190731])
 #-------------------------------------------
 # Making point releases:
 #   spiro_major_version += 0;
@@ -20,15 +20,38 @@ m4_define([spiro_package_stamp], [20150702])
 #   spiro_major_version += 1;
 #   spiro_minor_version = 0;
 #
-m4_define([spiro_major_version], [0])
-m4_define([spiro_minor_version], [5])
-m4_define([spiro_version],
-          [spiro_major_version.spiro_minor_version.spiro_package_stamp])
-m4_define([spiro_info],
-          [spiro_major_version:spiro_minor_version:0])
-m4_define([spiro_package_name], [libspiro])
+m4_define([spiro_major_version], [1])
+m4_define([spiro_minor_version], [0])
+m4_define([spiro_version],[spiro_major_version.spiro_minor_version])
 
-AC_INIT([spiro],[spiro_version],[fontforge-devel@lists.sourceforge.net],
+#-------------------------------------------
+# Updating the libtool version should be set
+# independently of the library's major/minor
+# version, execute the following for C:R:A
+#
+# 1. If the code has changed at all (e.g., an update):
+#   spiro_revision += 1
+#
+# 2. If any interfaces are added, removed, or changed
+#    (e.g., a new function has been added):
+#   spiro_current += 1
+#   spiro_revision = 0
+#
+# 3. If any interfaces have been added:
+#   spiro_age += 1
+#
+# 4. If any interfaces have been removed or changed
+#    (i.e., backwards compatibility has been broken):
+#  spiro_age = 0
+#
+m4_define([spiro_current], [1])
+m4_define([spiro_revision],[0])
+m4_define([spiro_age],     [0])
+m4_define([spiro_libver],[spiro_current:spiro_revision:spiro_age])
+
+m4_define([spiro_package_name], [libspiro])
+ 
+AC_INIT([spiro],[spiro_package_stamp],[fontforge-devel@lists.sourceforge.net],
 	[spiro_package_name],[https://github.com/fontforge/libspiro])
 
 #-------------------------------------------
@@ -171,6 +194,12 @@ AC_DEFINE_UNQUOTED([S_TESTP],[$testalot],
   [Do 'S_TESTS' multi-thread 'call-testm' checks when you run 'make check'.])
 
 #-------------------------------------------
+# Pass some spiro.c definitions
+AC_DEFINE([LS_VERSION_MJ],[spiro_major_version],[Libspiro version major value])
+AC_DEFINE([LS_VERSION_MN],[spiro_minor_version],[Libspiro version minor value])
+AC_DEFINE([LS_VERSION_STR],["spiro_version"],[Libspiro Major.Minor value. Report this back])
+
+#-------------------------------------------
 # Platform specific stuff ($host)
 
 #-------------------------------------------
@@ -227,7 +256,7 @@ AH_BOTTOM([#endif])
 #-------------------------------------------
 # Pass variables to MAKEFILE.AM
 AC_SUBST([HOST],[host])
-AC_SUBST([LIBSPIRO_VERSION],[spiro_info])
+AC_SUBST([LIBSPIRO_VERSION],[spiro_libver])
 AC_SUBST([LS_CFLAGS])
 AC_SUBST([LS_LIB])
 AC_SUBST([WCFLAGS])

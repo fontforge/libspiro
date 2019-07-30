@@ -1,3 +1,22 @@
+- 2019-Jul-31
+    * Libspiro Version 20190731
+    * Corrected library to report correctly as next version up. This is
+      probably a significant change, therefore bumped library to start
+      at 1.0 even though backwards compatibility remains close to same.
+    * Scaling bug fixed. Libspiro can accept points that can be shifted
+      and/or scaled, this gives libspiro more flexiblity with graphics
+      and templates. Large or small spiros created before this fix may
+      need adjusting to fit the new calculations, but they're resizable
+      and movable afterwards.
+    * Added toggle switch ncq giving users additional functionality not
+      easily accessible through spiro paths, including quad0 access.
+    * Removed the excessively long package name, which you'll note as a
+      so-bump change with Fedora and also Debian in naming this package.
+    * Some Java alignment fixed - Thanks to Mingye Wang
+    * Added new anchor and handle {'a','h'} which may be useful to many.
+    * Fix System.arraycopy and README.md - Thanks to Wieslaw Soltes.
+    * Include config header before DO_TIME_DAY - Thanks to Jeremy Tan.
+
 - 2015-Jul-19
     * Add patch for failure in hurd-i386 build (debian 1%0.5.20150702-2)
 

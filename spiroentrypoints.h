@@ -37,6 +37,7 @@ extern void SpiroCPsToBezier1(spiro_cp *spiros,int n,int isclosed,bezctx *bc,int
 
 /* These functions are available in libspiro-20190731 or higher and */
 /* give you best flexibility compared to earlier libspiro versions. */
+extern const char *LibSpiroVersion(void);
 
 /* The spiros array should indicate it's own end... So              */
 /* Open contours must have the ty field of the first cp set to '{'  */
