@@ -1231,6 +1231,12 @@ spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
     spiro_to_bpath0(NULL, s, dm, SPIRO_RETRO_VER1, n, bc);
 }
 
+const char *
+LibSpiroVersion(void)
+{
+    return( LS_VERSION_STR );
+}
+
 double
 get_knot_th(const spiro_seg *s, int i)
 {

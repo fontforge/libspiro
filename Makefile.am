@@ -10,7 +10,7 @@ test_programs = call-test0 call-test1 call-test2 call-test3 call-test4 \
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libspiro.pc
 
-ACLOCAL_AMFLAGS = -I m4 $(ACLOCAL_FLAGS)
+ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 AM_CFLAGS = $(WCFLAGS) $(LS_CFLAGS)
 AM_LDFLAGS = $(WLSLIB) $(LS_LIB) -no-undefined --mode=link

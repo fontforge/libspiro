@@ -56,3 +56,13 @@ Installing on Windows 64-bit
 > make clean
 > make
 > make install
+
+NOTE: Some Distros and Operating Systems may require you to run 'ldconfig'
+to recognize LibSpiro if you are not rebooting your computer first before
+installing another program that depends on LibSpiro. To do this, you may
+need to run 'ldconfig' in 'su -' mode after you have done 'make install':
+
+	$ su -
+	# ldconfig
+	# exit
+	$
