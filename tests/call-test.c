@@ -536,7 +536,7 @@ bezctx *new_bezctx_test(void) {
 int test_curve(int c) {
     spiro_cp spiro[16];
     int nextknot[17];
-    double d[5];
+    double d[6];
     spiro_seg *segs = NULL;
     bezctx *bc;
     rs_check_vals *rsp;
@@ -545,7 +545,7 @@ int test_curve(int c) {
     /* Load sample data so that we can see if library is callable */
     load_test_curve(spiro,nextknot,c);
 
-    d[0] = 1.; d[1] = d[1] = 0.;
+    d[0] = 1.; d[1] = d[2] = 0.;
 #if defined(DO_CALL_TEST20)
     /* check if spiro values are reversed correctly on input path */
     printf("---\ntesting spiroreverse() using data=path%d[].\n",c);

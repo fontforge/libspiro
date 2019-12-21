@@ -50,7 +50,7 @@ m4_define([spiro_age],     [0])
 m4_define([spiro_libver],[spiro_current:spiro_revision:spiro_age])
 
 m4_define([spiro_package_name], [libspiro])
- 
+
 AC_INIT([spiro],[spiro_package_stamp],[fontforge-devel@lists.sourceforge.net],
 	[spiro_package_name],[https://github.com/fontforge/libspiro])
 
@@ -236,6 +236,11 @@ dnl   AX_CHECK_COMPILE_FLAG([-Wcast-qual],[WCFLAGS="$WCFLAGS -Wcast-qual"])
 dnl   AX_CHECK_COMPILE_FLAG([-Wcast-align],[WCFLAGS="$WCFLAGS -Wcast-align"])
 dnl   AX_CHECK_COMPILE_FLAG([-Wpadded],[WCFLAGS="$WCFLAGS -Wpadded"])
 dnl   AX_CHECK_COMPILE_FLAG([-Woverlength-strings],[WCFLAGS="$WCFLAGS -Woverlength-strings"])
+
+dnl NOTE: -fsanitize has to be first library
+dnl and will also conflict with other checks
+dnl like valgrind due to similar test checks
+dnl AX_CHECK_COMPILE_FLAG([-fsanitize=address],[CFLAGS=" -fsanitize=address $CFLAGS"])
 AC_LANG_POP
 # Skip if replacing with LS_LIB instead.
 WLSLIB=""
