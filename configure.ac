@@ -57,6 +57,7 @@ AC_INIT([spiro],[spiro_package_stamp],[fontforge-devel@lists.sourceforge.net],
 #-------------------------------------------
 AC_CONFIG_SRCDIR([spiro.c])
 AC_CONFIG_MACRO_DIR([m4])
+AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 AM_INIT_AUTOMAKE([foreign -Wall])
