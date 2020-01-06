@@ -733,6 +733,7 @@ int test_curve(int c) {
     /* Some reversed paths (above) will fail (like path20), so we */
     /* reverse the reversed spiro path so we can use current test */
     /* functions & values (so that this actually tests something) */
+    bc = new_bezctx_test();
     if (c == 20 || c == 21) {
 	/* Check if SpiroCPsToBezier2() works okay */
 	printf("---\ntesting SpiroCPsToBezier2(reverse) using data=path%d[].\n",c);

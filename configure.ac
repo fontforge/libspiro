@@ -242,6 +242,13 @@ dnl NOTE: -fsanitize has to be first library
 dnl and will also conflict with other checks
 dnl like valgrind due to similar test checks
 dnl AX_CHECK_COMPILE_FLAG([-fsanitize=address],[CFLAGS=" -fsanitize=address $CFLAGS"])
+
+dnl NOTE: -fstack-protector may be simulated
+dnl on 32bit linux using these extra params:
+dnl ./configure CFLAGS="-fstack-protector --param ssp-buffer-size=4 -g -O0"
+dnl out-of-the-box params for open/free bsd:
+dnl AX_CHECK_COMPILE_FLAG([-fstack-protector],[CFLAGS=" -fstack-protector"])
+
 AC_LANG_POP
 # Skip if replacing with LS_LIB instead.
 WLSLIB=""

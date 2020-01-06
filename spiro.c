@@ -425,6 +425,16 @@ set_dm_to_1(double *dm)
     dm[0] = 1.; dm[1] = dm[2] = 0.;
 }
 
+static void
+set_di_to_x1y1(double *di, double *dm, double x1, double y1)
+{
+    /* assume IEEE 754 rounding errors. */
+    di[2] = x1 * 0.9995; di[3] = x1 * 1.0005;
+    di[5] = y1 * 0.9995; di[6] = y1 * 1.0005;
+    di[1] = x1 * dm[0] + dm[1];
+    di[4] = y1 * dm[0] + dm[2];
+}
+
 static double
 compute_ends(const double ks[4], double ends[2][4], double seg_ch)
 {
@@ -934,7 +944,7 @@ solve_spiro(spiro_seg *s, int nseg)
 }
 
 static void
-spiro_seg_to_bpath0(const double ks[4], double *dm,
+spiro_seg_to_bpath1(const double ks[4], double *dm, double *di,
 		   double x0, double y0, double x1, double y1,
 		   bezctx *bc, int ncq, int depth)
 {
@@ -947,14 +957,13 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 	fabs((1./48) * ks[3]);
 
     if (bend <= 1e-8) {
-	if (depth >= 0 || depth < -4) {
 #ifdef VERBOSE
-	    printf("...to next knot point...\n");
+	printf("...to next knot point...\n");
 #endif
-	    bezctx_lineto(bc, dm[3], dm[4]);
-	} else {
-	    bezctx_lineto(bc, (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
-	}
+	if (di[2] < x1 && x1 < di[3] && di[5] < y1 && y1 < di[6])
+	    bezctx_lineto(bc, di[1], di[4]);
+	else
+	    bezctx_lineto(bc, x1 * dm[0] + dm[1], y1 * dm[0] + dm[2]);
     } else {
 	seg_ch = hypot(x1 - x0, y1 - y0);
 	seg_th = atan2(y1 - y0, x1 - x0);
@@ -964,7 +973,7 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 	th = atan2(xy[1], xy[0]);
 	scale = seg_ch / ch;
 	rot = seg_th - th;
-	if ((abs(depth) > 5 || bend < dm[5]) && ncq == 0) {
+	if (ncq == 0 && (depth > 5 || bend < di[0])) {
 	    /* calculate cubic, and output bezier points */
 	    th_even = (1./384) * ks[3] + (1./8) * ks[1] + rot;
 	    th_odd = (1./48) * ks[2] + .5 * ks[0];
@@ -972,13 +981,14 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 	    vl = (scale * (1./3)) * sin(th_even - th_odd);
 	    ur = (scale * (1./3)) * cos(th_even + th_odd);
 	    vr = (scale * (1./3)) * sin(th_even + th_odd);
-	    if (depth >= 0 || depth < -4) {
+
+	    if (di[2] < x1 && x1 < di[3] && di[5] < y1 && y1 < di[6]) {
 #ifdef VERBOSE
 		printf("...to next knot point...\n");
 #endif
 		bezctx_curveto(bc, ((x0 + ul) * dm[0] + dm[1]), ((y0 + vl) * dm[0] + dm[2]),
 				((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]),
-				dm[3], dm[4]);
+				di[1], di[4]);
 	    } else {
 		bezctx_curveto(bc, ((x0 + ul) * dm[0] + dm[1]), ((y0 + vl) * dm[0] + dm[2]),
 				((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]),
@@ -996,14 +1006,14 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 	    integrate_spiro(ksub, xysub, N_IS);
 	    xmid = x0 + cth * xysub[0] - sth * xysub[1];
 	    ymid = y0 + cth * xysub[1] + sth * xysub[0];
-	    if (abs(depth) > 5 || bend < dm[5]) {
+	    if (ncq != 0 && (depth > 5 || bend < di[0])) {
 		if (ncq < 0) {
-		    /* looks like an arc if needed (use quadto output) */
-		    if (depth >= 0 || depth < -4) {
+		    /* looks like an arc (use quadto output). */
+		    if (di[2] < x1 && x1 < di[3] && di[5] < y1 && y1 < di[6]) {
 #ifdef VERBOSE
 			printf("...to next knot point...\n");
 #endif
-			bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), dm[3], dm[4]);
+			bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), di[1], di[4]);
 		    } else {
 			bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
 		    }
@@ -1017,12 +1027,12 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 		    vr = (scale * (1./6)) * sin(th_even + th_odd);
 		    bezctx_quadto(bc, ((x0 + ul) * dm[0] + dm[1]), ((y0 + vl) * dm[0] + dm[2]), \
 					(xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]));
-		    if (depth >= 0 || depth < -4) {
+		    if (di[2] < x1 && x1 < di[3] && di[5] < y1 && y1 < di[6]) {
 #ifdef VERBOSE
 			printf("...to next knot point...\n");
 #endif
 			bezctx_quadto(bc, ((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]), \
-					    dm[3], dm[4]);
+					    di[1], di[4]);
 		    } else {
 			bezctx_quadto(bc, ((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]), \
 					    (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
@@ -1032,11 +1042,11 @@ spiro_seg_to_bpath0(const double ks[4], double *dm,
 #ifdef VERBOSE
 		printf("...subdivide curve...\n");
 #endif
-		spiro_seg_to_bpath0(ksub, dm, x0, y0, xmid, ymid, bc, ncq, -(abs(depth) + 1));
+		spiro_seg_to_bpath1(ksub, dm, di, x0, y0, xmid, ymid, bc, ncq, depth + 1);
 		ksub[0] += .25 * ks[1] + (1./384) * ks[3];
 		ksub[1] += .125 * ks[2];
 		ksub[2] += (1./16) * ks[3];
-		spiro_seg_to_bpath0(ksub, dm, xmid, ymid, x1, y1, bc, ncq, (depth >= 0 ? ++depth : --depth));
+		spiro_seg_to_bpath1(ksub, dm, di, xmid, ymid, x1, y1, bc, ncq, depth + 1);
 	    }
 	}
     }
@@ -1047,9 +1057,10 @@ spiro_seg_to_bpath(const double ks[4],
 		   double x0, double y0, double x1, double y1,
 		   bezctx *bc, int depth)
 {
-    double dm[6];
-    dm[3] = x1; dm[4] = y1;
-    spiro_seg_to_bpath0(ks, dm, x0, y0, x1, y1, bc, SPIRO_RETRO_VER1, depth);
+    double di[7], dm[6];
+    set_dm_to_1(dm);
+    set_di_to_x1y1(di, dm, x1, y1);
+    spiro_seg_to_bpath1(ks, dm, di, x0, y0, x1, y1, bc, SPIRO_RETRO_VER1, depth);
 }
 
 /* This function reverses src path for calling application. */
@@ -1172,7 +1183,7 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 		double *dm, int ncq, int n, bezctx *bc)
 {
     int i, j, nsegs;
-    double x0, y0, x1, y1;
+    double di[7], x0, y0, x1, y1;
 
 #ifdef VERBOSE
     printf("spiro_to_bpath0 ncq=0x%x n=%d s=%d bc=%d\n",ncq,n,s==NULL ? 0:1,bc==NULL ? 0:1);
@@ -1182,18 +1193,18 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 
     nsegs = s[n - 1].ty == '}' ? \
 	    s[n - 2].ty == 'a' ? n - 2 : n - 1 : n;
-    dm[5] = 1.; /* default cubic to bezier bend */
+    di[0] = 1.; /* default cubic to bezier bend */
 
     if ( (ncq &= SPIRO_ARC_CUB_QUAD_MASK)==0 ) {
 	/* default action = cubic bezier output */;
     } else if (ncq == SPIRO_CUBIC_MIN_MAYBE) { /* visual inspection advised */
 	ncq = 0; /* NOTE: experimental, best to look at results first */
-	dm[5] = M_PI / 2 + .000001;
+	di[0] = M_PI / 2 + .000001;
     } else if (ncq == SPIRO_ARC_MAYBE) { /* visual inspection advised */
 	ncq = -1; /* NOTE: these are arcs (maybe), not quadratic */
     } else if (ncq == SPIRO_ARC_MIN_MAYBE) { /* visual inspection advised */
 	ncq = -1; /* NOTE: these are arcs (maybe), not quadratic */
-	dm[5] = M_PI / 2 + .000001;
+	di[0] = M_PI / 2 + .000001;
     } else if (ncq == SPIRO_QUAD0_TO_BEZIER) {
 	/* roughly approximate a cubic using two quadratic arcs. */
 	ncq = 0x10;
@@ -1211,18 +1222,17 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 	} else
 	    if (s[i].ty == 'a') ++i;
 	x1 = s[i + 1].x; y1 = s[i + 1].y;
+	set_di_to_x1y1(di, dm, x1, y1);
 	if (src != NULL) {
-	    if ((i + 1 == n && nsegs == n) || src[i].ty == 'z') {
-		dm[3] = src[0].x; dm[4] = src[0].y;
+	    if (((i + 1 == n) && nsegs == n) || src[i].ty == 'z') {
+		di[1] = src[0].x; di[4] = src[0].y;
 	    } else {
-		dm[3] = src[i + 1].x; dm[4] = src[i + 1].y;
+		di[1] = src[i + 1].x; di[4] = src[i + 1].y;
 	    }
-	} else {
-	    dm[3] = (x1 * dm[0] + dm[1]); dm[4] = (y1 * dm[0] + dm[2]);
 	}
 
 	bezctx_mark_knot(bc, j);
-	spiro_seg_to_bpath0(s[i].ks, dm, x0, y0, x1, y1, bc, ncq, 0);
+	spiro_seg_to_bpath1(s[i].ks, dm, di, x0, y0, x1, y1, bc, ncq, 0);
     }
 }
 
@@ -1231,6 +1241,7 @@ void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
 {
     double dm[6];
+    set_dm_to_1(dm);
     spiro_to_bpath0(NULL, s, dm, SPIRO_RETRO_VER1, n, bc);
 }
 
