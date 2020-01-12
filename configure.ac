@@ -116,25 +116,36 @@ fi
 AC_CHECK_FUNCS(hypot, ,[AC_MSG_FAILURE([ERROR: hypot() required but not found.],[1])])
 
 #-------------------------------------------
-# Check for C99 finite or isfinite. Use one.
-math_finite=no
+# Check for C99 isfinite or finite. Use one.
 math_isfinite=no
-AC_CHECK_FUNCS(finite,
-  [AC_SUBST(HAVE_FINITE)
-   math_finite=true],
-    AC_CHECK_FUNCS(isfinite,
-      [AC_SUBST(HAVE_ISFINITE)
-       math_isfinite=true]))
+math_finite=no
+AC_CHECK_FUNCS(isfinite,
+  [AC_DEFINE(HAVE_ISFINITE, 1)
+   math_isfinite=true],
+  [AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM(
+      [[#include <math.h>]],
+      [[double f = 0.0; isfinite(f)]])],
+    [AC_DEFINE(HAVE_ISFINITE, 1)
+     math_isfinite=true],
+      [AC_CHECK_FUNCS(finite,
+        [AC_DEFINE(HAVE_FINITE, 1)
+         math_finite=true])])])
 
-if test x"${math_finite}" = xno && test x"${math_isfinite}" = xno; then
-  AC_MSG_FAILURE([ERROR: finite() or isfinite() required but not found.],[1])
+if test x"${math_isfinite}" = xno && test x"${math_finite}" = xno; then
+  AC_MSG_FAILURE([ERROR: isfinite() or finite() required but not found.],[1])
 fi
 
-AH_BOTTOM([/* Define IS_FINITE(x) to finite(x) or isfinite(x) */
-#ifdef HAVE_FINITE
-#define IS_FINITE(x) finite(x)
-#else
+AC_SUBST(HAVE_FINITE)
+AC_SUBST(HAVE_ISFINITE)
+
+AH_BOTTOM([/* Define IS_FINITE(x) to isfinite(x) or finite(x) */
+#if HAVE_ISFINITE
 #define IS_FINITE(x) isfinite(x)
+#else
+#if HAVE_FINITE
+#define IS_FINITE(x) finite(x)
+#endif
 #endif])
 
 #-------------------------------------------

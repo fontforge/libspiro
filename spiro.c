@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 /* C implementation of third-order polynomial spirals. */
 
 #include <math.h>
+#ifdef HAVE_FINITE
+#include <float.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 
@@ -531,8 +534,8 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 #endif
 
     n_seg = src[0].ty == '{' ? n - 1 : n;
-    i = (int)((uint)(n_seg + 1) * sizeof(spiro_seg));
-    if ( i <= 0 || (r=(spiro_seg *)malloc((uint)(i))) == NULL ) return 0;
+    i = (int)((unsigned int)(n_seg + 1) * sizeof(spiro_seg));
+    if ( i <= 0 || (r=(spiro_seg *)malloc((unsigned int)(i))) == NULL ) return 0;
 
     if (dm[0] < 0.9) {
 	/* for math to be scalable fit it within -0.5..+0.5 */
@@ -753,7 +756,7 @@ add_mat_line(bandmat *m, double *v,double derivs[4],
 static double
 spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 {
-    uint l;
+    unsigned int l;
     int cyclic, i, j, jthl, jthr, jk0l, jk0r, jk1l, jk1r, jk2l, jk2r, jinc, jj, k, n_invert;
     char ty0, ty1;
     double dk, norm, th;
@@ -842,10 +845,10 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 	j += jinc;
     }
     if (cyclic) {
-	l = sizeof(bandmat) * (uint)(nmat);
+	l = sizeof(bandmat) * (unsigned int)(nmat);
 	memcpy(m + nmat, m, l);
 	memcpy(m + 2 * nmat, m, l);
-	l = sizeof(double) * (uint)(nmat);
+	l = sizeof(double) * (unsigned int)(nmat);
 	memcpy(v + nmat, v, l);
 	memcpy(v + 2 * nmat, v, l);
 	n_invert = 3 * nmat;
@@ -915,9 +918,9 @@ solve_spiro(spiro_seg *s, int nseg)
 	n_alloc *= 3;
     if (n_alloc < 5)
 	n_alloc = 5;
-    m = (bandmat *)malloc(sizeof(bandmat) * (uint)(n_alloc));
-    v = (double *)malloc(sizeof(double) * (uint)(n_alloc));
-    perm = (int *)malloc(sizeof(int) * (uint)(n_alloc));
+    m = (bandmat *)malloc(sizeof(bandmat) * (unsigned int)(n_alloc));
+    v = (double *)malloc(sizeof(double) * (unsigned int)(n_alloc));
+    perm = (int *)malloc(sizeof(int) * (unsigned int)(n_alloc));
 
     i = converged = 0; /* not solved (yet) */
     if ( m!=NULL && v!=NULL && perm!=NULL ) {
@@ -957,13 +960,14 @@ spiro_seg_to_bpath1(const double ks[4], double *dm, double *di,
 	fabs((1./48) * ks[3]);
 
     if (bend <= 1e-8) {
+	if (di[2] < x1 && x1 < di[3] && di[5] < y1 && y1 < di[6]) {
 #ifdef VERBOSE
-	printf("...to next knot point...\n");
+	    printf("...to next knot point...\n");
 #endif
-	if (di[2] < x1 && x1 < di[3] && di[5] < y1 && y1 < di[6])
 	    bezctx_lineto(bc, di[1], di[4]);
-	else
+	} else {
 	    bezctx_lineto(bc, x1 * dm[0] + dm[1], y1 * dm[0] + dm[2]);
+	}
     } else {
 	seg_ch = hypot(x1 - x0, y1 - y0);
 	seg_th = atan2(y1 - y0, x1 - x0);
@@ -1085,8 +1089,8 @@ spiroreverse(spiro_cp *src, int n)
 
     if (src[n - 1].ty == 'z') --n;
 
-    i = (int)((uint)(n) * sizeof(spiro_cp));
-    if ( i <= 0 || (tmp=(spiro_cp *)malloc((uint)(i))) == NULL ) return -1;
+    i = (int)((unsigned int)(n) * sizeof(spiro_cp));
+    if ( i <= 0 || (tmp=(spiro_cp *)malloc((unsigned int)(i))) == NULL ) return -1;
 
 #ifdef VERBOSE
     printf("reverse n=%d values:\n",n);

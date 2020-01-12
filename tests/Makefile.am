@@ -7,6 +7,8 @@ DEPS = $(top_builddir)/.libs/libspiro.la
 
 LDADDS = $(top_builddir)/.libs/libspiro.la
 
+EXTRA_DIST = call-test.c
+
 # The tests
 noinst_PROGRAMS = unit-test  call-test0 call-test1 call-test2 call-test3 \
 		  call-test4 call-test5 call-test6 call-test7 call-test8 \
