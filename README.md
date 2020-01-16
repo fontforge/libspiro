@@ -168,6 +168,7 @@ Below is the current toggle switch definitions, and default 'ncq' value is zero.
 
 ```c
 /* int ncq flags and values */
+#define SPIRO_INCLUDE_LAST_KNOT	0x0100
 #define SPIRO_RETRO_VER1	0x0400
 #define SPIRO_REVERSE_SRC	0x0800
 #define SPIRO_ARC_CUB_QUAD_CLR	0x7FFF
@@ -180,6 +181,10 @@ Below is the current toggle switch definitions, and default 'ncq' value is zero.
 ```
 
 The definitions for ncq (above) are:
+
+SPIRO_INCLUDE_LAST_KNOT:
+Existing libspiro behaviour is to add a knot point to match each spiro point, but does not include the last knot.
+This option includes the last knot with the existing output results while the spiro is still open. Closed spiros should refer to the first knot point since the last and first knot are the same.
 
 SPIRO_RETRO_VER1:
 This newer version of libspiro has modified the way path calculations are made.

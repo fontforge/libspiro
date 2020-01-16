@@ -552,7 +552,7 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 	dm[2] /* yoff */ = (ymin + ymax) / 2; ymax -= ymin;
 	dm[0] /* scale */ = fabs((fabs(xmax) >= fabs(ymax)) ? xmax : ymax);
 	if (xmax >= ymax) dm[0] = xmax; else dm[0] = ymax;
-	dm[0] /* scale */ /= 500.; /* ~ backwards compatible */
+	dm[0] /* scale */ /= 500.; /* ~ backward compatible */
     }
 #ifdef VERBOSE
 	printf("scale=%g, x_offset=%g, y_offset=%g\n", dm[0], dm[1], dm[2]);
@@ -803,20 +803,21 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 	    }
 	}
 
-	/* constraints on left */
-	if ((ty0 == '[' || ty0 == 'v' || ty0 == '{' || ty0 == 'c' || \
-	     ty0 == 'a') && jinc == 4) {
-	    if (ty0 != 'c')
-		jk1l = jj++;
-	    jk2l = jj++;
-	}
-
-	/* constraints on right */
-	if ((ty1 == ']' || ty1 == 'v' || ty1 == '}' || ty1 == 'c' || \
-	     ty1 == 'h') && jinc == 4) {
-	    if (ty1 != 'c')
-		jk1r = jj++;
-	    jk2r = jj++;
+	if (jinc == 4) {
+	    /* constraints on left */
+	    if (ty0 == 'c' || ty0 == 'v' || ty0 == '[' || \
+		ty0 == 'a' || ty0 == '{') {
+		if (ty0 != 'c')
+		    jk1l = jj++;
+		jk2l = jj++;
+	    }
+	    /* constraints on right */
+	    if (ty1 == 'c' || ty1 == 'v' || ty1 == ']' || \
+		ty1 == 'h' || ty1 == '}') {
+		if (ty1 != 'c')
+		    jk1r = jj++;
+		jk2r = jj++;
+	    }
 	}
 
 	/* constraints crossing right */
@@ -985,7 +986,6 @@ spiro_seg_to_bpath1(const double ks[4], double *dm, double *di,
 	    vl = (scale * (1./3)) * sin(th_even - th_odd);
 	    ur = (scale * (1./3)) * cos(th_even + th_odd);
 	    vr = (scale * (1./3)) * sin(th_even + th_odd);
-
 	    if (di[2] < x1 && x1 < di[3] && di[5] < y1 && y1 < di[6]) {
 #ifdef VERBOSE
 		printf("...to next knot point...\n");
@@ -1186,7 +1186,7 @@ void
 spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 		double *dm, int ncq, int n, bezctx *bc)
 {
-    int i, j, nsegs;
+    int i, j, lk, nsegs;
     double di[7], x0, y0, x1, y1;
 
 #ifdef VERBOSE
@@ -1198,6 +1198,8 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
     nsegs = s[n - 1].ty == '}' ? \
 	    s[n - 2].ty == 'a' ? n - 2 : n - 1 : n;
     di[0] = 1.; /* default cubic to bezier bend */
+
+    lk = (ncq & SPIRO_INCLUDE_LAST_KNOT) && s[n - 1].ty == '}' ? 1 : 0;
 
     if ( (ncq &= SPIRO_ARC_CUB_QUAD_MASK)==0 ) {
 	/* default action = cubic bezier output */;
@@ -1238,6 +1240,7 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 	bezctx_mark_knot(bc, j);
 	spiro_seg_to_bpath1(s[i].ks, dm, di, x0, y0, x1, y1, bc, ncq, 0);
     }
+    if (lk) bezctx_mark_knot(bc, j);
 }
 
 /* deprecated / backwards compatibility / not scalable */
