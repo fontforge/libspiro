@@ -884,21 +884,13 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 #endif
 	    s[i].ks[k] += dk;
 	    norm += dk * dk;
+
+	    /* Break if calculations are headed for failure */
+	    if (IS_FINITE(s[i].ks[k])==0) return s[i].ks[k];
 	}
         s[i].ks[0] = 2.0 * mod_2pi(s[i].ks[0]/2.0);
     }
     return norm;
-}
-
-static int
-check_finiteness(spiro_seg * segs, int num_segs)
-{
-/* Check if all values are "finite", return true=0, else return fail=-1 */
-    int i, j;
-    for (i = 0; i < num_segs; ++i)
-	for (j = 0; j < 4; ++j)
-	    if ( IS_FINITE( segs[i].ks[j])==0 ) return -1;
-    return 0;
 }
 
 static int
@@ -927,10 +919,10 @@ solve_spiro(spiro_seg *s, int nseg)
     if ( m!=NULL && v!=NULL && perm!=NULL ) {
 	while (i++ < 60) {
 	    norm = spiro_iter(s, m, perm, v, nseg, nmat);
+	    if (IS_FINITE(norm)==0) break;
 #ifdef VERBOSE
 	    printf("iteration #%d, %% norm = %g\n", i, norm);
 #endif
-	    if (check_finiteness(s, nseg)) break;
 	    if (norm < 1e-12) { converged = 1; break; }
 	}
 #ifdef VERBOSE
