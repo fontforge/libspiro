@@ -754,16 +754,14 @@ add_mat_line(bandmat *m, double *v,double derivs[4],
 }
 
 static double
-spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
+spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int cyclic, int nmat)
 {
     unsigned int l;
-    int cyclic, i, j, jthl, jthr, jk0l, jk0r, jk1l, jk1r, jk2l, jk2r, jinc, jj, k, n_invert;
+    int i, j, jthl, jthr, jk0l, jk0r, jk1l, jk1r, jk2l, jk2r, jinc, jj, k, n_invert;
     char ty0, ty1;
     double dk, norm, th;
     double ends[2][4];
     double derivs[4][2][4];
-
-    cyclic = s[0].ty != '{' && s[0].ty != 'v';
 
     for (i = 0; i < nmat; i++) {
 	v[i] = 0.;
@@ -896,7 +894,7 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int nmat)
 static int
 solve_spiro(spiro_seg *s, int nseg)
 {
-    int i, converged, nmat, n_alloc;
+    int i, converged, cyclic, nmat, n_alloc;
     bandmat *m;
     double *v;
     int *perm;
@@ -904,6 +902,7 @@ solve_spiro(spiro_seg *s, int nseg)
 
     nmat = count_vec(s, nseg);
     n_alloc = nmat;
+    cyclic = s[0].ty != '{' && s[0].ty != 'v';
 
     if (nmat == 0)
 	return 1; /* just means no convergence problems */
@@ -918,7 +917,7 @@ solve_spiro(spiro_seg *s, int nseg)
     i = converged = 0; /* not solved (yet) */
     if ( m!=NULL && v!=NULL && perm!=NULL ) {
 	while (i++ < 60) {
-	    norm = spiro_iter(s, m, perm, v, nseg, nmat);
+	    norm = spiro_iter(s, m, perm, v, nseg, cyclic, nmat);
 	    if (IS_FINITE(norm)==0) break;
 #ifdef VERBOSE
 	    printf("iteration #%d, %% norm = %g\n", i, norm);
