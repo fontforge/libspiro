@@ -508,11 +508,13 @@ mod_2pi(double th)
 static spiro_seg *
 setup_path0(const spiro_cp *src, double *dm, int n)
 {
-    int i, ilast, n_seg;
+    int i, ilast, n_seg, z;
     double dx, dy;
     double xmin, xmax, ymin, ymax;
     spiro_seg *r;
 
+    z = -1;
+    if (src[n - 1].ty == 'z') z = --n;
     if (src[0].ty == 'h' || src[n - 1].ty == 'a') { /* pair */
 #ifdef VERBOSE
 	fprintf(stderr, "ERROR: LibSpiro: cannot use cp type 'h' as start, or 'a' as end.\n");
@@ -535,7 +537,7 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 
     n_seg = src[0].ty == '{' ? n - 1 : n;
     i = (int)((unsigned int)(n_seg + 1) * sizeof(spiro_seg));
-    if ( i <= 0 || (r=(spiro_seg *)malloc((unsigned int)(i))) == NULL ) return 0;
+    if (i <= 0 || (r=(spiro_seg *)malloc((unsigned int)(i))) == NULL) return 0;
 
     if (dm[0] < 0.9) {
 	/* for math to be scalable fit it within -0.5..+0.5 */
@@ -555,7 +557,7 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 	dm[0] /* scale */ /= 500.; /* ~ backward compatible */
     }
 #ifdef VERBOSE
-	printf("scale=%g, x_offset=%g, y_offset=%g\n", dm[0], dm[1], dm[2]);
+	printf("scale=%g, x_offset=%g, y_offset=%g, n=%d, n_seg=%d\n", dm[0], dm[1], dm[2], n, n_seg);
 #endif
 
     for (i = 0; i < n_seg; i++) {
@@ -608,13 +610,17 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 	ilast = i;
 #ifdef VERBOSE
 	printf("input #%d={'%c',%g=>%g,%g=>%g}, hypot=%g, atan2=%g, bend_th=%g\n", \
-		    i, src[i].ty, src[i].x, r[i].x, src[i].y, r[i].y, r[i].seg_ch, r[i].seg_th, r[i].bend_th);
+		    i, src[i].ty, src[i].x, r[i].x * dm[0] + dm[1], \
+		    src[i].y, r[i].y * dm[0] + dm[2], r[i].seg_ch * dm[0], \
+		    r[i].seg_th, r[i].bend_th);
 #endif
     }
 #ifdef VERBOSE
     if (n_seg < n)
-	printf("input #%d={'%c',%g=>%g,%g=>%g}\n", i, src[i].ty, src[i].x, r[i].x, src[i].y, r[i].y);
+	printf("input #%d={'%c',%g=>%g,%g=>%g}\n", i, src[i].ty, \
+		src[i].x, r[i].x * dm[0] + dm[1], src[i].y, r[i].y * dm[0] + dm[2]);
 #endif
+    if (z >= 0) r[z].ty = 'z'; /* wrong n, maintain z. */
     return r;
 }
 
@@ -720,14 +726,14 @@ static int compute_jinc(char ty0, char ty1)
 	return 0;
 }
 
-static int count_vec(const spiro_seg *s, int nseg)
+static int count_vec(const spiro_seg *s, int *jinca, int nseg)
 {
     int i, n;
 
     n = 0;
 
     for (i = 0; i < nseg; i++)
-	n += compute_jinc(s[i].ty, s[i + 1].ty);
+	n += (jinca[i] = compute_jinc(s[i].ty, s[i + 1].ty));
     return n;
 }
 
@@ -754,7 +760,7 @@ add_mat_line(bandmat *m, double *v,double derivs[4],
 }
 
 static double
-spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int cyclic, int nmat)
+spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int *jinca, int n, int cyclic, int nmat)
 {
     unsigned int l;
     int i, j, jthl, jthr, jk0l, jk0r, jk1l, jk1r, jk2l, jk2r, jinc, jj, k, n_invert;
@@ -781,7 +787,7 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int cyclic, in
     for (i = 0; i < n; i++) {
 	ty0 = s[i].ty;
 	ty1 = s[i + 1].ty;
-	jinc = compute_jinc(ty0, ty1);
+	jinc = jinca[i];
 	th = s[i].bend_th;
 	jthl = jk0l = jk1l = jk2l = -1;
 	jthr = jk0r = jk1r = jk2r = -1;
@@ -872,7 +878,7 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int cyclic, in
     banbks11(m, perm, v, n_invert);
     norm = 0.;
     for (i = 0; i < n; i++) {
-	jinc = compute_jinc(s[i].ty, s[i + 1].ty);
+	jinc = jinca[i];
 
 	for (k = 0; k < jinc; k++) {
 	    dk = v[j++];
@@ -884,7 +890,7 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int cyclic, in
 	    norm += dk * dk;
 
 	    /* Break if calculations are headed for failure */
-	    if (IS_FINITE(s[i].ks[k])==0) return s[i].ks[k];
+	    if (IS_FINITE(s[i].ks[k]) == 0) return s[i].ks[k];
 	}
         s[i].ks[0] = 2.0 * mod_2pi(s[i].ks[0]/2.0);
     }
@@ -892,32 +898,60 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int n, int cyclic, in
 }
 
 static int
-solve_spiro(spiro_seg *s, int nseg)
+solve_spiro(spiro_seg *s, int n)
 {
-    int i, converged, cyclic, nmat, n_alloc;
+    int i, converged, cyclic, nmat, n_alloc, nseg, z;
     bandmat *m;
     double *v;
-    int *perm;
+    int *perm, *jinca;
     double norm;
 
-    nmat = count_vec(s, nseg);
-    n_alloc = nmat;
-    cyclic = s[0].ty != '{' && s[0].ty != 'v';
+    i = converged = 0; /* not solved (yet) */
+    z = -1;
+    if (s[0].ty == '{')
+	nseg = n - 1;
+    else {
+	if (s[n - 1].ty == 'z') {
+	    z = --n;
+	    s[z].ty = s[0].ty;
+	}
+	nseg = n;
+    }
 
-    if (nmat == 0)
-	return 1; /* just means no convergence problems */
-    if (s[0].ty != '{' && s[0].ty != 'v')
+    if (nseg <= 1) {
+	converged = 1; /* means no convergence problems */
+	goto solve_spiroerr0;
+    }
+
+    if ((jinca = (int *)malloc(sizeof(int) * (int)(nseg))) == NULL) {
+#ifdef VERBOSE
+	fprintf(stderr, "ERROR: LibSpiro: failed to alloc memory.\n");
+#endif
+	goto solve_spiroerr0;
+    }
+    nmat = count_vec(s, jinca, nseg);
+    if (nmat == 0) {
+	converged = 1; /* means no convergence problems */
+	goto solve_spiroerr1;
+    }
+    n_alloc = nmat;
+    cyclic = 0;
+    if (s[0].ty != '{' && s[0].ty != 'v') {
 	n_alloc *= 3;
+	++cyclic;
+    }
     if (n_alloc < 5)
 	n_alloc = 5;
+#ifdef VERBOSE
+    printf("nmat=%d, alloc=%d, cyclic=%d, n=%d, nseg=%d\n", nmat, n_alloc, cyclic, n, nseg);
+#endif
     m = (bandmat *)malloc(sizeof(bandmat) * (unsigned int)(n_alloc));
     v = (double *)malloc(sizeof(double) * (unsigned int)(n_alloc));
     perm = (int *)malloc(sizeof(int) * (unsigned int)(n_alloc));
 
-    i = converged = 0; /* not solved (yet) */
     if ( m!=NULL && v!=NULL && perm!=NULL ) {
 	while (i++ < 60) {
-	    norm = spiro_iter(s, m, perm, v, nseg, cyclic, nmat);
+	    norm = spiro_iter(s, m, perm, v, jinca, nseg, cyclic, nmat);
 	    if (IS_FINITE(norm)==0) break;
 #ifdef VERBOSE
 	    printf("iteration #%d, %% norm = %g\n", i, norm);
@@ -932,9 +966,13 @@ solve_spiro(spiro_seg *s, int nseg)
 #endif
     }
 
-    free(m);
-    free(v);
     free(perm);
+    free(v);
+    free(m);
+solve_spiroerr1:
+    free(jinca);
+solve_spiroerr0:
+    if (z >= 0) s[z].ty = 'z';
     return converged;
 }
 
@@ -1141,19 +1179,15 @@ errspiroreverse:
 spiro_seg *
 run_spiro0(const spiro_cp *src, double *dm, int ncq, int n)
 {
-    int converged, nseg;
     spiro_seg *s;
 
     if (src==NULL || n <= 0 || ncq < 0) return 0;
 
-    if ( (ncq & SPIRO_RETRO_VER1) ) set_dm_to_1(dm); else dm[0] = -1.;
+    if ((ncq & SPIRO_RETRO_VER1)) set_dm_to_1(dm); else dm[0] = -1.;
 
     s = setup_path0(src, dm, n);
     if (s) {
-	nseg = src[0].ty == '{' ? n - 1 : n;
-	converged = 1 ; /* this value is for when nseg == 1; else actual value determined below */
-	if (nseg > 1) converged = solve_spiro(s, nseg);
-	if (converged) return s;
+	if (solve_spiro(s, n)) return s;
 	free(s);
     }
     return 0;
@@ -1177,17 +1211,24 @@ void
 spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 		double *dm, int ncq, int n, bezctx *bc)
 {
-    int i, j, lk, nsegs;
+    int i, j, lk, nsegs, z;
     double di[7], x0, y0, x1, y1;
-
-#ifdef VERBOSE
-    printf("spiro_to_bpath0 ncq=0x%x n=%d s=%d bc=%d\n",ncq,n,s==NULL ? 0:1,bc==NULL ? 0:1);
-#endif
 
     if (s==NULL || n <= 0 || ncq < 0 || bc==NULL) return;
 
-    nsegs = s[n - 1].ty == '}' ? \
-	    s[n - 2].ty == 'a' ? n - 2 : n - 1 : n;
+    nsegs = n;
+    if (s[0].ty == '{') {
+	--nsegs;
+	z = -1;
+    } else {
+	if (s[n - 1].ty == 'z')
+	    --nsegs;
+	z = nsegs - 1;
+    }
+#ifdef VERBOSE
+    printf("spiro_to_bpath0 ncq=0x%x n=%d nsegs=%d s=%d bc=%d\n",ncq,n,nsegs,s==NULL ? 0:1,bc==NULL ? 0:1);
+#endif
+
     di[0] = 1.; /* default cubic to bezier bend */
 
     lk = (ncq & SPIRO_INCLUDE_LAST_KNOT) && s[n - 1].ty == '}' ? 1 : 0;
@@ -1218,10 +1259,14 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 	    if (nsegs > 1 && s[1].ty == 'h') ++i;
 	} else
 	    if (s[i].ty == 'a') ++i;
-	x1 = s[i + 1].x; y1 = s[i + 1].y;
+	if (i == z) {
+	    x1 = s[0].x; y1 = s[0].y;
+	} else {
+	    x1 = s[i + 1].x; y1 = s[i + 1].y;
+	}
 	set_di_to_x1y1(di, dm, x1, y1);
 	if (src != NULL) {
-	    if (((i + 1 == n) && nsegs == n) || src[i].ty == 'z') {
+	    if (i == z) {
 		di[1] = src[0].x; di[4] = src[0].y;
 	    } else {
 		di[1] = src[i + 1].x; di[4] = src[i + 1].y;
