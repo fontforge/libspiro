@@ -515,6 +515,12 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 
     z = -1;
     if (src[n - 1].ty == 'z') z = --n;
+    if (src[0].ty == ']' || src[n - 1].ty == '[') { /* pair */
+#ifdef VERBOSE
+	fprintf(stderr, "ERROR: LibSpiro: cannot use cp type ']' as start, or '[' as end.\n");
+#endif
+	return 0;
+    }
     if (src[0].ty == 'h' || src[n - 1].ty == 'a') { /* pair */
 #ifdef VERBOSE
 	fprintf(stderr, "ERROR: LibSpiro: cannot use cp type 'h' as start, or 'a' as end.\n");
@@ -561,9 +567,23 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 #endif
 
     for (i = 0; i < n_seg; i++) {
+	/* gigo test: error if src[i].ty isn't a known type */
+	if (src[i].ty == 'a') {
+	    if (src[i + 1].ty == 'h' || (i == n_seg-1 && src[i + 1].ty == '}'))
+		;
+	    else
+		/* did not find 'ah' (or 'a}' as last pair) */
+		goto setup_path_error1;
+	} else if (src[i].ty == 'h') {
+	    if (src[i - 1].ty == 'a' || (i == 1 || src[0].ty == '{'))
+		;
+	    else
+		/* didn't find 'ah' (or '{h' as first pair) */
+		goto setup_path_error1;
+	}
+	r[i].ty = src[i].ty;
 	r[i].x = (src[i].x - dm[1]) / dm[0];
 	r[i].y = (src[i].y - dm[2]) / dm[0];
-	r[i].ty = src[i].ty;
 	r[i].ks[0] = 0.;
 	r[i].ks[1] = 0.;
 	r[i].ks[2] = 0.;
@@ -594,8 +614,7 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 	    fprintf(stderr, "ERROR: LibSpiro: #%d={'%c',%g,%g} hypot error.\n", \
 		    i, src[i].ty, src[i].x, src[i].y);
 #endif
-	    free(r);
-	    return 0;
+	    goto setup_path_error0;
 	}
 #endif
 	r[i].seg_th = atan2(dy, dx);
@@ -622,6 +641,17 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 #endif
     if (z >= 0) r[z].ty = 'z'; /* wrong n, maintain z. */
     return r;
+
+setup_path_error1:
+#ifdef VERBOSE
+    fprintf(stderr, "ERROR: LibSpiro: #%d={'%c',%g,%g} found unpaired anchor+handle 'ah'.\n", \
+	    i, src[i].ty, src[i].x, src[i].y);
+#endif
+#ifdef CHECK_INPUT_FINITENESS
+setup_path_error0:
+#endif
+    free(r);
+    return 0;
 }
 
 /* deprecated / backwards compatibility / not scalable */

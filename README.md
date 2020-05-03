@@ -18,7 +18,7 @@ Installing from Git master requires 2 preparatory steps:
 
 First, you need to create the ./configure script if you do not have it yet
 ```sh
-autoreconf -i
+autoreconf -i  (or use 'autoreconf --install --force' for more modern setups)
 automake --foreign -Wall
 ```
 

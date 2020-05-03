@@ -32,9 +32,10 @@ EXTRA_DIST = bezctx.md get-spiro-src.sh README-RaphLevien README.md	    \
 	java/ShowPlate.java java/Spiro.java java/SpiroBezierContext.java    \
 	java/SpiroCanvas.java java/SpiroCP.java java/SpiroGeneralPath.java  \
 	java/SpiroPointType.java README-GeorgeWilliams fontforge-debug.txt  \
-	fontforge.sh m4/ax_check_compile_flag.m4 path5.png path6.png
+	fontforge.sh m4/ax_check_compile_flag.m4 path5.png path6.png libspiro.3
 
 include_HEADERS = bezctx.h bezctx_intf.h spiro.h spiroentrypoints.h
+man_MANS = libspiro.3
 
 libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status libtool

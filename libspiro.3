@@ -1,0 +1,52 @@
+.TH SPIRO 3 "2020-May-05"
+.SH NAME
+libspiro \- A clothoid to bezier spline converter
+.SH SYNOPSIS
+.B #include <spiroentrypoints.h>
+and then compile and link with
+.B -lspiro
+.br
+.SH DESCRIPTION
+.B Spiro
+library for curve design which simplifies drawing of
+beautiful curves.
+
+.B libspiro
+takes an array of spiro control points which can be
+easier for an artist to create and modify, and then converts
+these into a series of bezier splines which can then be used
+in the myriad of ways the world has come to use beziers.
+
+.I spiroentrypoints.h
+has technical information on how to connect with
+.I libspiro
+and further information can be found at
+.I http://github.com/fontforge/libspiro
+.SH REPORTING PROBLEMS
+Before reporting a problem, please check the libspiro web
+site to verify that you have the latest version of
+.I libspiro
+
+Great care has been taken to maintain backwards compatibility
+so it is recommended to upgrade if you experience problems with
+earlier
+.I libspiro
+versions.
+.SH AUTHORS AND LICENSE
+.B libspiro
+originated from
+.B ppedit
+which was a pattern plate editor for Spiro splines.
+Copyright (C) 2007 Raph Levien. GNU GPL version 2 or higher.
+
+This version of
+.B libspiro
+Copyright (C) 2007-2020 is GNU GPL version 3 or higher
+and contains a number of significant improvements and fixes.
+
+Please see
+.I AUTHORS
+file for everyone involved in making and improving
+.I libspiro
+
+Further details (on why and what) can also be seen in git history.
