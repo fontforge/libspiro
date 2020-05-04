@@ -1,5 +1,5 @@
 /* Test libspiro normal library calls
-Copyright (C) 2013,2014,2015,2016,2017,2018,2019 Joe Da Silva
+Copyright (C) 2013... Joe Da Silva
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -15,7 +15,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
-
 */
 
 #include <math.h>
@@ -414,8 +413,8 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	spiro[i].y = path6[i].y;
 	spiro[i].ty = path6[i].ty;
 	nextknot[i] = knot6[i];
-    } else if ( c==7 || c==8 ) for (i = 0; i < 8; i++) {
-	/* path7[]_co[7]==closed_curve, path8[]_co[8]==open_curve */
+    } else if ( c==7 || c==8 || c==21 ) for (i = 0; i < 8; i++) {
+	/* path7[] is closed curve, path{8,21}[] are open curves. */
 	spiro[i].x = path7[i].x;
 	spiro[i].y = path7[i].y;
 	spiro[i].ty = path7[i].ty;
@@ -479,7 +478,7 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	spiro[i].y = path0[i].y;
 	spiro[i].ty = path0[i].ty;
 	nextknot[i] = knot0[i];
-    } else if ( c==20 || c==21 || c==22) for (i = 0; i < 9; i++) {
+    } else if ( c==20 || c==22) for (i = 0; i < 9; i++) {
 	/* path20[]=closed, path21[]=open, path22[]=closed_with_z */
 	spiro[i].x = path7[i].x;
 	spiro[i].y = path7[i].y;
@@ -725,6 +724,27 @@ int test_curve(int c) {
 	fprintf(stderr,"error with SpiroCPsToBezier1() using data=path%d[].\n",c);
 	return -6;
     }
+#if defined(DO_CALL_TEST13)
+    /* Check if SpiroCPsToBezier2() works okay */
+    printf("---\ntesting SpiroCPsToBezier2() using data=path%d[].\n",c);
+    if ( SpiroCPsToBezier2(spiro,cl[c],SPIRO_INCLUDE_LAST_KNOT,co[c],bc)!=1 ) {
+	fprintf(stderr,"error with SpiroCPsToBezier2() using data=path%d[].\n",c);
+	return -6;
+    }
+#endif
+#else
+    /* Check if SpiroCPsToBezier2() works okay */
+    printf("---\ntesting SpiroCPsToBezier2() using data=path%d[].\n",c);
+    if ( SpiroCPsToBezier2(spiro,cl[c],SPIRO_INCLUDE_LAST_KNOT,co[c],bc)!=1 ) {
+	fprintf(stderr,"error with SpiroCPsToBezier2() using data=path%d[].\n",c);
+	return -6;
+    }
+    /* Check if TaggedSpiroCPsToBezier2() works okay */
+    printf("---\ntesting TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
+    if ( TaggedSpiroCPsToBezier2(spiro,SPIRO_INCLUDE_LAST_KNOT,bc)!=1 ) {
+	fprintf(stderr,"error with TaggedSpiroCPsToBezier2() using data=path%d[].\n",c);
+	return -6;
+    }
 #endif
 #endif
 
@@ -747,6 +767,14 @@ int test_curve(int c) {
 	if ( TaggedSpiroCPsToBezier2(spiro,SPIRO_REVERSE_SRC,bc)!=1 ) {
 	    fprintf(stderr,"error with TaggedSpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
 	    return -10;
+	}
+	if (c == 24) {
+	    /* reverse it again, ends in v, visually check end points */
+	    printf("---\ntesting TaggedSpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
+	    if ( TaggedSpiroCPsToBezier2(spiro,SPIRO_REVERSE_SRC|SPIRO_INCLUDE_LAST_KNOT,bc)!=1 ) {
+		fprintf(stderr,"error with TaggedSpiroCPsToBezier2(reverse) using data=path%d[].\n",c);
+		return -10;
+	    }
 	}
     }
 #endif
@@ -1162,8 +1190,6 @@ int main(int argc, char **argv) {
     ret = 0; /* ignore result for now until improved. */
 #endif
 #ifdef DO_CALL_TEST12
-    /* TODO: knot counts not matched for taggedspiro, */
-    /* therefore use !defined(DO_CALL_TEST12) for now */
     ret=test_curve(12);	/* do path7[] with a z ending */
 #endif
 #ifdef DO_CALL_TEST13
