@@ -1,12 +1,12 @@
 # -*- Autoconf -*-
 dnl Process this file with autoconf to produce a configure script.
 
-# Copyright (C) 2013...2019 by Joe Da Silva
+# Copyright (C) 2013...2020 by Joe Da Silva
 
 AC_PREREQ([2.64])
 #-------------------------------------------
 # PackageTimestamp version
-m4_define([spiro_package_stamp], [20190731])
+m4_define([spiro_package_stamp], [20200505])
 #-------------------------------------------
 # Making point releases:
 #   spiro_major_version += 0;
@@ -21,7 +21,7 @@ m4_define([spiro_package_stamp], [20190731])
 #   spiro_minor_version = 0;
 #
 m4_define([spiro_major_version], [1])
-m4_define([spiro_minor_version], [0])
+m4_define([spiro_minor_version], [1])
 m4_define([spiro_version],[spiro_major_version.spiro_minor_version])
 
 #-------------------------------------------
@@ -45,7 +45,7 @@ m4_define([spiro_version],[spiro_major_version.spiro_minor_version])
 #  spiro_age = 0
 #
 m4_define([spiro_current], [1])
-m4_define([spiro_revision],[0])
+m4_define([spiro_revision],[1])
 m4_define([spiro_age],     [0])
 m4_define([spiro_libver],[spiro_current:spiro_revision:spiro_age])
 

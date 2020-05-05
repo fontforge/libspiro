@@ -1117,6 +1117,7 @@ spiro_seg_to_bpath1(const double ks[4], double *dm, double *di,
     }
 }
 
+/* deprecated / keep backwards compatibility / not scalable */
 static void
 spiro_seg_to_bpath(const double ks[4],
 		   double x0, double y0, double x1, double y1,
@@ -1251,7 +1252,7 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 
     nsegs = n;
     if (s[0].ty == '{') {
-	if (n - 2 >= 0 && s[n - 2].ty == 'a')
+	if (n >= 2 && s[n - 2].ty == 'a')
 	    --nsegs;
 	--nsegs;
 	z = -1;

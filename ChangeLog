@@ -1,5 +1,21 @@
+- 2020-May-05
+    * Libspiro Version 20200505 (1.1.0)
+    * Bugfix for CVE-2019-19847 affecting {call-test14 to call-test19}.
+    * Fix a memory access bug/error created earlier by patch 2017oct28
+      Users using tagpoint libspiro20150702 are unaffected by this bug.
+      Users using tagpoint libspiro20190731 are recommended to upgrade.
+      Thanks to Frederic Cambus for calling attention to these faults.
+    * Add optional 'end knot' for open curves (useful for displaying).
+    * CRA Version also higher than so-bump 1.0.5 used on some distros;
+      this maybe of interest to distros that bumped an earlier version.
+    * Some garbage-in/garbage-out checks to verify we have 'ah' pairs,
+      and we don't start with ']', or end with '['. Add libspiro.3 man.
+    * Corrected set_di_to_x1y1() to use a constant bandwidth of 0.0005
+    * Code improvements and bug fixes for better tagged/spiro results.
+    * Several improvements added to further increase libspiro's speed.
+
 - 2019-Jul-31
-    * Libspiro Version 20190731
+    * Libspiro Version 20190731 (1.0.0)
     * Corrected library to report correctly as next version up. This is
       probably a significant change, therefore bumped library to start
       at 1.0 even though backwards compatibility remains close to same.
