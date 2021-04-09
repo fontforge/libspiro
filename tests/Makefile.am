@@ -3,9 +3,9 @@ AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)
 
 AM_CFLAGS = -I$(top_srcdir) -I$(top_builddir) $(DEP_CFLAGS) $(BABL_CFLAGS) -lm
 
-DEPS = $(top_builddir)/.libs/libspiro.la
+DEPS = $(top_builddir)/libspiro.la
 
-LDADDS = $(top_builddir)/.libs/libspiro.la
+LDADDS = $(top_builddir)/libspiro.la
 
 EXTRA_DIST = call-test.c
 
