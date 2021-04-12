@@ -14,7 +14,6 @@ pkgconfig_DATA = libspiro.pc
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 AM_CFLAGS = $(WCFLAGS) $(LS_CFLAGS)
-AM_LDFLAGS = $(WLSLIB) $(LS_LIB) -no-undefined --mode=link
 
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
 
@@ -23,9 +22,10 @@ DISTCHECK_CONFIGURE_FLAGS = --enable-verbose_lib --enable-test_inputs --enable-t
 
 lib_LTLIBRARIES = libspiro.la
 
-libspiro_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(LIBSPIRO_VERSION)
-libspiro_la_SOURCES = spiro.c bezctx.c spiroentrypoints.c
-libspiro_la.$(OBJEXT): bezctx.h bezctx_intf.h spiro.h spiroentrypoints.h
+libspiro_la_LIBADD = $(WLSLIB) $(LS_LIB)
+libspiro_la_LDFLAGS = -no-undefined -version-info $(LIBSPIRO_VERSION)
+libspiro_la_SOURCES = spiro.c bezctx.c spiroentrypoints.c \
+	bezctx.h bezctx_intf.h spiro.h spiroentrypoints.h
 
 EXTRA_DIST = bezctx.md get-spiro-src.sh README-RaphLevien README.md	    \
 	closedspiro.png openspiro.png spiral16.png spiral32.png spiro-a.png \
