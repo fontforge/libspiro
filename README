@@ -18,6 +18,21 @@ Developers interested in example programs, can take a look at spiro.c found
 in FontForge, InkScape, or linking examples like GEGL, IPE or call-test.c
 (call-test.c is included with development files with this library).
 
+Maintainers
+===========
+
+Developers interested in maintaining libspiro will need to fetch the latest
+config.guess and config.sub to ensure that libspiro will run on as many
+configurations as possible. Then update configure.ac to the next revision,
+and run 'make check', 'make dist', and 'make distcheck' to ensure all works.
+See git patch 'LibSpiro 20200505 - Version 1.1.0' for example patching.
+Configurable releases is based on first removing all non relevant files to
+reduce final tar file before running 'make dist', such as all hidden files
+and directories. The resulting file created by 'make dist' is then usually
+with -dist- in the filename so that distros that follow the release page
+are able to fetch the latest libspiro using their scripts. Example:
+libspiro-20200505.tar.gz is renamed as libspiro-dist-20200505.tar.gz
+
 Installation
 ============
 

@@ -40,13 +40,6 @@ man_MANS = libspiro.3
 libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status libtool
 
-# test: run all tests in cwd and subdirs
-test:	$(TEST_PROGS)
-
-.PHONY: test
-# run make test as part of make check
-check-local: test
-
 check-valgrind:
 if HAVEVALGRIND
 	$(MAKE);

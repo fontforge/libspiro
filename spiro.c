@@ -955,7 +955,7 @@ solve_spiro(spiro_seg *s, int n)
 	goto solve_spiroerr0;
     }
 
-    if ((jinca = (int *)malloc(sizeof(int) * (int)(nseg))) == NULL) {
+    if ((jinca = (int *)malloc((unsigned int)(sizeof(int) * nseg))) == NULL) {
 #ifdef VERBOSE
 	fprintf(stderr, "ERROR: LibSpiro: failed to alloc memory.\n");
 #endif
