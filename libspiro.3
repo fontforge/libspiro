@@ -1,4 +1,4 @@
-.TH SPIRO 3 "2020-May-05"
+.TH SPIRO 3 "2022-Feb-22"
 .SH NAME
 libspiro \- A clothoid to bezier spline converter
 .SH SYNOPSIS
@@ -20,33 +20,56 @@ in the myriad of ways the world has come to use beziers.
 .I spiroentrypoints.h
 has technical information on how to connect with
 .I libspiro
-and further information can be found at
+and further information and example code can be found at
 .I http://github.com/fontforge/libspiro
 .SH REPORTING PROBLEMS
 Before reporting a problem, please check the libspiro web
 site to verify that you have the latest version of
 .I libspiro
 
-Great care has been taken to maintain backwards compatibility
-so it is recommended to upgrade if you experience problems with
+Great care was taken to maintain backwards compatibility so
+it is recommended to upgrade if you experience problems with
 earlier
 .I libspiro
 versions.
-.SH AUTHORS AND LICENSE
+.SH LIBSPIRO LICENSE
 .B libspiro
-originated from
+originated from spiro code (in 2007) found in
 .B ppedit
-which was a pattern plate editor for Spiro splines.
-Copyright (C) 2007 Raph Levien. GNU GPL version 2 or higher.
-
-This version of
+which is a pattern plate editor for Spiro splines.
+.B ppedit
+was/is Copyright (C) 2007 Raph Levien. GNU GPL version 2 or higher.
+.B ppedit
+was later relicensed also as Apache-2 MIT code in May of 2019.
+This relicensing is fine since all
+.B ppedit
+was written by Raph Levien in 2007. Copyright allows for this.
+Unfortunately, this re-licensing of
+.B ppedit
+has caused some confusion in assuming that this relicensing also
+applies to
 .B libspiro
-Copyright (C) 2007-2020 is GNU GPL version 3 or higher
-and contains a number of significant improvements and fixes.
+which is not valid and does not apply.
 
+.B libspiro
+was based on spiro code and built into a usable library at
+.I http://libspiro.sourceforge.net/
+Copyright (C) 2007 George Williams. GNU GPL version 2 or higher.
+This license also applies to the included Java files which have
+been forked into javascript and typeset files seen elsewhere.
+
+.B libspiro
+was later picked up in 2013 and continued with
+further development and improvements at
+.I http://github.com/fontforge/libspiro
+
+.B libspiro
+is now Copyright (C) 2013-2022 as GNU GPL version 3 or higher.
+.SH AUTHORS
 Please see
 .I AUTHORS
-file for everyone involved in making and improving
+file for everyone involved in creating and improving this
 .I libspiro
 
-Further details (on why and what) can also be seen in git history.
+Further details (on why and what) can also be seen in git history
+as well as the Changelog and README files.

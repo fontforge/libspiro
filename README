@@ -1,21 +1,22 @@
 LibSpiro is a shared library designed to give programs the ability to create
 smooth continuous curves based on a given set of codes and X,Y constraints.
 
-The main user(s) of Libspiro are Font editing programs such as FontForge,
-and forked copies have been seen in more artistic programs such as InkScape,
-or in libraries such as GEGL. There may be other possible uses in future,
-and this library has strong potential in graphical and vector type programs.
+The main user(s) for Libspiro are Font editing programs such as FontForge,
+and graphical drawing programs such as GEGL, IPE (as well as an early fork
+used in InkScape). This library has strong potential in graphic and vector
+programs where users want beautiful curves translated into beziers curves.
 
-Developers interested in also sharing and making use of LibSpiro will likely
-want to read (these README files too to understand LibSpiro better):
-README-RaphLevien
-README-GeorgeWilliams
+Developers interested in sharing and making use of LibSpiro will likely want
+to read (these README files too to understand how to use LibSpiro better):
+README-RaphLevien (ppedit 20070504)
+README-GeorgeWilliams (libspiro 20071029)
 
 There is a large amount of information and math on RaphLevien's website for
 developers interested in how LibSpiro works.
 
 Developers interested in example programs, can take a look at spiro.c found
-within FontForge, InkScape, GEGL and call-test.c included with this library.
+in FontForge, InkScape, or linking examples like GEGL, IPE or call-test.c
+(call-test.c is included with development files with this library).
 
 Installation
 ============

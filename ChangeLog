@@ -1,3 +1,8 @@
+    * Due to confusion created when ppedit was also re-licensed as MIT
+      APACHE and GPL2+, it's necessary to re-clarify libspiro is GPL3+.
+      In summary, GPL can include MIT code, MIT code cannot accept GPL.
+      Please note code not in ppedit like libspiro's java is GNU GPL2+.
+
 - 2020-May-05
     * Libspiro Version 20200505 (1.1.0)
     * Bugfix for CVE-2019-19847 affecting {call-test14 to call-test19}.

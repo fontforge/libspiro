@@ -4,13 +4,15 @@
 
 ![](spiro-a.png)
 
-Spiro is the creation of [Raph Levien](http://www.levien.com/). It simplifies the drawing of beautiful curves.
+Spiro is the creation of [Raph Levien (ppedit 20070504, GPL2+)](http://www.levien.com/). It simplifies the drawing of beautiful curves.
 
-Using bézier splines an artist can easily draw curves with the same slope on either side of an on-curve point. Spiros, on the other hand, are based on clothoid splines which make it easy to maintain constant curvature as well as constant slope. Such curves will simply look nicer.
+LibSpiro is an adaptation of Spiro formula and functions into a sharable library [George Williams (libspiro 20071029, GPL2+)](http://libspiro.sourceforge.net/).
+
+Using Bézier splines an artist can easily draw curves with the same slope on either side of an on-curve point. Spiros, on the other hand, are based on clothoid splines which make it easy to maintain constant curvature as well as constant slope. Such curves will simply look nicer.
 
 Raph Levien's spiro splines only use on-curve points and so are easier to use and more intuitive to the artist.
 
-This library will take an array of spiro control points and convert them into a series of bézier splines which can then be used in the myriad of ways the world has come to use béziers.
+This library will take an array of spiro control points and convert them into a series of Bézier splines which can then be used in the myriad of ways the world has come to use Béziers.
 
 ## Installation
 
@@ -60,8 +62,8 @@ make install
 ```
 
 NOTE: Some Distros and Operating Systems may require you to run 'ldconfig'
-to recognize LibSpiro if you are not rebooting your computer first before
-installing another program that depends on LibSpiro. To do this, you may
+to recognize libspiro if you are not rebooting your computer first before
+installing another program that depends on libspiro. To do this, you may
 need to run 'ldconfig' in 'su -' mode after you have done 'make install':
 ```sh
 	$ su -
@@ -94,7 +96,7 @@ Mac OS X: A helping script, `./fontforge.sh` is provided to run FontForge inside
 - Basic Types
   - [spiro control point](#the-spiro-control-point)
   - [ncq control value](#the-ncq-control-value)
-  - [bézier context](#the-bezier-context)
+  - [Bézier context](#the-bezier-context)
 - [Header file](#calling-into-libspiro)
 - Entry points
   - int [SpiroCPsToBezier2](#spirocpstobezier2)(spiro_cp *,int n,int ncq,int is_closed,bezctx *)
