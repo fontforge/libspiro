@@ -15,7 +15,7 @@ noinst_PROGRAMS = unit-test  call-test0 call-test1 call-test2 call-test3 \
 		  call-test9 call-test10 call-test11 call-test12	 \
 		  call-test13 call-test14 call-test15 call-test16	 \
 		  call-test17 call-test18 call-test19 call-test20	 \
-		  call-testm
+		  call-test21 call-testm
 
 unit_test_SOURCES = unit-test.c
 
@@ -81,6 +81,9 @@ call_test19_LDADD = $(LDADDS)
 
 call_test20_SOURCES = call-test20.c
 call_test20_LDADD = $(LDADDS)
+
+call_test21_SOURCES = call-test21.c
+call_test21_LDADD = $(LDADDS)
 
 call_testm_SOURCES = call-testm.c
 call_testm_LDADD = $(LDADDS)

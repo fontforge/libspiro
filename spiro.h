@@ -1,3 +1,6 @@
+/* spiro.h
+libspiro - A sharable library of Spiro formula and functions.
+*/
 #ifndef _SPIRO_H
 #define _SPIRO_H
 
@@ -42,11 +45,9 @@ double get_knot_th(const spiro_seg *s, int i);
 spiro_seg *
 run_spiro0(const spiro_cp *src, double *dm, int ncq, int n);
 
-void
+int
 spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 		double *dm, int ncq, int n, bezctx *bc);
-
-int spiroreverse(spiro_cp *src, int n); /* internal use */
  
 const char *
 LibSpiroVersion(void);

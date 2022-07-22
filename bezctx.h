@@ -1,10 +1,17 @@
+/* bezctx.h
+libspiro - A sharable library of Spiro formula and functions.
+*/
 #ifndef _BEZCTX_H
 #define _BEZCTX_H
-#include "bezctx_intf.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* NOTE: The Bezier context; You must create a super-class of this abstract type that */
+/* handles the creation of your particular representation of bézier splines. You will */
+/* see examples and information in file bezctx.md */
+typedef struct _bezctx bezctx;
 
 struct _bezctx {
     /* Called by spiro to start a contour */
@@ -24,6 +31,22 @@ struct _bezctx {
 
     void (*mark_knot)(bezctx *bc, int knot_idx);
 };
+
+
+/* If you are using ncq definition "SPIRO_INTERNAL_BEZCTX", you also need these below */
+typedef struct {
+    char ty;		/* curve type */
+    double x0,y0,x1,y1,x2,y2,x3,y3;
+} curve_data;
+
+typedef struct {
+    bezctx base;	/* reserved */
+    curve_data *cd;	/* bezier curve data */
+    int l;		/* array data length */
+    int max;		/* max array allowed */
+    int is_open;
+} ls_bezctx;
+
 #ifdef __cplusplus
 }
 #endif

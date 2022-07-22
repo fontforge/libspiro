@@ -31,6 +31,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include "spiroentrypoints.h"	/* call spiro through here */
 #include "bezctx.h"		/* bezctx structure */
+#ifdef DO_CALL_TEST20
+#include "spiro_intf.h"		/* need to test reverse string */
+#endif
 
 #ifdef DO_CALL_TESTM
 #ifdef HAVE_PTHREADS

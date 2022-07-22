@@ -1,0 +1,75 @@
+name: C
+on: [push,pull_request]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        choiceL: [--disable-silent-rules, --enable-verbose_lib, --enable-test_inputs, --enable-test-a-lot]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create configure
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install autoconf automake libtool gcc
+          autoreconf -i
+          automake
+      - name: Choose configure
+        run: ./configure ${{ matrix.choiceL }}
+      - name: Make library
+        run: make
+      - name: Test library
+        run: make check
+      - name: Test make distcheck
+        if: matrix.choiceL == '--disable-silent-rules'
+        run: make distcheck
+  macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        choiceM: [--disable-silent-rules, --enable-verbose_lib, --enable-test_inputs, --enable-test-a-lot]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create configure
+        run: |
+          brew install autoconf automake libtool gcc
+          autoreconf -i
+          automake
+      - name: Choose configure
+        run: ./configure ${{ matrix.choiceM }}
+      - name: Make library
+        run: make
+      - name: Test library
+        run: make check
+  windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include: [
+          { msystem: MINGW64, toolchain: mingw-w64-x86_64-toolchain },
+          { msystem: MINGW32, toolchain: mingw-w64-i686-toolchain },
+          { msystem: UCRT64, toolchain: mingw-w64-ucrt-x86_64-toolchain },
+          { msystem: CLANG64, toolchain: mingw-w64-clang-x86_64-toolchain },
+      ]
+    name: ${{ matrix.msystem }}
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.msystem }}
+          update: true
+          install: autotools base-devel git ${{ matrix.toolchain }}
+      - name: Create configure
+        run: |
+          autoreconf -i
+          automake
+      - name: Choose configure
+        run: ./configure
+      - name: Make library
+        run: make
+      - name: Test library
+        run: make check

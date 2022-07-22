@@ -2,6 +2,8 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
+datarootdir=@datarootdir@
+mandir=@mandir@
 
 Name: libspiro
 Description: A library for curve design. Clothoid to bezier conversion. A mechanism for drawing smooth contours with constant curvature at the spline joins.

@@ -171,6 +171,7 @@ Below is the current toggle switch definitions, and default 'ncq' value is zero.
 ```c
 /* int ncq flags and values */
 #define SPIRO_INCLUDE_LAST_KNOT	0x0100
+#define SPIRO_INTERNAL_BEZCTX	0x0200
 #define SPIRO_RETRO_VER1	0x0400
 #define SPIRO_REVERSE_SRC	0x0800
 #define SPIRO_ARC_CUB_QUAD_CLR	0x7FFF
@@ -188,8 +189,18 @@ SPIRO_INCLUDE_LAST_KNOT:
 Existing libspiro behaviour is to add a knot point to match each spiro point, but does not include the last knot.
 This option includes the last knot with the existing output results while the spiro is still open. Closed spiros should refer to the first knot point since the last and first knot are the same.
 
+SPIRO_INTERNAL_BEZCTX:
+This provides a simpler interface for developers having trouble with the main libspiro interface.
+With this method, two new functions are also provided and needed here.
+
+- 1st, the calling program creates an oversized array for the results using function "new_ls_bezctx()",
+- 2nd, the calling program calls libspiro to create a curve result using "TaggedSpiroCPsToBezier2()" or "SpiroCPsToBezier2()",
+- 3rd, the calling program can resize the array to use less memory, or release the array using if it is not needed any more using "free_ls_bezctx()".
+
+File "tests/call-test21.c" has sample code showing how this can be done.
+
 SPIRO_RETRO_VER1:
-This newer version of libspiro has modified the way path calculations are made.
+This newer version of libspiro (2019 and later) has modified the way path calculations are made.
 The reason for this was seen as an advantage, because it allows a user to scale and move spiro paths, which is a common expectation in graphics, and there are other added advantages, such as making the path as part of templates, and more.
 An effort was made to keep results as close to original as possible, but this was not possible due to scaling factors in the calculations.
 As the main user for libspiro is FontForge, users such as font designers may see the least change since scaling targets x={0..1000}, y={0..1000}, while other users in graphics may see changes since they can be using scales much larger than 1000.
@@ -199,12 +210,12 @@ Older programs that use the older libspiro interfaces will see no-change since t
 SPIRO_REVERSE_SRC:
 There may be a need to reverse the spiro path direction.
 This option edits the source spiro path, and reverses the information, then proceeds to continue doing libspiro calculations with the reversed path.
-When libspiro is done calculating bezier output, you will also have a reversed (input) spiro path, therefore save the new spiro path if you need it.
-This simplifies this process for the calling program to a simple option 'SPIRO_REVERSE_SRC', and the results are up to date as per ths version of libspiro.
+When libspiro is done calculating bézier output, you will also have a reversed (input) spiro path, therefore save the new spiro path if you need it.
+This simplifies this process for the calling program to a simple option 'SPIRO_REVERSE_SRC', and the results are up to date as per this version of libspiro.
 NOTE - libspiro calculations are a one-way calculation, so you are not likely to see the same results in the reverse spiro path direction, but if you need this option, it is available here.
 
 SPIRO_CUBIC_TO_BEZIER:
-LibSpiro default action is to create cubic bezier curves.
+LibSpiro default action is to create cubic bézier curves.
 
 SPIRO_CUBIC_MIN_MAYBE:
 Cubic arcs can potentially be made with greater bends and less points.
@@ -213,7 +224,7 @@ SPIRO_ARC_MAYBE and SPIRO_ARC_MIN_MAYBE:
 Instead of the default cubic output, this exposes the midpoint, which might be useful to someone.
 
 SPIRO_QUAD0_TO_BEZIER:
-Rough approximation of quadratic to bezier curves. Knot points will have smooth connection but midpoints may be visually okay or not.
+Rough approximation of quadratic to bézier curves. Knot points will have smooth connection but midpoints may be visually okay or not.
 
 
 #### The bezier context

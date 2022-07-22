@@ -1,6 +1,13 @@
 /*
+libspiro - A sharable library of Spiro formula and functions.
+
+This file is a fork from ppedit for use by the libspiro project.
+Please see Changelog or git history for description of changes.
+=============================================================
 ppedit - A pattern plate editor for Spiro splines.
-Copyright (C) 2007... Raph Levien
+Copyright (C) 2007... Raph Levien (ppedit)
+libspiro - A sharable library of Spiro formula and functions.
+Copyright (C) 2007... George Williams (libspiro fork)
 Copyright (C) 2013... Joe Da Silva (improvements plus 'a','h')
 
 This program is free software; you can redistribute it and/or
@@ -30,6 +37,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include "spiroentrypoints.h"
 #include "bezctx_intf.h"
+#include "spiro_intf.h"
 #include "spiro.h"
 
 #include "spiro-config.h"
@@ -571,15 +579,17 @@ setup_path0(const spiro_cp *src, double *dm, int n)
     for (i = 0; i < n_seg; i++) {
 	/* gigo test: error if src[i].ty isn't a known type */
 	if (src[i].ty == 'a') {
-	    if (src[i + 1].ty == 'h' || (i == n_seg-1 && src[i + 1].ty == '}'))
-		;
-	    else
+	    if (src[i + 1].ty == 'h' || (i == n_seg-1 && src[i + 1].ty == '}')) {
+		if (src[i].x == src[i + 1].x && src[i].y == src[i + 1].y)
+		    goto setup_path_error1;
+	    } else
 		/* did not find 'ah' (or 'a}' as last pair) */
 		goto setup_path_error1;
 	} else if (src[i].ty == 'h') {
-	    if (src[i - 1].ty == 'a' || (i == 1 || src[0].ty == '{'))
-		;
-	    else
+	    if (src[i - 1].ty == 'a' || (i == 1 || src[0].ty == '{')) {
+		if (src[i - 1].x == src[i].x && src[i - 1].y == src[i].y)
+		    goto setup_path_error1;
+	    } else
 		/* didn't find 'ah' (or '{h' as first pair) */
 		goto setup_path_error1;
 	}
@@ -1011,7 +1021,7 @@ solve_spiroerr0:
 static void
 spiro_seg_to_bpath1(const double ks[4], double *dm, double *di,
 		   double x0, double y0, double x1, double y1,
-		   bezctx *bc, int ncq, int depth)
+		   bezctx *bc, int ncq, int si, int depth)
 {
     double bend, seg_ch, seg_th, ch, th, scale, rot;
     double th_even, th_odd, ul, vl, ur, vr;
@@ -1026,9 +1036,9 @@ spiro_seg_to_bpath1(const double ks[4], double *dm, double *di,
 #ifdef VERBOSE
 	    printf("...to next knot point...\n");
 #endif
-	    bezctx_lineto(bc, di[2], di[5]);
+	    bezctx_lineto(bc, di[2], di[5], si);
 	} else {
-	    bezctx_lineto(bc, x1 * dm[0] + dm[1], y1 * dm[0] + dm[2]);
+	    bezctx_lineto(bc, x1 * dm[0] + dm[1], y1 * dm[0] + dm[2], si);
 	}
     } else {
 	seg_ch = hypot(x1 - x0, y1 - y0);
@@ -1051,13 +1061,13 @@ spiro_seg_to_bpath1(const double ks[4], double *dm, double *di,
 #ifdef VERBOSE
 		printf("...to next knot point...\n");
 #endif
-		bezctx_curveto(bc, ((x0 + ul) * dm[0] + dm[1]), ((y0 + vl) * dm[0] + dm[2]),
-				((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]),
-				di[2], di[5]);
+		bezctx_curveto(bc, ((x0 + ul) * dm[0] + dm[1]), ((y0 + vl) * dm[0] + dm[2]), \
+				((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]), \
+				di[2], di[5], si);
 	    } else {
-		bezctx_curveto(bc, ((x0 + ul) * dm[0] + dm[1]), ((y0 + vl) * dm[0] + dm[2]),
-				((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]),
-				(x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
+		bezctx_curveto(bc, ((x0 + ul) * dm[0] + dm[1]), ((y0 + vl) * dm[0] + dm[2]), \
+				((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]), \
+				(x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]), si);
 	    }
 	} else {
 	    /* subdivide */
@@ -1078,9 +1088,12 @@ spiro_seg_to_bpath1(const double ks[4], double *dm, double *di,
 #ifdef VERBOSE
 			printf("...to next knot point...\n");
 #endif
-			bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), di[2], di[5]);
+			bezctx_quadto(bc, (xmid * dm[0] + dm[1]), \
+				      (ymid * dm[0] + dm[2]), di[2], di[5], si);
 		    } else {
-			bezctx_quadto(bc, (xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
+			bezctx_quadto(bc, (xmid * dm[0] + dm[1]), \
+				      (ymid * dm[0] + dm[2]), (x1 * dm[0] + dm[1]), \
+				      (y1 * dm[0] + dm[2]), si);
 		    }
 		} else {
 		    /* create quadratic bezier approximations */
@@ -1091,27 +1104,27 @@ spiro_seg_to_bpath1(const double ks[4], double *dm, double *di,
 		    ur = (scale * (1./6)) * cos(th_even + th_odd);
 		    vr = (scale * (1./6)) * sin(th_even + th_odd);
 		    bezctx_quadto(bc, ((x0 + ul) * dm[0] + dm[1]), ((y0 + vl) * dm[0] + dm[2]), \
-					(xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]));
+					(xmid * dm[0] + dm[1]), (ymid * dm[0] + dm[2]), si);
 		    if (di[3] < x1 && x1 < di[4] && di[6] < y1 && y1 < di[7]) {
 #ifdef VERBOSE
 			printf("...to next knot point...\n");
 #endif
 			bezctx_quadto(bc, ((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]), \
-					    di[2], di[5]);
+					    di[2], di[5], si);
 		    } else {
 			bezctx_quadto(bc, ((x1 - ur) * dm[0] + dm[1]), ((y1 - vr) * dm[0] + dm[2]), \
-					    (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]));
+					    (x1 * dm[0] + dm[1]), (y1 * dm[0] + dm[2]), si);
 		    }
 		}
 	    } else {
 #ifdef VERBOSE
 		printf("...subdivide curve...\n");
 #endif
-		spiro_seg_to_bpath1(ksub, dm, di, x0, y0, xmid, ymid, bc, ncq, depth + 1);
+		spiro_seg_to_bpath1(ksub, dm, di, x0, y0, xmid, ymid, bc, ncq, si, depth + 1);
 		ksub[0] += .25 * ks[1] + (1./384) * ks[3];
 		ksub[1] += .125 * ks[2];
 		ksub[2] += (1./16) * ks[3];
-		spiro_seg_to_bpath1(ksub, dm, di, xmid, ymid, x1, y1, bc, ncq, depth + 1);
+		spiro_seg_to_bpath1(ksub, dm, di, xmid, ymid, x1, y1, bc, ncq, si, depth + 1);
 	    }
 	}
     }
@@ -1127,13 +1140,14 @@ spiro_seg_to_bpath(const double ks[4],
     set_dm_to_1(dm);
     di[1] = 0.0005 * 500; /* assume size in range {0..1000} */
     set_di_to_x1y1(di, dm, x1, y1);
-    spiro_seg_to_bpath1(ks, dm, di, x0, y0, x1, y1, bc, SPIRO_RETRO_VER1, depth);
+    spiro_seg_to_bpath1(ks, dm, di, x0, y0, x1, y1, bc, SPIRO_RETRO_VER1, 0, depth);
 }
 
 /* This function reverses src path for calling application. */
 /* Spiro calculations might not translate well in the other */
 /* direction, however, there may be a need to reverse path. */
 /* Function leaves src unmodified if cannot reverse values. */
+LS_DLL_EXPORT
 int
 spiroreverse(spiro_cp *src, int n)
 {
@@ -1210,6 +1224,7 @@ errspiroreverse:
     return -1;
 }
 
+LS_DLL_EXPORT
 spiro_seg *
 run_spiro0(const spiro_cp *src, double *dm, int ncq, int n)
 {
@@ -1228,6 +1243,7 @@ run_spiro0(const spiro_cp *src, double *dm, int ncq, int n)
 }
 
 /* deprecated / backwards compatibility / not scalable */
+LS_DLL_EXPORT
 spiro_seg *
 run_spiro(const spiro_cp *src, int n)
 {
@@ -1235,20 +1251,22 @@ run_spiro(const spiro_cp *src, int n)
     return run_spiro0(src, dm, SPIRO_RETRO_VER1, n);
 }
 
+LS_DLL_EXPORT
 void
 free_spiro(spiro_seg *s)
 {
     if (s) free(s);
 }
 
-void
+LS_DLL_EXPORT
+int
 spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 		double *dm, int ncq, int n, bezctx *bc)
 {
-    int i, j, lk, nsegs, z;
+    int i, j, lk, nsegs, si, z;
     double di[8], x0, y0, x1, y1;
 
-    if (s==NULL || n <= 0 || ncq < 0 || bc==NULL) return;
+    if (s==NULL || n <= 0 || ncq < 0 || bc==NULL) return 0;
 
     nsegs = n;
     if (s[0].ty == '{') {
@@ -1281,6 +1299,14 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
     di[0] = 1.; /* default cubic to bezier bend */
 
     lk = (ncq & SPIRO_INCLUDE_LAST_KNOT) && s[n - 1].ty == '}' ? 1 : 0;
+    if ( (ncq & SPIRO_INTERNAL_BEZCTX) ) {
+	if ( (ncq & SPIRO_INTERNAL_BEZCTX)==0 && \
+	     (bc->moveto==NULL || bc->lineto==NULL || bc->quadto==NULL || \
+	      bc->curveto==NULL || bc->mark_knot==NULL) )
+	    return 0;
+	si = 1;
+    } else
+	si = 0;
 
     if ( (ncq &= SPIRO_ARC_CUB_QUAD_MASK)==0 ) {
 	/* default action = cubic bezier output */;
@@ -1301,9 +1327,9 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 	x0 = s[i].x; y0 = s[i].y;
 	if (i == 0) {
 	    if (src != NULL) {
-		bezctx_moveto(bc, src[0].x, src[0].y, s[0].ty == '{');
+		bezctx_moveto(bc, src[0].x, src[0].y, s[0].ty == '{', si);
 	    } else {
-		bezctx_moveto(bc, (x0 * dm[0] + dm[1]), (y0 * dm[0] + dm[2]), s[0].ty == '{');
+		bezctx_moveto(bc, (x0 * dm[0] + dm[1]), (y0 * dm[0] + dm[2]), s[0].ty == '{', si);
 	    }
 	    if (nsegs > 1 && s[1].ty == 'h') ++i;
 	} else
@@ -1322,13 +1348,15 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
 	    }
 	}
 
-	bezctx_mark_knot(bc, j);
-	spiro_seg_to_bpath1(s[i].ks, dm, di, x0, y0, x1, y1, bc, ncq, 0);
+	bezctx_mark_knot(bc, j, si);
+	spiro_seg_to_bpath1(s[i].ks, dm, di, x0, y0, x1, y1, bc, ncq, si, 0);
     }
-    if (lk) bezctx_mark_knot(bc, j);
+    if (lk) bezctx_mark_knot(bc, j, si);
+    return 1;
 }
 
 /* deprecated / backwards compatibility / not scalable */
+LS_DLL_EXPORT
 void
 spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
 {
@@ -1337,12 +1365,14 @@ spiro_to_bpath(const spiro_seg *s, int n, bezctx *bc)
     spiro_to_bpath0(NULL, s, dm, SPIRO_RETRO_VER1, n, bc);
 }
 
+LS_DLL_EXPORT
 const char *
 LibSpiroVersion(void)
 {
     return( LS_VERSION_STR );
 }
 
+LS_DLL_EXPORT
 double
 get_knot_th(const spiro_seg *s, int i)
 {
