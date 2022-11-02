@@ -569,7 +569,6 @@ setup_path0(const spiro_cp *src, double *dm, int n)
 	dm[1] /* xoff */ = (xmin + xmax) / 2; xmax -= xmin;
 	dm[2] /* yoff */ = (ymin + ymax) / 2; ymax -= ymin;
 	dm[0] /* scale */ = fabs((fabs(xmax) >= fabs(ymax)) ? xmax : ymax);
-	if (xmax >= ymax) dm[0] = xmax; else dm[0] = ymax;
 	dm[0] /* scale */ /= 500.; /* ~ backward compatible */
     }
 #ifdef VERBOSE
@@ -786,6 +785,7 @@ add_mat_line(bandmat *m, double *v,double derivs[4],
     int joff, k;
 
     if (jj >= 0) {
+	jj %= nmat;
 	joff =  (j + 5 - jj + nmat) % nmat;
 	if (nmat < 6) {
 	    joff = j + 5 - jj;
@@ -819,14 +819,36 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int *jinca, int n, in
 	    m[i].al[j] = 0.;
     }
 
-    j = 0;
+    i = j = jj = 0;
     if (s[0].ty == 'o')
 	jj = nmat - 2;
     else if (s[0].ty == 'c')
 	jj = nmat - 1;
-    else
-	jj = 0;
-    for (i = 0; i < n; i++) {
+    else if (s[0].ty == '[' || s[0].ty == 'a') {
+	if (cyclic) {
+	    /* start at v, c or o */
+	    for (i = 0; i < n; i++) {
+		switch (s[i].ty) {
+		case 'o':
+		    --jj;
+		case 'c':
+		    --jj;
+		case 'v':
+		    jj = (jj + nmat) % nmat;
+		    j %= nmat;
+		    goto spiro_iter_1;
+		    break;
+		default:
+		    jj += jinca[i];
+		    j += jinca[i];
+		}
+	    }
+	    i = j = jj = 0;
+spiro_iter_1: ;
+	}
+    }
+    for (k = 0; k < n; i++, k++) {
+	i %= n;
 	ty0 = s[i].ty;
 	ty1 = s[i + 1].ty;
 	jinc = jinca[i];
@@ -840,6 +862,7 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int *jinca, int n, in
 	if (ty0 == 'o' || ty0 == 'c' || ty0 == '[' || ty0 == ']' || \
 	    ty0 == 'a' || ty0 == 'h') {
 	    jthl = jj++;
+	    jthl %= nmat;
 	    jj %= nmat;
 	    jk0l = jj++;
 	    if (ty0 == 'o') {
@@ -869,6 +892,7 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int *jinca, int n, in
 	/* constraints crossing right */
 	if (ty1 == 'o' || ty1 == 'c' || ty1 == '[' || ty1 == ']' || \
 	    ty1 == 'a' || ty1 == 'h') {
+	    jj %= nmat;
 	    jthr = jj;
 	    jk0r = (jj + 1) % nmat;
 	    if (ty1 == 'o') {
@@ -890,6 +914,7 @@ spiro_iter(spiro_seg *s, bandmat *m, int *perm, double *v, int *jinca, int n, in
 	if (jthr >= 0)
 	    v[jthr] = mod_2pi(v[jthr]);
 	j += jinc;
+	j %= nmat;
     }
     if (cyclic) {
 	l = sizeof(bandmat) * (unsigned int)(nmat);
@@ -1299,13 +1324,12 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
     di[0] = 1.; /* default cubic to bezier bend */
 
     lk = (ncq & SPIRO_INCLUDE_LAST_KNOT) && s[n - 1].ty == '}' ? 1 : 0;
-    if ( (ncq & SPIRO_INTERNAL_BEZCTX) ) {
-	if ( (ncq & SPIRO_INTERNAL_BEZCTX)==0 && \
-	     (bc->moveto==NULL || bc->lineto==NULL || bc->quadto==NULL || \
-	      bc->curveto==NULL || bc->mark_knot==NULL) )
-	    return 0;
+    if ( (ncq & SPIRO_INTERNAL_BEZCTX) )
 	si = 1;
-    } else
+    else if ( (bc->moveto==NULL || bc->lineto==NULL || bc->quadto==NULL || \
+	       bc->curveto==NULL || bc->mark_knot==NULL) )
+	return 0;
+    else
 	si = 0;
 
     if ( (ncq &= SPIRO_ARC_CUB_QUAD_MASK)==0 ) {

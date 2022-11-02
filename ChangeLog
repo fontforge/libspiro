@@ -1,3 +1,14 @@
+- 2022-Nov-01
+    * Libspiro Version 20221101 (1.3.0)
+    * Bugfix - removed forgotten if-then code used with scaling tests.
+      Majority of users won't notice a difference since most FontForge
+      fonts are created in the +x,+y quadrant. Users that might see a
+      change/difference are users drawing only in the -x, -y quadrant.
+    * Enhanced libspiro to allow closed-loop spiros starting with '['
+      or 'a' by seeking the first available 'v', 'c', or 'o' as start,
+      which may be found later in the spiro curve. This was the least
+      modification needed to allow call-test10 or call-test11 to pass.
+
 - 2022-Jul-22
     * Libspiro Version 20220722 (1.2.0)
     * Due to confusion created when ppedit was also re-licensed as MIT

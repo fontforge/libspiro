@@ -143,10 +143,7 @@ rs_check_vals verify_rs9[] = {		/* iteration9 */
     {-1.570796, 141.421356, 2.356194}	/* o,  0,-100 */
 };
 
-/* test path10[] path11[] using '[]' instead of 'ah'. */
-#define TEST_10_11 1
 rs_check_vals verify_rs10[] = {		/* iteration4 */
-#ifndef TEST_10_11
     {-0.233743, 50.000000, -1.570796},	/* a,100,   0 */
     {-0.484478, 214.709106, -2.055274},	/* h,100, -50 */
     {-0.986650, 50.249378, -3.041924},	/* a,  0,-190 */
@@ -155,29 +152,9 @@ rs_check_vals verify_rs10[] = {		/* iteration4 */
     {-0.522523, 219.317122, 1.147942},	/* h,-95,  50 */
     {-0.950547, 50.990195, 0.197396},	/* o,  0, 200 */
     {-1.534449, 215.870331, -1.337053}	/* o, 50, 210 */
-#else
-    {-0.256151, 50.000000, -1.570796},	/* [,100,   0 */
-    {-0.484478, 214.709106, -2.055274},	/* ],100, -50 */
-    {-0.986650, 50.249378, -3.041924},	/* a,  0,-240 */
-    {-1.228091, 210.237960, 2.013171},	/* h,-50,-245 */
-    {-0.342706, 50.249378, 1.670465},	/* [,-90, -50 */
-    {-0.522523, 219.317, 1.14794},	/* ],-95,   0 */
-    {-0.950547, 50.990195, 0.197396},	/* o, -5, 200 */
-    {-1.512041, 217.082933, -1.314645}	/* o, 45, 210 */
-#endif
 };
 
 rs_check_vals verify_rs11[] = {		/* iteration4 */
-#ifndef TEST_10_11
-    {-0.233743, 50.000000, -1.570796},	/* a,100,   0 */
-    {-0.484478, 214.709106, -2.055274},	/* h,100, -50 */
-    {-0.986650, 50.249378, -3.041924},	/* a,  0,-190 */
-    {-1.228091, 210.237960, 2.013171},	/* h,-50,-195 */
-    {-0.342706, 50.249378, 1.670465},	/* a,-90,   0 */
-    {-0.522523, 219.317122, 1.147942},	/* h,-95,  50 */
-    {-0.950547, 50.990195, 0.197396},	/* o,  0, 200 */
-    {-1.534449, 215.870331, -1.337053}	/* o, 50, 210 */
-#else
     {-0.256151, 50.000000, -1.570796},	/* [,100,   0 */
     {-0.484478, 214.709106, -2.055274},	/* ],100, -50 */
     {-0.986650, 50.249378, -3.041924},	/* a,  0,-240 */
@@ -185,9 +162,8 @@ rs_check_vals verify_rs11[] = {		/* iteration4 */
     {-0.342706, 50.249378, 1.670465},	/* [,-90, -50 */
     {-0.522523, 219.317122, 1.147942},	/* ],-95,   0 */
     {-0.950547, 50.990195, 0.197396},	/* o, -5, 200 */
-    {-1.512041, 217.0829933, -1.314645}	/* o, 45, 210 */
-#endif
-};					/* a,100,   0 */
+    {-1.512041, 217.082933, -1.314645}	/* o, 45, 210 */
+};
 
 rs_check_vals verify_rs13[] = {		/* iteration4 */
     { 0.000000, 50.000000, -1.570796},	/* {,100,   0 */
@@ -327,7 +303,6 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	1, 1, 5, 5, 6, 3, 0, 0, 0
     };
     spiro_cp path10[] = { /* start loop with ah curves */
-#ifndef TEST_10_11
 	{100,   0, 'a'},
 	{100, -50, 'h'},
 	{  0,-190, 'a'},
@@ -336,7 +311,11 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	{-95,  50, 'h'},
 	{  0, 200, 'o'},
 	{ 50, 210, 'o'}
-#else
+    };
+    int knot10[] = {
+	5, 6, 3, 1, 1, 5, 0, 0
+    };
+    spiro_cp path11[] = { /* start loop with [] curves */
 	{100,   0, '['},
 	{100, -50, ']'},
 	{  0,-240, 'a'},
@@ -345,9 +324,8 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	{-95,   0, ']'},
 	{ -5, 200, 'o'},
 	{ 45, 210, 'o'}
-#endif
     };
-    int knot10[] = {
+    int knot11[] = {
 	5, 6, 3, 1, 1, 5, 0, 0
     };
     spiro_cp path13[] = { /* start open curve using {h */
@@ -428,12 +406,18 @@ void load_test_curve(spiro_cp *spiro, int *nextknot, int c) {
 	spiro[i].y = path4[i].y;
 	spiro[i].ty = path4[i].ty;
 	nextknot[i] = knot4[i];
-    } else if ( c==10 || c==11 ) for (i = 0; i < 8; i++) {
-	/* path10[]_co[10]=closedcurve, path11[]_co[10]=opencurve */
+    } else if ( c==10 ) for (i = 0; i < 8; i++) {
+	/* path10[] is a closed loop starting with ah */
 	spiro[i].x = path10[i].x;
 	spiro[i].y = path10[i].y;
 	spiro[i].ty = path10[i].ty;
 	nextknot[i] = knot10[i];
+    } else if ( c==11 ) for (i = 0; i < 8; i++) {
+	/* path11[] is an open curve starting with [] */
+	spiro[i].x = path11[i].x;
+	spiro[i].y = path11[i].y;
+	spiro[i].ty = path11[i].ty;
+	nextknot[i] = knot11[i];
     } else  if ( c==12 ) for (i = 0; i < 9; i++) {
 	/* call_test12 checks curve ending in ah with following z */
 	/* and declare cl[12] len=8 so run_spiro() can work okay. */
@@ -1181,16 +1165,10 @@ int main(int argc, char **argv) {
     ret=test_curve(9);	/* path4[] as a closed curve. */
 #endif
 #ifdef DO_CALL_TEST10
-    /* TODO: see why can start using c, o, but not [. */
-    /* TODO: see why can start using c, o, but not a. */
     ret=test_curve(10);	/* start loop with ah curves. */
-    ret = 0; /* ignore result for now until improved. */
 #endif
 #ifdef DO_CALL_TEST11
-    /* TODO: see why can start using c, o, but not [. */
-    /* TODO: see why can start using c, o, but not a. */
-    ret=test_curve(11);	/* start open curve using ah. */
-    ret = 0; /* ignore result for now until improved. */
+    ret=test_curve(11);	/* start open curve using []. */
 #endif
 #ifdef DO_CALL_TEST12
     ret=test_curve(12);	/* do path7[] with a z ending */
@@ -1208,7 +1186,7 @@ int main(int argc, char **argv) {
     ret=test_curve(16);	/* testing arc output path4[] */
 #endif
 #ifdef DO_CALL_TEST17
-    ret=test_curve(17);	/* do arc closed curve outut. */
+    ret=test_curve(17);	/* do arc closed curve output */
 #endif
 #ifdef DO_CALL_TEST18
     ret=test_curve(18);	/* do iterative as arc output */

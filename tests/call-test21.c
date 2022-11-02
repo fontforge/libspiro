@@ -259,13 +259,13 @@ int main(int argc, char **argv) {
     if ( ret ) {
 	printf("error: show_results() had wrong curve type.\n");
 	free_ls_bezctx(bc);
-	return -2;
+	return -3;
     }
     ret = verify_results(bc, 0);
     if ( ret ) {
 	printf("error: verify_results() did not match with expected values.\n");
 	free_ls_bezctx(bc);
-	return -3;
+	return -4;
     }
 
     /* Resize/release/keep old array, or start a new array
@@ -283,20 +283,20 @@ int main(int argc, char **argv) {
     if ( ret==0 ) {
 	printf("error: TaggedSpiroCPsToBezier2() failed to build quadratic curve.\n");
 	free_ls_bezctx(bc);
-	return -4;
+	return -5;
     }
     printf("show: resulting quadratic curve using test0 spiro array\n");
     ret = show_results(bc);
     if ( ret ) {
 	printf("error: show_results() had wrong curve type.\n");
 	free_ls_bezctx(bc);
-	return -5;
+	return -6;
     }
     ret = verify_results(bc, 1);
     if ( ret ) {
 	printf("error: verify_results() did not match with expected values.\n");
 	free_ls_bezctx(bc);
-	return -6;
+	return -7;
     }
     printf("pass: results matches expected values\n");
 
