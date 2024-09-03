@@ -1,3 +1,7 @@
+- 2024-Sep-03
+    * Libspiro Version 20240902 (1.5.0)
+    * Downgraded configure.ac AC_PREREQ(2.70) to 2.69 for ELN distros.
+
 - 2024-Sep-02
     * Libspiro Version 20240902 (1.4.0)
     * Bugfix - seen in fontforge issue 5209. Reverted code to remove

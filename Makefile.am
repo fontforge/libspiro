@@ -34,6 +34,7 @@ EXTRA_DIST = bezctx.md README-RaphLevien README.md README-GeorgeWilliams    \
 	java/SpiroCanvas.java java/SpiroCP.java java/SpiroGeneralPath.java  \
 	java/SpiroPointType.java m4/ax_check_compile_flag.m4 path5.png      \
 	path6.png libspiro.3
+nodist_EXTRA_DATA = .git .github
 
 include_HEADERS = bezctx.h spiro.h spiroentrypoints.h
 man_MANS = libspiro.3
