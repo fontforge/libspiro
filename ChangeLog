@@ -1,3 +1,13 @@
+- 2024-Sep-02
+    * Libspiro Version 20240902 (1.4.0)
+    * Bugfix - seen in fontforge issue 5209. Reverted code to remove
+      (incorrectly coded) pointer tests which seemed like a good idea
+      back then, but are of low value. Removed it to prioritize speed.
+    * Removed config.sub and config.guess since these are generated at
+      'autoreconf -i;automake' time, which may contain newer versions.
+    * configure.ac updated from 2.64 to 2.70 due to obsolete warnings.
+    * Libspiro code seems relatively mature and stable at this point.  
+
 - 2022-Nov-01
     * Libspiro Version 20221101 (1.3.0)
     * Bugfix - removed forgotten if-then code used with scaling tests.

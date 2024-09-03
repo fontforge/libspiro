@@ -61,6 +61,8 @@ make
 make install
 ```
 
+You can also look at file .github/workflows/main.yml for extra hints.
+
 NOTE: Some Distros and Operating Systems may require you to run 'ldconfig'
 to recognize libspiro if you are not rebooting your computer first before
 installing another program that depends on libspiro. To do this, you may

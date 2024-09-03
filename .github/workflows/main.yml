@@ -8,7 +8,7 @@ jobs:
       matrix:
         choiceL: [--disable-silent-rules, --enable-verbose_lib, --enable-test_inputs, --enable-test-a-lot]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Create configure
         run: |
           sudo apt-get update -y
@@ -57,7 +57,7 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: msys2/setup-msys2@v2
         with:
           msystem: ${{ matrix.msystem }}

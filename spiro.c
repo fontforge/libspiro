@@ -1324,13 +1324,7 @@ spiro_to_bpath0(const spiro_cp *src, const spiro_seg *s,
     di[0] = 1.; /* default cubic to bezier bend */
 
     lk = (ncq & SPIRO_INCLUDE_LAST_KNOT) && s[n - 1].ty == '}' ? 1 : 0;
-    if ( (ncq & SPIRO_INTERNAL_BEZCTX) )
-	si = 1;
-    else if ( (bc->moveto==NULL || bc->lineto==NULL || bc->quadto==NULL || \
-	       bc->curveto==NULL || bc->mark_knot==NULL) )
-	return 0;
-    else
-	si = 0;
+    si = (ncq & SPIRO_INTERNAL_BEZCTX) ? 1 : 0;
 
     if ( (ncq &= SPIRO_ARC_CUB_QUAD_MASK)==0 ) {
 	/* default action = cubic bezier output */;
